@@ -1,0 +1,149 @@
+.services {
+  padding: 6rem 2rem;
+  background: white;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.sectionTitle {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: rgb(65, 27, 94);
+  text-align: center;
+  margin-bottom: 1rem;
+  position: relative;
+  display: inline-block;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.sectionTitle::after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60px;
+  height: 4px;
+  background: linear-gradient(90deg, rgb(62, 84, 172), rgb(184, 174, 191));
+  border-radius: 2px;
+}
+
+.subtitle {
+  font-size: 1.25rem;
+  color: rgb(65, 27, 94);
+  text-align: center;
+  margin-bottom: 4rem;
+  opacity: 0.8;
+}
+
+.servicesGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 2rem;
+}
+
+.serviceCard {
+  background: linear-gradient(135deg, rgb(240, 237, 243) 0%, white 100%);
+  padding: 2.5rem;
+  border-radius: 20px;
+  box-shadow: 0 5px 20px rgba(65, 27, 94, 0.1);
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.serviceCard:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 15px 40px rgba(65, 27, 94, 0.2);
+}
+
+.iconWrapper {
+  width: 80px;
+  height: 80px;
+  background: linear-gradient(135deg, rgb(62, 84, 172), rgb(184, 174, 191));
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+  transition: all 0.3s ease;
+}
+
+.serviceCard:hover .iconWrapper {
+  transform: rotate(5deg) scale(1.05);
+}
+
+.icon {
+  font-size: 2.5rem;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+.serviceTitle {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: rgb(65, 27, 94);
+  margin: 0 0 1rem 0;
+}
+
+.serviceDescription {
+  font-size: 1rem;
+  color: rgb(65, 27, 94);
+  line-height: 1.7;
+  margin-bottom: 1.5rem;
+  opacity: 0.85;
+  flex: 1;
+}
+
+.featuresList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.featuresList li {
+  font-size: 0.9rem;
+  color: rgb(65, 27, 94);
+  padding-left: 1.5rem;
+  position: relative;
+  line-height: 1.5;
+  font-weight: 500;
+}
+
+.featuresList li::before {
+  content: '✓';
+  position: absolute;
+  left: 0;
+  color: rgb(62, 84, 172);
+  font-weight: bold;
+  font-size: 1.1rem;
+}
+
+@media (max-width: 768px) {
+  .services {
+    padding: 4rem 1rem;
+  }
+
+  .sectionTitle {
+    font-size: 2rem;
+  }
+
+  .subtitle {
+    font-size: 1.125rem;
+  }
+
+  .servicesGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .serviceCard {
+    padding: 2rem;
+  }
+}
+

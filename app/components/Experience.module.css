@@ -1,0 +1,176 @@
+.experience {
+  padding: 6rem 2rem;
+  background: white;
+}
+
+.container {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.sectionTitle {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: rgb(65, 27, 94);
+  text-align: center;
+  margin-bottom: 4rem;
+  position: relative;
+  display: inline-block;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.sectionTitle::after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60px;
+  height: 4px;
+  background: linear-gradient(90deg, rgb(62, 84, 172), rgb(184, 174, 191));
+  border-radius: 2px;
+}
+
+.timeline {
+  position: relative;
+}
+
+.timelineItem {
+  position: relative;
+  margin-bottom: 3rem;
+}
+
+.timelineItem:last-child {
+  margin-bottom: 0;
+}
+
+.timelineMarker {
+  display: none;
+}
+
+.timelineContent {
+  background: linear-gradient(135deg, rgb(240, 237, 243) 0%, white 100%);
+  padding: 2rem;
+  border-radius: 15px;
+  box-shadow: 0 5px 20px rgba(65, 27, 94, 0.1);
+  transition: all 0.3s ease;
+}
+
+.timelineContent:hover {
+  transform: translateX(10px);
+  box-shadow: 0 10px 30px rgba(65, 27, 94, 0.15);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1.5rem;
+  gap: 1rem;
+}
+
+.role {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: rgb(65, 27, 94);
+  margin: 0 0 0.5rem 0;
+}
+
+.company {
+  font-size: 1.125rem;
+  font-weight: 500;
+  color: rgb(62, 84, 172);
+  margin: 0 0 0.25rem 0;
+}
+
+.companyLink {
+  color: inherit;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.companyLink:hover {
+  color: rgb(65, 27, 94);
+  text-decoration: underline;
+}
+
+.location {
+  font-size: 0.9rem;
+  color: rgb(65, 27, 94);
+  margin: 0;
+  opacity: 0.7;
+  font-weight: 400;
+}
+
+.duration {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: rgb(65, 27, 94);
+  background: rgb(184, 174, 191);
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+
+.achievements {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.achievements li {
+  font-size: 1rem;
+  color: rgb(65, 27, 94);
+  line-height: 1.6;
+  padding-left: 1.5rem;
+  position: relative;
+  opacity: 0.9;
+}
+
+.achievements li::before {
+  content: '▹';
+  position: absolute;
+  left: 0;
+  color: rgb(62, 84, 172);
+  font-weight: bold;
+}
+
+@media (max-width: 768px) {
+  .experience {
+    padding: 4rem 1rem;
+  }
+
+  .sectionTitle {
+    font-size: 2rem;
+  }
+
+
+  .timelineContent {
+    padding: 1.5rem;
+  }
+
+  .header {
+    flex-direction: column;
+  }
+
+  .role {
+    font-size: 1.25rem;
+  }
+
+  .company {
+    font-size: 1rem;
+  }
+
+  .duration {
+    align-self: flex-start;
+  }
+
+  .timelineContent:hover {
+    transform: translateX(5px);
+  }
+}
+
