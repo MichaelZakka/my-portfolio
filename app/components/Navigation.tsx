@@ -54,7 +54,6 @@ export default function Navigation() {
   return (
     <nav className={`${styles.navigation} ${isScrolled ? styles.scrolled : ''}`}>
       <div className={styles.container}>
-        <div className={styles.logo} onClick={() => scrollToSection('hero')}>Portfolio</div>
         <button
           className={styles.mobileMenuButton}
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}

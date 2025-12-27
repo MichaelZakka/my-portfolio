@@ -20,7 +20,7 @@
   margin: 0 auto;
   padding: 0 2rem;
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
 }
 
@@ -167,22 +167,16 @@
     color: rgb(62, 84, 172);
   }
 
-  .logo {
-    font-size: 1.25rem;
-  }
-
   .container {
     padding: 0 1rem;
+    justify-content: space-between;
   }
 }
 
 @media (max-width: 480px) {
-  .logo {
-    font-size: 1.1rem;
-  }
-
   .container {
     padding: 0 0.75rem;
+    justify-content: space-between;
   }
 
   .navigation {
