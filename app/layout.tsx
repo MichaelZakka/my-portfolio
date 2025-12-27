@@ -8,10 +8,7 @@ export const metadata: Metadata = {
   authors: [{ name: "Michael Zakka" }],
   creator: "Michael Zakka",
   icons: {
-    icon: [
-      { url: '/portfolio-icon.svg', type: 'image/svg+xml' },
-      { url: '/favicon.ico', sizes: 'any' },
-    ],
+    icon: '/portfolio-icon.svg',
     shortcut: '/portfolio-icon.svg',
     apple: '/portfolio-icon.svg',
   },
