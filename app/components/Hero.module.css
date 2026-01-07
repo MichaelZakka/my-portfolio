@@ -3,7 +3,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, rgb(184, 174, 191) 0%, rgb(240, 237, 243) 100%);
+  background: #000000;
   padding: 6rem 2rem 4rem;
   position: relative;
 }
@@ -28,7 +28,7 @@
 .greeting {
   display: block;
   font-size: 1.5rem;
-  color: rgb(65, 27, 94);
+  color: #b0b0b0;
   margin-bottom: 0.5rem;
   font-weight: 500;
 }
@@ -42,8 +42,8 @@
 
 .nameHighlight {
   display: block;
-  color: rgb(65, 27, 94);
-  background: linear-gradient(135deg, rgb(65, 27, 94), rgb(62, 84, 172));
+  color: #dc2626;
+  background: linear-gradient(135deg, #dc2626, #ef4444);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -51,14 +51,14 @@
 
 .title {
   font-size: 1.75rem;
-  color: rgb(65, 27, 94);
+  color: #e0e0e0;
   margin: 0 0 1.5rem 0;
   font-weight: 600;
 }
 
 .tagline {
   font-size: 1.125rem;
-  color: rgb(65, 27, 94);
+  color: #b0b0b0;
   line-height: 1.8;
   margin-bottom: 2.5rem;
   max-width: 500px;
@@ -86,29 +86,31 @@
 }
 
 .primary {
-  background: rgb(65, 27, 94);
+  background: rgba(220, 38, 38, 0.9);
   color: white;
-  border-color: rgb(65, 27, 94);
+  border-color: #dc2626;
 }
 
 .primary:hover {
-  background: rgb(62, 84, 172);
-  border-color: rgb(62, 84, 172);
+  background: #dc2626;
+  border-color: #dc2626;
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(62, 84, 172, 0.3);
+  box-shadow: 0 10px 25px rgba(220, 38, 38, 0.6);
 }
 
 .secondary {
-  background: transparent;
-  color: rgb(65, 27, 94);
-  border-color: rgb(65, 27, 94);
+  background: rgba(74, 74, 74, 0.3);
+  backdrop-filter: blur(10px);
+  color: #e0e0e0;
+  border-color: rgba(96, 96, 96, 0.5);
 }
 
 .secondary:hover {
-  background: rgb(65, 27, 94);
+  background: rgba(96, 96, 96, 0.5);
   color: white;
+  border-color: rgba(220, 38, 38, 0.4);
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(65, 27, 94, 0.2);
+  box-shadow: 0 8px 20px rgba(220, 38, 38, 0.3);
 }
 
 .imageWrapper {
@@ -123,9 +125,9 @@
   height: 350px;
   border-radius: 50%;
   overflow: hidden;
-  background: linear-gradient(135deg, rgb(62, 84, 172), rgb(184, 174, 191));
+  background: linear-gradient(135deg, #dc2626, #991b1b);
   padding: 5px;
-  box-shadow: 0 20px 60px rgba(65, 27, 94, 0.3);
+  box-shadow: 0 20px 60px rgba(220, 38, 38, 0.5);
 }
 
 .profileImage {
@@ -146,7 +148,7 @@
 .mouse {
   width: 26px;
   height: 40px;
-  border: 2px solid rgb(65, 27, 94);
+  border: 2px solid #dc2626;
   border-radius: 15px;
   position: relative;
 }
@@ -159,7 +161,7 @@
   transform: translateX(-50%);
   width: 4px;
   height: 8px;
-  background: rgb(65, 27, 94);
+  background: #dc2626;
   border-radius: 2px;
   animation: scroll 1.5s infinite;
 }

@@ -28,14 +28,20 @@ export default function Hero() {
             "Crafting technology that makes an impact."
 
             </p>
-            <div className={styles.ctaButtons}>
-              <button
-                className={`${styles.button} ${styles.primary}`}
-                onClick={() => scrollToSection('contact')}
-              >
-                Get In Touch
-              </button>
-            </div>
+              <div className={styles.ctaButtons}>
+                <button
+                  className={`${styles.button} ${styles.primary}`}
+                  onClick={() => scrollToSection('projects')}
+                >
+                  View My Work
+                </button>
+                <button
+                  className={`${styles.button} ${styles.secondary}`}
+                  onClick={() => scrollToSection('contact')}
+                >
+                  Let's Build Your Product
+                </button>
+              </div>
           </div>
           <div className={styles.imageWrapper}>
             <div className={styles.imageContainer}>

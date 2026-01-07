@@ -1,6 +1,6 @@
 .education {
   padding: 6rem 2rem;
-  background: linear-gradient(135deg, rgb(240, 237, 243) 0%, rgb(184, 174, 191) 100%);
+  background: #000000;
 }
 
 .container {
@@ -11,7 +11,7 @@
 .sectionTitle {
   font-size: 2.5rem;
   font-weight: 700;
-  color: rgb(65, 27, 94);
+  color: #e0e0e0;
   text-align: center;
   margin-bottom: 4rem;
   position: relative;
@@ -28,7 +28,7 @@
   transform: translateX(-50%);
   width: 60px;
   height: 4px;
-  background: linear-gradient(90deg, rgb(62, 84, 172), rgb(184, 174, 191));
+  background: linear-gradient(90deg, #dc2626, #b91c1c);
   border-radius: 2px;
 }
 
@@ -43,7 +43,7 @@
 .subsectionTitle {
   font-size: 1.75rem;
   font-weight: 600;
-  color: rgb(65, 27, 94);
+  color: #e0e0e0;
   margin-bottom: 2rem;
 }
 
@@ -54,16 +54,19 @@
 }
 
 .educationCard {
-  background: white;
+  background: rgba(64, 64, 64, 0.2);
+  backdrop-filter: blur(10px);
   padding: 2.5rem;
   border-radius: 20px;
-  box-shadow: 0 5px 20px rgba(65, 27, 94, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
   transition: all 0.3s ease;
+  border: 1px solid rgba(96, 96, 96, 0.3);
 }
 
 .educationCard:hover {
   transform: translateY(-5px);
-  box-shadow: 0 10px 30px rgba(65, 27, 94, 0.15);
+  box-shadow: 0 10px 30px rgba(220, 38, 38, 0.4);
+  border-color: rgba(220, 38, 38, 0.6);
 }
 
 .cardHeader {
@@ -77,20 +80,20 @@
 .degree {
   font-size: 1.5rem;
   font-weight: 600;
-  color: rgb(65, 27, 94);
+  color: #e0e0e0;
   margin: 0 0 0.5rem 0;
 }
 
 .institution {
   font-size: 1.125rem;
   font-weight: 600;
-  color: rgb(62, 84, 172);
+  color: #dc2626;
   margin: 0 0 0.25rem 0;
 }
 
 .location {
   font-size: 0.9rem;
-  color: rgb(65, 27, 94);
+  color: #b0b0b0;
   margin: 0;
   opacity: 0.7;
 }
@@ -98,8 +101,8 @@
 .duration {
   font-size: 0.9rem;
   font-weight: 600;
-  color: rgb(65, 27, 94);
-  background: rgb(184, 174, 191);
+  color: #e0e0e0;
+  background: #4a4a4a;
   padding: 0.5rem 1rem;
   border-radius: 20px;
   white-space: nowrap;
@@ -107,7 +110,7 @@
 
 .description {
   font-size: 1rem;
-  color: rgb(65, 27, 94);
+  color: #b0b0b0;
   line-height: 1.6;
   margin: 0;
   opacity: 0.85;
@@ -120,19 +123,22 @@
 }
 
 .certCard {
-  background: white;
+  background: rgba(64, 64, 64, 0.2);
+  backdrop-filter: blur(10px);
   padding: 2rem;
   border-radius: 15px;
-  box-shadow: 0 5px 20px rgba(65, 27, 94, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
   display: flex;
   gap: 1.5rem;
   align-items: start;
   transition: all 0.3s ease;
+  border: 1px solid rgba(96, 96, 96, 0.3);
 }
 
 .certCard:hover {
   transform: translateY(-5px);
-  box-shadow: 0 10px 30px rgba(65, 27, 94, 0.15);
+  box-shadow: 0 10px 30px rgba(220, 38, 38, 0.4);
+  border-color: rgba(220, 38, 38, 0.6);
 }
 
 .certIcon {
@@ -142,9 +148,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, rgb(184, 174, 191), rgb(240, 237, 243));
+  background: linear-gradient(135deg, #dc2626, #991b1b);
   border-radius: 12px;
   flex-shrink: 0;
+  box-shadow: 0 4px 15px rgba(220, 38, 38, 0.3);
 }
 
 .certInfo {
@@ -154,22 +161,22 @@
 .certName {
   font-size: 1.125rem;
   font-weight: 600;
-  color: rgb(65, 27, 94);
+  color: #e0e0e0;
   margin: 0 0 0.5rem 0;
   line-height: 1.4;
 }
 
 .certIssuer {
   font-size: 0.9rem;
-  color: rgb(62, 84, 172);
+  color: #dc2626;
   margin: 0 0 0.5rem 0;
   font-weight: 500;
 }
 
 .certDate {
   font-size: 0.875rem;
-  color: rgb(65, 27, 94);
-  background: rgb(184, 174, 191);
+  color: #e0e0e0;
+  background: #4a4a4a;
   padding: 0.25rem 0.75rem;
   border-radius: 12px;
   display: inline-block;

@@ -3,6 +3,18 @@ import styles from './Experience.module.css';
 export default function Experience() {
   const experiences = [
     {
+      company: 'Freelance',
+      role: 'Web Developer',
+      duration: '2024 - Present',
+      location: 'Remote - Freelance',
+      achievements: [
+        'Built responsive web applications and landing pages using React and Next.js',
+        'Developed custom websites and web solutions for various clients across different industries',
+        'Provided end-to-end development services from requirements gathering to deployment',
+        'Maintained direct client communication to ensure project requirements and deadlines were met',
+      ],
+    },
+    {
       company: 'Toward Greatness',
       role: 'Fullstack Developer',
       duration: 'Oct 2025 - Present',

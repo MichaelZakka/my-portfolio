@@ -1,0 +1,83 @@
+.whatsappButton {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 60px;
+  height: 60px;
+  background: rgba(74, 74, 74, 0.4);
+  backdrop-filter: blur(10px);
+  color: #e0e0e0;
+  text-decoration: none;
+  border-radius: 50%;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
+  animation: slideIn 0.5s ease;
+  border: 2px solid rgba(96, 96, 96, 0.3);
+}
+
+.whatsappButton:hover {
+  background: rgba(220, 38, 38, 0.9);
+  color: #ffffff;
+  border-color: #dc2626;
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 8px 25px rgba(220, 38, 38, 0.6);
+}
+
+.whatsappButton:active {
+  transform: translateY(-1px);
+}
+
+.icon {
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Pulse animation for attention */
+@keyframes pulse {
+  0%, 100% {
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  }
+  50% {
+    box-shadow: 0 4px 25px rgba(220, 38, 38, 0.5), 0 0 0 10px rgba(220, 38, 38, 0.1);
+  }
+}
+
+.whatsappButton {
+  animation: slideIn 0.5s ease, pulse 2s ease-in-out infinite 2s;
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+  .whatsappButton {
+    bottom: 1.5rem;
+    right: 1.5rem;
+    width: 56px;
+    height: 56px;
+  }
+}
+
+@media (max-width: 480px) {
+  .whatsappButton {
+    bottom: 1rem;
+    right: 1rem;
+    width: 52px;
+    height: 52px;
+  }
+}
+

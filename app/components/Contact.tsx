@@ -1,4 +1,5 @@
 import styles from './Contact.module.css';
+import { Mail, Phone, MapPin } from 'lucide-react';
 
 export default function Contact() {
   return (
@@ -14,21 +15,27 @@ export default function Contact() {
             </p>
             <div className={styles.infoList}>
               <div className={styles.infoItem}>
-                <div className={styles.icon}>📧</div>
+                <div className={styles.icon}>
+                  <Mail size={24} strokeWidth={2} />
+                </div>
                 <div>
                   <h4>Email</h4>
                   <a href="mailto:michealzakka@gmail.com">michealzakka@gmail.com</a>
                 </div>
               </div>
               <div className={styles.infoItem}>
-                <div className={styles.icon}>📱</div>
+                <div className={styles.icon}>
+                  <Phone size={24} strokeWidth={2} />
+                </div>
                 <div>
                   <h4>Phone</h4>
                   <a href="tel:+963992833739">+963 992 833 739</a>
                 </div>
               </div>
               <div className={styles.infoItem}>
-                <div className={styles.icon}>📍</div>
+                <div className={styles.icon}>
+                  <MapPin size={24} strokeWidth={2} />
+                </div>
                 <div>
                   <h4>Location</h4>
                   <p>Damascus - Syria</p>

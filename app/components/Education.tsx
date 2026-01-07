@@ -7,7 +7,7 @@ export default function Education() {
       institution: 'Damascus University',
       location: 'Damascus',
       duration: '2020 - 2025',
-      description: 'Specialized in Artificial intellegence and natural languages',
+      description: 'Specialized in Artificial Intelligence and natural languages',
     },
   ];
 

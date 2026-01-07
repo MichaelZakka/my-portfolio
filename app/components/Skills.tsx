@@ -17,7 +17,7 @@ export default function Skills() {
       title: 'Mobile development',
       skills: [
         { name: 'Flutter', level: 5 },
-        { name: 'dart', level: 4 },
+        { name: 'Dart', level: 4 },
         { name: 'Firebase', level: 3 },
         { name: 'GetX', level: 4 },
         { name: 'BLOC', level: 4 },
@@ -31,7 +31,7 @@ export default function Skills() {
         { name: 'Communication skills', level: 5 },
         { name: 'Flexibility', level: 5 },
         { name: 'Working under pressure', level: 5 },
-        { name: 'MultiTasking', level: 5 },
+        { name: 'Multitasking', level: 5 },
         { name: 'Deadline Commitment', level: 4 },
       ],
     },

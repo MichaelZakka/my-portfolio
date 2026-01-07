@@ -1,9 +1,10 @@
 import styles from './Services.module.css';
+import { Code, Target, ShoppingCart, Smartphone } from 'lucide-react';
 
 export default function Services() {
   const services = [
     {
-      icon: '💻',
+      icon: Code,
       title: 'Web Projects',
       description:
         'Building modern, scalable web applications using React, Next.js, and cutting-edge technologies. From dynamic websites to complex web platforms.',
@@ -15,7 +16,7 @@ export default function Services() {
       ],
     },
     {
-      icon: '🎯',
+      icon: Target,
       title: 'Landing Pages',
       description:
         'Creating high-converting landing pages that capture attention and drive results. Optimized for performance and user experience.',
@@ -27,7 +28,7 @@ export default function Services() {
       ],
     },
     {
-      icon: '🛒',
+      icon: ShoppingCart,
       title: 'Shopify Stores',
       description:
         'Designing and developing custom Shopify stores that showcase your products beautifully and provide seamless shopping experiences.',
@@ -39,7 +40,7 @@ export default function Services() {
       ],
     },
     {
-      icon: '📱',
+      icon: Smartphone,
       title: 'Mobile Applications',
       description:
         'Developing cross-platform mobile applications using Flutter for iOS and Android. Delivering native-like performance and user experience.',
@@ -60,20 +61,23 @@ export default function Services() {
           Comprehensive solutions tailored to your business needs
         </p>
         <div className={styles.servicesGrid}>
-          {services.map((service, idx) => (
-            <div key={idx} className={styles.serviceCard}>
-              <div className={styles.iconWrapper}>
-                <span className={styles.icon}>{service.icon}</span>
+          {services.map((service, idx) => {
+            const IconComponent = service.icon;
+            return (
+              <div key={idx} className={styles.serviceCard}>
+                <div className={styles.iconWrapper}>
+                  <IconComponent className={styles.icon} size={40} strokeWidth={2} />
+                </div>
+                <h3 className={styles.serviceTitle}>{service.title}</h3>
+                <p className={styles.serviceDescription}>{service.description}</p>
+                <ul className={styles.featuresList}>
+                  {service.features.map((feature, fIdx) => (
+                    <li key={fIdx}>{feature}</li>
+                  ))}
+                </ul>
               </div>
-              <h3 className={styles.serviceTitle}>{service.title}</h3>
-              <p className={styles.serviceDescription}>{service.description}</p>
-              <ul className={styles.featuresList}>
-                {service.features.map((feature, fIdx) => (
-                  <li key={fIdx}>{feature}</li>
-                ))}
-              </ul>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </section>

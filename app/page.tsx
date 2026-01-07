@@ -9,6 +9,7 @@ import Services from './components/Services';
 import Stats from './components/Stats';
 import Contact from './components/Contact';
 import Footer from './components/Footer';
+import WhatsAppButton from './components/WhatsAppButton';
 
 export default function Home() {
   return (
@@ -17,13 +18,15 @@ export default function Home() {
       <main>
         <Hero />
         <About />
-        <Skills />
-        <Experience />
-        <Education />
         <Services />
+        <Experience />
+        <Skills />
+        <Projects />
+        <Education />
         <Contact />
       </main>
       <Footer />
+      <WhatsAppButton />
     </>
   );
 }
