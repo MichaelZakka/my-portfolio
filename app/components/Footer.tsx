@@ -1,5 +1,5 @@
 import styles from './Footer.module.css';
-import { Linkedin, Github, Mail } from 'lucide-react';
+import { Linkedin, Mail } from 'lucide-react';
 
 export default function Footer() {
   const socialLinks = [
@@ -7,11 +7,6 @@ export default function Footer() {
       name: 'LinkedIn',
       url: 'https://linkedin.com/in/michael-zakka',
       icon: Linkedin,
-    },
-    {
-      name: 'GitHub',
-      url: 'https://github.com/MichaelZakka',
-      icon: Github,
     },
     {
       name: 'Email',
