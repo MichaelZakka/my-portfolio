@@ -22,7 +22,7 @@ export default function Home() {
         <Services />
         <Experience />
         <Skills />
-        {/* <Projects /> */}
+        <Projects />
         <Education />
         <Volunteering />
         <Contact />
