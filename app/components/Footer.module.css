@@ -21,6 +21,7 @@
 .container {
   max-width: 1200px;
   margin: 0 auto;
+  width: 100%;
   position: relative;
   z-index: 1;
 }
@@ -135,20 +136,36 @@
 
 @media (max-width: 768px) {
   .footer {
-    padding: 3rem 1rem 2rem;
+    padding: 3rem 1.25rem 2rem;
+    padding-bottom: max(2rem, env(safe-area-inset-bottom));
   }
 
   .content {
     grid-template-columns: 1fr;
-    gap: 3rem;
+    gap: 2.5rem;
+    margin-bottom: 2rem;
+    padding-bottom: 2rem;
+  }
+
+  .branding {
+    text-align: center;
+    align-items: center;
+  }
+
+  .tagline {
+    max-width: none;
   }
 
   .socialLinks {
-    align-items: flex-start;
+    align-items: center;
+  }
+
+  .socialTitle {
+    text-align: center;
   }
 
   .links {
-    justify-content: flex-start;
+    justify-content: center;
   }
 
   .bottom {
@@ -163,6 +180,43 @@
 
   .tagline {
     font-size: 1rem;
+  }
+
+  .socialLink:hover {
+    transform: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .footer {
+    padding: 2.5rem 1rem 1.5rem;
+    padding-bottom: max(1.5rem, env(safe-area-inset-bottom));
+  }
+
+  .content {
+    gap: 2rem;
+  }
+
+  .name {
+    font-size: 1.35rem;
+  }
+
+  .tagline {
+    font-size: 0.9375rem;
+  }
+
+  .socialTitle {
+    font-size: 1.125rem;
+  }
+
+  .socialLink {
+    width: 44px;
+    height: 44px;
+  }
+
+  .copyright,
+  .madeWith {
+    font-size: 0.8125rem;
   }
 }
 

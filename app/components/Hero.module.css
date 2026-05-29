@@ -38,6 +38,8 @@
   font-weight: 700;
   margin: 0 0 1rem 0;
   line-height: 1.2;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
 }
 
 .nameHighlight {
@@ -212,6 +214,11 @@
 }
 
 @media (max-width: 968px) {
+  .primary:hover,
+  .secondary:hover {
+    transform: none;
+  }
+
   .hero {
     padding: 5rem 1.5rem 3rem;
     min-height: auto;
@@ -231,6 +238,7 @@
 
   .imageWrapper {
     order: -1;
+    margin-top: 1.5rem;
   }
 
   .imageContainer {
@@ -292,6 +300,10 @@
     padding: 0.875rem 1.5rem;
     font-size: 0.95rem;
     min-width: auto;
+  }
+
+  .imageWrapper {
+    margin-top: 2rem;
   }
 
   .imageContainer {

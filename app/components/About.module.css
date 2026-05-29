@@ -6,6 +6,7 @@
 .container {
   max-width: 1200px;
   margin: 0 auto;
+  width: 100%;
 }
 
 .sectionTitle {
@@ -18,6 +19,7 @@
   display: inline-block;
   left: 50%;
   transform: translateX(-50%);
+  max-width: 100%;
 }
 
 .sectionTitle::after {
@@ -89,24 +91,50 @@
 
 @media (max-width: 768px) {
   .about {
-    padding: 4rem 1rem;
+    padding: 4rem 1.25rem;
   }
 
   .sectionTitle {
     font-size: 2rem;
+    margin-bottom: 2rem;
   }
 
   .paragraph {
     font-size: 1rem;
+    line-height: 1.7;
   }
 
   .tags {
     gap: 0.75rem;
+    justify-content: center;
   }
 
   .tag {
     font-size: 0.9rem;
     padding: 0.6rem 1.2rem;
+  }
+
+  .tag:hover {
+    transform: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .about {
+    padding: 3rem 1rem;
+  }
+
+  .sectionTitle {
+    font-size: 1.75rem;
+  }
+
+  .paragraph {
+    font-size: 0.9375rem;
+  }
+
+  .tag {
+    font-size: 0.8125rem;
+    padding: 0.5rem 1rem;
   }
 }
 

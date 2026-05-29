@@ -7,6 +7,7 @@
 .container {
   max-width: 1200px;
   margin: 0 auto;
+  width: 100%;
 }
 
 .sectionTitle {
@@ -19,6 +20,7 @@
   display: inline-block;
   left: 50%;
   transform: translateX(-50%);
+  max-width: 100%;
 }
 
 .sectionTitle::after {
@@ -76,6 +78,12 @@
   border-radius: 15px;
   transition: all 0.3s ease;
   border: 1px solid rgba(96, 96, 96, 0.3);
+  min-width: 0;
+}
+
+.infoItem > div:last-child {
+  min-width: 0;
+  flex: 1;
 }
 
 .infoItem:hover {
@@ -267,7 +275,7 @@
   }
 
   .infoItem:hover {
-    transform: translateX(5px);
+    transform: none;
   }
 
   .icon {

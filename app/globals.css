@@ -14,8 +14,22 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
   color: #e0e0e0;
   background: #000000;
+  overflow-x: hidden;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+main {
+  width: 100%;
+  overflow-x: hidden;
+}
+
+section {
+  width: 100%;
   overflow-x: hidden;
 }
 
@@ -81,12 +95,14 @@ img {
 @media (max-width: 768px) {
   body {
     font-size: 16px;
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
   }
 }
 
 @media (max-width: 480px) {
   body {
-    font-size: 14px;
+    font-size: 15px;
   }
 }
 

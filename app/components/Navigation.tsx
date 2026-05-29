@@ -12,23 +12,40 @@ export default function Navigation() {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 50);
 
-      // Update active section based on scroll position
-      const sections = ['hero', 'about', 'skills', 'experience', 'projects', 'contact', 'education', 'services', 'stats'];
-      for (const section of sections) {
-        const element = document.getElementById(section);
+      const sections = [
+        'hero',
+        'about',
+        'services',
+        'experience',
+        'skills',
+        'education',
+        'volunteering',
+        'contact',
+      ];
+
+      for (let i = sections.length - 1; i >= 0; i--) {
+        const element = document.getElementById(sections[i]);
         if (element) {
           const rect = element.getBoundingClientRect();
-          if (rect.top <= 100 && rect.bottom >= 100) {
-            setActiveSection(section);
+          if (rect.top <= 120) {
+            setActiveSection(sections[i]);
             break;
           }
         }
       }
     };
 
-    window.addEventListener('scroll', handleScroll);
+    handleScroll();
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  useEffect(() => {
+    document.body.style.overflow = isMobileMenuOpen ? 'hidden' : '';
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isMobileMenuOpen]);
 
   const scrollToSection = (sectionId: string) => {
     const element = document.getElementById(sectionId);
@@ -43,21 +60,32 @@ export default function Navigation() {
   const navItems = [
     { id: 'hero', label: 'Home' },
     { id: 'about', label: 'About' },
-    { id: 'skills', label: 'Skills' },
-    { id: 'experience', label: 'Experience' },
-    { id: 'projects', label: 'Projects' },
-    { id: 'education', label: 'Education' },
     { id: 'services', label: 'Services' },
+    { id: 'experience', label: 'Experience' },
+    { id: 'skills', label: 'Skills' },
+    // { id: 'projects', label: 'Projects' },
+    { id: 'education', label: 'Education' },
+    { id: 'volunteering', label: 'Volunteering' },
     { id: 'contact', label: 'Contact' },
   ];
 
   return (
     <nav className={`${styles.navigation} ${isScrolled ? styles.scrolled : ''}`}>
+      {isMobileMenuOpen && (
+        <button
+          type="button"
+          className={styles.menuOverlay}
+          onClick={() => setIsMobileMenuOpen(false)}
+          aria-label="Close menu"
+        />
+      )}
       <div className={styles.container}>
         <button
+          type="button"
           className={styles.mobileMenuButton}
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           aria-label="Toggle menu"
+          aria-expanded={isMobileMenuOpen}
         >
           <span className={styles.hamburger}>
             <span className={`${styles.hamburgerLine} ${isMobileMenuOpen ? styles.open : ''}`}></span>

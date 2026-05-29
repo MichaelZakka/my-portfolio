@@ -5,6 +5,7 @@ import Skills from './components/Skills';
 import Experience from './components/Experience';
 import Projects from './components/Projects';
 import Education from './components/Education';
+import Volunteering from './components/Volunteering';
 import Services from './components/Services';
 import Stats from './components/Stats';
 import Contact from './components/Contact';
@@ -23,6 +24,7 @@ export default function Home() {
         <Skills />
         {/* <Projects /> */}
         <Education />
+        <Volunteering />
         <Contact />
       </main>
       <Footer />

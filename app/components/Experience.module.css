@@ -6,6 +6,7 @@
 .container {
   max-width: 1000px;
   margin: 0 auto;
+  width: 100%;
 }
 
 .sectionTitle {
@@ -18,6 +19,7 @@
   display: inline-block;
   left: 50%;
   transform: translateX(-50%);
+  max-width: 100%;
 }
 
 .sectionTitle::after {
@@ -71,6 +73,7 @@
   align-items: flex-start;
   margin-bottom: 1.5rem;
   gap: 1rem;
+  min-width: 0;
 }
 
 .role {
@@ -132,6 +135,8 @@
   padding-left: 1.5rem;
   position: relative;
   opacity: 0.9;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
 }
 
 .achievements li::before {
@@ -144,16 +149,21 @@
 
 @media (max-width: 768px) {
   .experience {
-    padding: 4rem 1rem;
+    padding: 4rem 1.25rem;
   }
 
   .sectionTitle {
     font-size: 2rem;
+    margin-bottom: 2.5rem;
   }
 
+  .timelineItem {
+    margin-bottom: 2rem;
+  }
 
   .timelineContent {
     padding: 1.5rem;
+    border-radius: 14px;
   }
 
   .header {
@@ -162,10 +172,16 @@
 
   .role {
     font-size: 1.25rem;
+    line-height: 1.35;
   }
 
   .company {
     font-size: 1rem;
+  }
+
+  .location {
+    font-size: 0.8125rem;
+    line-height: 1.5;
   }
 
   .duration {
@@ -173,7 +189,36 @@
   }
 
   .timelineContent:hover {
-    transform: translateX(5px);
+    transform: none;
+  }
+
+  .achievements li {
+    font-size: 0.9375rem;
+    padding-left: 1.25rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .experience {
+    padding: 3rem 1rem;
+  }
+
+  .sectionTitle {
+    font-size: 1.75rem;
+    margin-bottom: 2rem;
+  }
+
+  .timelineContent {
+    padding: 1.25rem;
+  }
+
+  .role {
+    font-size: 1.125rem;
+  }
+
+  .achievements li {
+    font-size: 0.875rem;
+    line-height: 1.55;
   }
 }
 

@@ -46,13 +46,19 @@
   padding: 0;
 }
 
+.menuOverlay {
+  display: none;
+}
+
 .mobileMenuButton {
   display: none;
   background: none;
   border: none;
   cursor: pointer;
   padding: 0.5rem;
-  z-index: 1001;
+  z-index: 1002;
+  min-width: 44px;
+  min-height: 44px;
 }
 
 .hamburger {
@@ -118,28 +124,45 @@
 }
 
 @media (max-width: 768px) {
-  .mobileMenuButton {
+  .menuOverlay {
     display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 999;
+    background: rgba(0, 0, 0, 0.5);
+    border: none;
+    cursor: pointer;
+    padding: 0;
+  }
+
+  .mobileMenuButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .navList {
     position: fixed;
-    top: 70px;
+    top: 0;
     left: 0;
     right: 0;
-    background: rgba(0, 0, 0, 0.95);
+    padding-top: calc(4.5rem + env(safe-area-inset-top, 0px));
+    background: rgba(0, 0, 0, 0.98);
     backdrop-filter: blur(12px);
     flex-direction: column;
     gap: 0;
-    padding: 1rem 0;
+    padding-bottom: 1rem;
     box-shadow: 0 4px 30px rgba(220, 38, 38, 0.2);
-    border-top: 1px solid rgba(220, 38, 38, 0.2);
+    border-bottom: 1px solid rgba(220, 38, 38, 0.2);
     transform: translateY(-100%);
     opacity: 0;
     visibility: hidden;
     transition: all 0.3s ease;
-    max-height: calc(100vh - 70px);
+    max-height: 100vh;
+    max-height: 100dvh;
     overflow-y: auto;
+    z-index: 1001;
+    -webkit-overflow-scrolling: touch;
   }
 
   .navList.mobileMenuOpen {
@@ -155,9 +178,10 @@
   .navLink {
     width: 100%;
     text-align: left;
-    padding: 1rem 2rem;
+    padding: 1rem 1.5rem;
     font-size: 1rem;
     border-bottom: 1px solid rgba(74, 74, 74, 0.3);
+    min-height: 48px;
   }
 
   .navLink::after {
@@ -178,16 +202,20 @@
 
 @media (max-width: 480px) {
   .container {
-    padding: 0 0.75rem;
-    justify-content: space-between;
+    padding: 0 1rem;
+    padding-left: max(1rem, env(safe-area-inset-left));
+    padding-right: max(1rem, env(safe-area-inset-right));
+    justify-content: flex-end;
   }
 
   .navigation {
     padding: 0.75rem 0;
+    padding-top: max(0.75rem, env(safe-area-inset-top));
   }
 
-  .navList {
-    top: 60px;
+  .navLink {
+    padding: 0.875rem 1.25rem;
+    font-size: 0.9375rem;
   }
 }
 

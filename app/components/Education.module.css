@@ -6,6 +6,7 @@
 .container {
   max-width: 1200px;
   margin: 0 auto;
+  width: 100%;
 }
 
 .sectionTitle {
@@ -18,6 +19,7 @@
   display: inline-block;
   left: 50%;
   transform: translateX(-50%);
+  max-width: 100%;
 }
 
 .sectionTitle::after {
@@ -185,11 +187,12 @@
 
 @media (max-width: 768px) {
   .education {
-    padding: 4rem 1rem;
+    padding: 4rem 1.25rem;
   }
 
   .sectionTitle {
     font-size: 2rem;
+    margin-bottom: 2.5rem;
   }
 
   .subsectionTitle {
@@ -197,7 +200,11 @@
   }
 
   .educationCard {
-    padding: 2rem;
+    padding: 1.75rem;
+  }
+
+  .educationCard:hover {
+    transform: none;
   }
 
   .cardHeader {
@@ -210,6 +217,11 @@
 
   .degree {
     font-size: 1.25rem;
+    line-height: 1.35;
+  }
+
+  .description {
+    font-size: 0.9375rem;
   }
 
   .certificationsGrid {
@@ -218,6 +230,39 @@
 
   .certCard {
     padding: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .education {
+    padding: 3rem 1rem;
+  }
+
+  .sectionTitle {
+    font-size: 1.75rem;
+    margin-bottom: 2rem;
+  }
+
+  .subsectionTitle {
+    font-size: 1.25rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .educationCard {
+    padding: 1.25rem;
+    border-radius: 14px;
+  }
+
+  .degree {
+    font-size: 1.125rem;
+  }
+
+  .institution {
+    font-size: 1rem;
+  }
+
+  .description {
+    font-size: 0.875rem;
   }
 }
 
