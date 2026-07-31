@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { getSiteUrl } from "./lib/site";
 import "./globals.css";
 
 export const viewport: Viewport = {
@@ -8,6 +9,7 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
+  metadataBase: new URL(getSiteUrl()),
   title: "Michael Zakka - IT Engineer",
   description: "Portfolio of Michael Zakka - IT Engineer and Full-Stack Developer specializing in web development, mobile applications, and modern technologies. Explore my projects, skills, and professional experience.",
   keywords: ["Michael Zakka", "IT Engineer", "Full-Stack Developer", "Portfolio", "Web Development", "Flutter Developer", "React Developer"],
@@ -23,6 +25,13 @@ export const metadata: Metadata = {
     locale: "en_US",
     title: "Michael Zakka - IT Engineer & Full-Stack Developer",
     description: "Portfolio of Michael Zakka - IT Engineer and Full-Stack Developer specializing in web development, mobile applications, and modern technologies.",
+  },
+  alternates: {
+    canonical: "/",
+  },
+  robots: {
+    index: true,
+    follow: true,
   },
 };
 

@@ -1,0 +1,37 @@
+.main {
+  width: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+.section {
+  padding: 7.5rem 2rem 6rem;
+  background:
+    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(220, 38, 38, 0.12), transparent 55%),
+    radial-gradient(ellipse 60% 40% at 100% 80%, rgba(185, 28, 28, 0.08), transparent 50%),
+    #000000;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+@media (max-width: 968px) {
+  .section {
+    padding: 6.5rem 1.5rem 5rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .section {
+    padding: 5.5rem 1rem 4rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .section {
+    padding: 5rem 0.75rem 3rem;
+  }
+}
