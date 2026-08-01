@@ -6,7 +6,7 @@ import { getSiteUrl } from './lib/site';
 type SitemapEntry = MetadataRoute.Sitemap[number];
 
 const PAGE_FILE = /^page\.(tsx|ts|jsx|js)$/;
-const SKIP_DIRS = new Set(['api', 'components', 'lib', 'hooks', 'utils', 'types']);
+const SKIP_DIRS = new Set(['api', 'components', 'lib', 'hooks', 'utils', 'types', 'admin']);
 
 /** Route metadata overrides keyed by pathname (e.g. "/", "/work-with-me"). */
 const ROUTE_META: Record<

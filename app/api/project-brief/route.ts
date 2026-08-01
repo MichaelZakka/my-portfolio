@@ -1,22 +1,23 @@
 import { NextResponse } from 'next/server';
 import {
-  buildBriefEmailBody,
-  buildBriefSubject,
-  INBOX_EMAIL,
   parseProjectBrief,
   validateProjectBrief,
 } from '../../lib/projectBrief';
+import { sendProjectBriefEmail } from '../../lib/email';
+import { prisma } from '../../lib/db';
+import { briefToLeadCreateInput } from '../../lib/leads';
+import { getClientIp, rateLimit } from '../../lib/rateLimit';
 
 export async function POST(request: Request) {
-  const accessKey = process.env.WEB3FORMS_ACCESS_KEY;
-
-  if (!accessKey) {
+  const ip = getClientIp(request);
+  const { success: withinLimit } = rateLimit(`project-brief:${ip}`, {
+    limit: 5,
+    windowMs: 10 * 60 * 1000,
+  });
+  if (!withinLimit) {
     return NextResponse.json(
-      {
-        error:
-          'Email delivery is not configured. Add WEB3FORMS_ACCESS_KEY to your environment.',
-      },
-      { status: 503 }
+      { error: 'Too many submissions. Please try again later.' },
+      { status: 429 }
     );
   }
 
@@ -37,41 +38,49 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: validationError }, { status: 400 });
   }
 
-  const subject = buildBriefSubject(data);
-  const message = buildBriefEmailBody(data);
+  const landingPath =
+    raw && typeof raw === 'object' && typeof (raw as Record<string, unknown>).landingPath === 'string'
+      ? ((raw as Record<string, unknown>).landingPath as string).slice(0, 256)
+      : null;
 
+  // 1) Persist to the database first — this is the source of truth. A lead
+  //    must never be lost just because the notification email fails.
+  let leadId: string;
   try {
-    const response = await fetch('https://api.web3forms.com/submit', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-      },
-      body: JSON.stringify({
-        access_key: accessKey,
-        subject,
-        from_name: data.clientName,
-        email: data.clientEmail,
-        replyto: data.clientEmail,
-        to: INBOX_EMAIL,
-        message,
+    const lead = await prisma.lead.create({
+      data: briefToLeadCreateInput(data, {
+        userAgent: request.headers.get('user-agent'),
+        referrer: request.headers.get('referer'),
+        landingPath,
       }),
     });
-
-    const result = (await response.json()) as { success?: boolean; message?: string };
-
-    if (!response.ok || !result.success) {
-      return NextResponse.json(
-        { error: result.message || 'Failed to send project brief.' },
-        { status: 502 }
-      );
-    }
-
-    return NextResponse.json({ success: true });
-  } catch {
+    leadId = lead.id;
+  } catch (err) {
+    console.error('Failed to save project brief to database:', err);
     return NextResponse.json(
-      { error: 'Unable to send project brief right now. Please try again.' },
-      { status: 502 }
+      { error: 'Could not save your brief right now. Please try again shortly.' },
+      { status: 500 }
     );
   }
+
+  // 2) Best-effort notification email — failures are logged and stored on
+  //    the lead, but never turn a saved lead into an error response.
+  const emailResult = await sendProjectBriefEmail(data);
+  try {
+    await prisma.lead.update({
+      where: { id: leadId },
+      data: { emailSent: emailResult.sent, emailError: emailResult.error ?? null },
+    });
+  } catch (err) {
+    console.error('Failed to record email status on lead:', err);
+  }
+
+  if (!emailResult.sent) {
+    console.error('Project brief email notification failed:', emailResult.error);
+  }
+
+  return NextResponse.json({
+    success: true,
+    id: leadId,
+  });
 }

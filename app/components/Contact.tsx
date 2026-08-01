@@ -1,5 +1,8 @@
+'use client';
+
 import styles from './Contact.module.css';
 import { Mail, Phone, MapPin } from 'lucide-react';
+import { trackEvent } from '../lib/analyticsClient';
 
 export default function Contact() {
   return (
@@ -8,9 +11,9 @@ export default function Contact() {
         <h2 className={styles.sectionTitle}>Get In Touch</h2>
         <div className={styles.content}>
           <div className={styles.contactInfo}>
-            <h3 className={styles.subtitle}>Let's Work Together</h3>
+            <h3 className={styles.subtitle}>Let&apos;s Work Together</h3>
             <p className={styles.description}>
-              I'm always open to discussing new projects, creative ideas, or
+              I&apos;m always open to discussing new projects, creative ideas, or
               opportunities to be part of your vision. Feel free to reach out!
             </p>
             <div className={styles.infoList}>
@@ -20,7 +23,12 @@ export default function Contact() {
                 </div>
                 <div>
                   <h4>Email</h4>
-                  <a href="mailto:michealzakka@gmail.com">michealzakka@gmail.com</a>
+                  <a
+                    href="mailto:michealzakka@gmail.com"
+                    onClick={() => trackEvent('cta_click', { label: 'mailto' })}
+                  >
+                    michealzakka@gmail.com
+                  </a>
                 </div>
               </div>
               <div className={styles.infoItem}>
@@ -29,7 +37,12 @@ export default function Contact() {
                 </div>
                 <div>
                   <h4>Phone</h4>
-                  <a href="tel:+963992833739">+963 992 833 739</a>
+                  <a
+                    href="tel:+963992833739"
+                    onClick={() => trackEvent('cta_click', { label: 'tel' })}
+                  >
+                    +963 992 833 739
+                  </a>
                 </div>
               </div>
               <div className={styles.infoItem}>

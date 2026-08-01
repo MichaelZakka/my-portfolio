@@ -1,0 +1,43 @@
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 1rem;
+  font-size: 0.82rem;
+  color: #8a8a8a;
+}
+
+.pageLinks {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.pageLink {
+  padding: 0.35rem 0.75rem;
+  border-radius: 6px;
+  border: 1px solid #2a2a2a;
+  color: #d4d4d4;
+  text-decoration: none;
+  font-size: 0.8rem;
+}
+
+.pageLinkDisabled {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.emailCell {
+  color: #8a8a8a;
+  font-size: 0.8rem;
+}
+
+.titleLink {
+  color: #fff;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.titleLink:hover {
+  color: #ff8478;
+  text-decoration: underline;
+}

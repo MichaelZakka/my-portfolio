@@ -1,0 +1,74 @@
+.recentList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.recentRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.6rem 0.7rem;
+  border-radius: 8px;
+  background: #0e0e0e;
+  border: 1px solid #1e1e1e;
+  text-decoration: none;
+  color: inherit;
+}
+
+.recentRow:hover {
+  border-color: #2a2a2a;
+}
+
+.recentInfo {
+  min-width: 0;
+}
+
+.recentTitle {
+  font-size: 0.87rem;
+  color: #fff;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.recentMeta {
+  font-size: 0.76rem;
+  color: #7a7a7a;
+  margin-top: 0.15rem;
+}
+
+.statusRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.45rem 0;
+  font-size: 0.85rem;
+  border-bottom: 1px solid #1a1a1a;
+}
+
+.statusRow:last-child {
+  border-bottom: none;
+}
+
+.legend {
+  display: flex;
+  gap: 1.25rem;
+  font-size: 0.78rem;
+  color: #8a8a8a;
+  margin-bottom: 0.75rem;
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.legendDot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+}

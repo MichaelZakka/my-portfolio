@@ -1,0 +1,113 @@
+// Prisma schema for the portfolio admin dashboard.
+//
+// Local dev uses SQLite (zero setup, file-based). For production on Vercel,
+// switch the datasource below to `postgresql` and point DATABASE_URL at a
+// managed Postgres instance (Neon / Supabase / Vercel Postgres), then run
+// `npx prisma migrate deploy`. Array-like fields (projectTypes, personalities,
+// etc.) are intentionally stored as JSON-text strings so the schema and
+// application code work unchanged on both providers.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Lead {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Pipeline
+  status           String    @default("new")
+  source           String    @default("work-with-me")
+  notes            String    @default("")
+  lastContactedAt  DateTime?
+
+  // Request metadata
+  userAgent   String?
+  referrer    String?
+  landingPath String?
+
+  // Email notification bookkeeping (Resend)
+  emailSent  Boolean @default(false)
+  emailError String?
+
+  // --- ProjectBriefPayload fields (1:1) ---
+  projectTitle       String
+  projectDescription String
+  timeline           String
+  budget             String
+  clientName         String
+  clientEmail        String
+  company            String
+  phone              String
+
+  projectTypes      String // JSON string[]
+  projectTypeOther  String
+
+  businessDomains      String // JSON string[]
+  businessDomainOther  String
+
+  hasBrand     String
+  brandName    String
+  tagline      String
+  personalities String // JSON string[]
+  references   String
+  logoUrl      String
+
+  primaryColor   String
+  secondaryColor String
+  accentColor    String
+  mood           String
+  colorApproach  String
+  visualNotes    String
+
+  statusEvents LeadStatusEvent[]
+
+  @@index([createdAt])
+  @@index([status])
+  @@index([clientEmail])
+}
+
+model LeadStatusEvent {
+  id         String   @id @default(cuid())
+  leadId     String
+  lead       Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  fromStatus String?
+  toStatus   String
+  note       String?
+  createdAt  DateTime @default(now())
+
+  @@index([leadId])
+}
+
+// Unified analytics event table covering page views + funnel/CTA events.
+model AnalyticsEvent {
+  id        String   @id @default(cuid())
+  type      String // page_view | cta_click | survey_started | survey_step_completed | survey_submitted | survey_abandoned
+  path      String?
+  label     String? // e.g. whatsapp | work-with-me | mailto | tel | project-live
+  referrer  String?
+
+  utmSource   String?
+  utmMedium   String?
+  utmCampaign String?
+  utmTerm     String?
+  utmContent  String?
+
+  device  String? // mobile | tablet | desktop
+  country String?
+
+  sessionId String? // random per-browser-session id, not a persistent fingerprint
+  meta      String? // small JSON blob for extra context (e.g. { step: 2 })
+
+  createdAt DateTime @default(now())
+
+  @@index([type, createdAt])
+  @@index([path])
+  @@index([sessionId])
+}

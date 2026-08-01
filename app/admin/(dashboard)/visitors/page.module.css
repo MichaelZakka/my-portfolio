@@ -1,0 +1,69 @@
+.deviceGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+}
+
+.deviceCard {
+  background: #0e0e0e;
+  border: 1px solid #1e1e1e;
+  border-radius: 10px;
+  padding: 0.9rem;
+  text-align: center;
+}
+
+.deviceValue {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.deviceLabel {
+  font-size: 0.75rem;
+  color: #8a8a8a;
+  text-transform: capitalize;
+  margin-top: 0.25rem;
+}
+
+.funnel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.funnelRow {
+  display: grid;
+  grid-template-columns: 160px 1fr 60px;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.83rem;
+}
+
+.funnelLabel {
+  color: #d4d4d4;
+}
+
+.funnelTrack {
+  height: 10px;
+  background: #1a1a1a;
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.funnelFill {
+  height: 100%;
+  background: linear-gradient(90deg, #dc2626, #ff8478);
+  border-radius: 5px;
+}
+
+.funnelValue {
+  text-align: right;
+  color: #8a8a8a;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 640px) {
+  .funnelRow {
+    grid-template-columns: 110px 1fr 40px;
+  }
+}

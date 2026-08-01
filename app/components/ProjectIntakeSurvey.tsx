@@ -1,6 +1,6 @@
 'use client';
 
-import { useId, useState, FormEvent } from 'react';
+import { useId, useState, useEffect, useRef, FormEvent } from 'react';
 import {
   ArrowLeft,
   ArrowRight,
@@ -12,10 +12,10 @@ import {
   Target,
 } from 'lucide-react';
 import {
-  buildWhatsAppMessage,
   INBOX_EMAIL,
   type ProjectBriefPayload,
 } from '../lib/projectBrief';
+import { getLandingPath, trackEvent } from '../lib/analyticsClient';
 import styles from './ProjectIntakeSurvey.module.css';
 
 const TOTAL_STEPS = 5;
@@ -107,7 +107,6 @@ const INITIAL_DATA: FormData = {
 };
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const WHATSAPP_NUMBER = '963992833739';
 
 function toggleInList(list: string[], value: string): string[] {
   return list.includes(value) ? list.filter((v) => v !== value) : [...list, value];
@@ -151,6 +150,19 @@ export default function ProjectIntakeSurvey() {
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
+  const hasCompletedRef = useRef(false);
+  const stepRef = useRef(step);
+  stepRef.current = step;
+
+  useEffect(() => {
+    trackEvent('survey_started');
+
+    return () => {
+      if (!hasCompletedRef.current) {
+        trackEvent('survey_abandoned', { meta: { step: stepRef.current } });
+      }
+    };
+  }, []);
 
   const updateField = <K extends keyof FormData>(key: K, value: FormData[K]) => {
     setData((prev) => ({ ...prev, [key]: value }));
@@ -203,6 +215,7 @@ export default function ProjectIntakeSurvey() {
 
   const goNext = () => {
     if (!validateStep(step)) return;
+    trackEvent('survey_step_completed', { meta: { step } });
     setStep((s) => Math.min(s + 1, TOTAL_STEPS));
   };
 
@@ -211,9 +224,8 @@ export default function ProjectIntakeSurvey() {
     setStep((s) => Math.max(s - 1, 1));
   };
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    if (!validateStep(step) || isSubmitting) return;
+  const submitBrief = async () => {
+    if (!validateStep(TOTAL_STEPS) || isSubmitting) return;
 
     setIsSubmitting(true);
     setSubmitError('');
@@ -222,10 +234,13 @@ export default function ProjectIntakeSurvey() {
       const response = await fetch('/api/project-brief', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
+        body: JSON.stringify({ ...data, landingPath: getLandingPath() }),
       });
 
-      const result = (await response.json()) as { error?: string; success?: boolean };
+      const result = (await response.json()) as {
+        error?: string;
+        success?: boolean;
+      };
 
       if (!response.ok || !result.success) {
         setSubmitError(
@@ -234,14 +249,26 @@ export default function ProjectIntakeSurvey() {
         return;
       }
 
-      const waUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(buildWhatsAppMessage(data))}`;
-      window.open(waUrl, '_blank', 'noopener,noreferrer');
+      hasCompletedRef.current = true;
+      trackEvent('survey_submitted');
       setSubmitted(true);
     } catch {
       setSubmitError('Could not send your brief. Please check your connection and try again.');
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleSubmit = (e: FormEvent) => {
+    e.preventDefault();
+
+    // Enter in a field submits the form — never auto-send; advance or submit explicitly.
+    if (step < TOTAL_STEPS) {
+      goNext();
+      return;
+    }
+
+    void submitBrief();
   };
 
   const fieldId = (name: string) => `${formId}-${name}`;
@@ -256,7 +283,7 @@ export default function ProjectIntakeSurvey() {
         <h2 className={styles.successTitle}>Brief sent</h2>
         <p className={styles.successText}>
           Thanks — your project brief was emailed to me. I&apos;ll review it and get back to you
-          soon. A WhatsApp draft also opened if you want to follow up there.
+          soon.
         </p>
         <button
           type="button"
@@ -289,31 +316,39 @@ export default function ProjectIntakeSurvey() {
         role="navigation"
         aria-label={`Step ${step} of ${TOTAL_STEPS}`}
       >
-        <div className={styles.progressTrack} aria-hidden="true">
-          <div
-            className={styles.progressFill}
-            style={{ width: `${((step - 1) / (TOTAL_STEPS - 1)) * 100}%` }}
-          />
+        <div className={styles.progressMeta}>
+          <span className={styles.progressCount}>
+            Step <strong>{step}</strong>
+            <span className={styles.progressOf}> / {TOTAL_STEPS}</span>
+          </span>
         </div>
-        <ol className={styles.steps}>
-          {STEP_LABELS.map((label, index) => {
-            const stepNumber = index + 1;
-            const isActive = stepNumber === step;
-            const isDone = stepNumber < step;
-            return (
-              <li
-                key={label}
-                className={`${styles.stepItem} ${isActive ? styles.stepActive : ''} ${isDone ? styles.stepDone : ''}`}
-                aria-current={isActive ? 'step' : undefined}
-              >
-                <span className={styles.stepDot} aria-hidden="true">
-                  {isDone ? <Check size={14} strokeWidth={3} /> : stepNumber}
-                </span>
-                <span className={styles.stepLabel}>{label}</span>
-              </li>
-            );
-          })}
-        </ol>
+        <div className={styles.progressBar}>
+          <div className={styles.progressTrack} aria-hidden="true">
+            <div
+              className={styles.progressFill}
+              style={{ width: `${((step - 1) / (TOTAL_STEPS - 1)) * 100}%` }}
+            />
+          </div>
+          <ol className={styles.steps}>
+            {STEP_LABELS.map((label, index) => {
+              const stepNumber = index + 1;
+              const isActive = stepNumber === step;
+              const isDone = stepNumber < step;
+              return (
+                <li
+                  key={label}
+                  className={`${styles.stepItem} ${isActive ? styles.stepActive : ''} ${isDone ? styles.stepDone : ''}`}
+                  aria-current={isActive ? 'step' : undefined}
+                >
+                  <span className={styles.stepDot} aria-hidden="true">
+                    {isDone ? <Check size={13} strokeWidth={3} /> : stepNumber}
+                  </span>
+                  <span className={styles.stepLabel}>{label}</span>
+                </li>
+              );
+            })}
+          </ol>
+        </div>
       </div>
 
       <form className={styles.form} onSubmit={handleSubmit} noValidate>
@@ -796,12 +831,23 @@ export default function ProjectIntakeSurvey() {
           )}
 
           {step < TOTAL_STEPS ? (
-            <button type="button" className={styles.primaryButton} onClick={goNext}>
+            <button
+              key="next"
+              type="button"
+              className={styles.primaryButton}
+              onClick={goNext}
+            >
               Next
               <ArrowRight size={18} strokeWidth={2} aria-hidden="true" />
             </button>
           ) : (
-            <button type="submit" className={styles.primaryButton} disabled={isSubmitting}>
+            <button
+              key="submit"
+              type="button"
+              className={styles.primaryButton}
+              disabled={isSubmitting}
+              onClick={() => void submitBrief()}
+            >
               <Send size={18} strokeWidth={2} aria-hidden="true" />
               {isSubmitting ? 'Sending…' : 'Send project brief'}
             </button>

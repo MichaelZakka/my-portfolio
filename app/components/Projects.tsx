@@ -1,40 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Image, { type StaticImageData } from 'next/image';
+import Image from 'next/image';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import styles from './Projects.module.css';
-import learnProgrammingImg from '../assets/learning programming/learn programming.png';
-import learnProgrammingImg1 from '../assets/learning programming/learn programming1.png';
-import learnProgrammingImg2 from '../assets/learning programming/learn programming2.png';
-import newLogoImg from '../assets/new logo/new logo.png';
-import newLogoImg1 from '../assets/new logo/new logo1.png';
-import samSignImg from '../assets/sam sign/sam sign.png';
-import samSignImg1 from '../assets/sam sign/sam sign1.png';
-import tgmenaImg from '../assets/tgmena/tg.png';
-import tgmenaImg1 from '../assets/tgmena/tg1.png';
-import tinyTotsImg from '../assets/tinytots/tinytots.png';
-import tinyTotsImg1 from '../assets/tinytots/tinytots1.png';
-
-type Collaborator = {
-  name: string;
-  url: string;
-};
-
-type Project = {
-  title: string;
-  description: string;
-  technologies: string[];
-  image?: string;
-  images?: StaticImageData[];
-  liveUrl?: string;
-  githubUrl?: string;
-  highlights: string[];
-  isSelfProject?: boolean;
-  employer?: string;
-  employerUrl?: string;
-  collaborators?: Collaborator[];
-};
+import { trackEvent } from '../lib/analyticsClient';
+import { PROJECTS } from '../lib/projectsData';
 
 export default function Projects() {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -42,65 +13,7 @@ export default function Projects() {
   const [slideDirection, setSlideDirection] = useState<'next' | 'prev'>('next');
   const [imageSlideDirection, setImageSlideDirection] = useState<'next' | 'prev'>('next');
 
-  const projects: Project[] = [
-    {
-      title: 'Learn Programming',
-      description:
-        'A personal self-project built for learning and experimentation — not intended for commercial use. An educational web app built with Next.js to help users learn programming fundamentals through structured lessons and a friendly interface. Deployed on Vercel.',
-      technologies: ['Next.js', 'JavaScript', 'Vercel'],
-      images: [learnProgrammingImg, learnProgrammingImg1, learnProgrammingImg2],
-      highlights: ['Self Project', 'Educational'],
-      isSelfProject: true,
-      liveUrl: 'https://learn-programming-azure.vercel.app/',
-    },
-    {
-      title: 'New Logo',
-      description:
-        'A landing page built with Next.js for a branding company based in Saudi Arabia, specialized in brand identity and visual design. Focused on presenting the company’s services with a polished, modern layout tailored to the regional market.',
-      technologies: ['Next.js', 'Vercel', 'JavaScript'],
-      images: [newLogoImg, newLogoImg1],
-      highlights: ['Landing Page', 'Branding', 'Saudi Arabia' , 'Bilingual'],
-      employer: 'TGMENA (Toward Greatness)',
-      employerUrl: 'https://www.tgmena.com/',
-      liveUrl: 'https://newlogo.sa/',
-    },
-    {
-      title: 'SAM Sign',
-      description:
-        'A landing page built with Next.js for SAM Sign, a company specialized in signs for businesses and stores. Designed to showcase their signage solutions and help potential clients understand services with a clear, professional presentation.',
-      technologies: ['Next.js', 'Vercel', 'JavaScript'],
-      images: [samSignImg1, samSignImg],
-      highlights: ['Landing Page', 'Signage', 'Saudi Arabia','Bilingual'],
-      employer: 'TGMENA (Toward Greatness)',
-      employerUrl: 'https://www.tgmena.com/',
-      liveUrl: 'https://samsign.sa/',
-    },
-    {
-      title: 'TGMENA Landing Page',
-      description:
-        'A landing page built with Next.js for TGMENA (Toward Greatness), a company specialized in technical solutions, branding, and marketing services. Designed to present the company’s full offering with a modern, professional layout that reflects their multi-service expertise.',
-      technologies: ['Next.js', 'Vercel', 'JavaScript'],
-      images: [tgmenaImg, tgmenaImg1],
-      highlights: ['Landing Page', 'Branding', 'Marketing', 'Technical Solutions'],
-      employer: 'TGMENA (Toward Greatness)',
-      employerUrl: 'https://www.tgmena.com/',
-      liveUrl: 'https://www.tgmena.com/',
-      collaborators: [{ name: 'Ahmad Afif', url: 'https://www.ahmad-afif.com/' }],
-    },
-    {
-      title: 'Tiny Tots',
-      description:
-        'A bilingual landing page built with Next.js for Tiny Tots, a kindergarten in Saudi Arabia. Designed to introduce the school’s programs and values to parents with a warm, trustworthy presentation suited to the local market.',
-      technologies: ['Next.js', 'Vercel', 'JavaScript'],
-      images: [tinyTotsImg, tinyTotsImg1],
-      highlights: ['Landing Page', 'Kindergarten', 'Saudi Arabia', 'Bilingual'],
-      employer: 'TGMENA (Toward Greatness)',
-      employerUrl: 'https://www.tgmena.com/',
-      liveUrl: 'https://tinytotsksa.com/',
-      collaborators: [{ name: 'Ahmad Afif', url: 'https://www.ahmad-afif.com/' }],
-    },
-  ];
-
+  const projects = PROJECTS;
   const project = projects[currentIndex];
   const total = projects.length;
   const hasGallery = Boolean(project.images?.length);
@@ -184,7 +97,9 @@ export default function Projects() {
                             : styles.galleryFlipPrev
                         }`}
                         sizes="(max-width: 968px) 100vw, 520px"
-                        priority={currentIndex === 0}
+                        priority={currentIndex === 0 && imageIndex === 0}
+                        loading={currentIndex === 0 && imageIndex === 0 ? 'eager' : 'lazy'}
+                        placeholder="blur"
                       />
                     </div>
                     {galleryTotal > 1 && (
@@ -296,6 +211,12 @@ export default function Projects() {
                         className={styles.link}
                         target="_blank"
                         rel="noopener noreferrer"
+                        onClick={() =>
+                          trackEvent('cta_click', {
+                            label: 'project-live',
+                            meta: { project: project.title },
+                          })
+                        }
                       >
                         <span>
                           {project.isSelfProject || !project.githubUrl

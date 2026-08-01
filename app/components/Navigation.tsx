@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import styles from './Navigation.module.css';
+import { trackEvent } from '../lib/analyticsClient';
 
 const NAV_ITEMS = [
   { id: 'hero', label: 'Home' },
@@ -154,7 +155,10 @@ export default function Navigation() {
             <Link
               href="/work-with-me"
               className={`${styles.ctaButton} ${isWorkWithMe ? styles.ctaActive : ''}`}
-              onClick={() => setIsMobileMenuOpen(false)}
+              onClick={() => {
+                trackEvent('cta_click', { label: 'work-with-me' });
+                setIsMobileMenuOpen(false);
+              }}
               aria-current={isWorkWithMe ? 'page' : undefined}
             >
               Work with me

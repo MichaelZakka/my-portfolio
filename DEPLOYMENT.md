@@ -327,6 +327,10 @@ Before deploying, ensure you've completed:
 
 ## 🔒 Environment Variables
 
+> For this project specifically (database, admin auth, Resend), see the
+> **Admin Dashboard** section in `README.md` and `.env.example` for the full
+> list of required variables.
+
 If you need environment variables (for API keys, etc.):
 
 ### Local Development:

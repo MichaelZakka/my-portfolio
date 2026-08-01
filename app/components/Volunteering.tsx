@@ -1,6 +1,6 @@
 import Image from 'next/image';
 import styles from './Volunteering.module.css';
-import peaceLogo from '../assets/peace circuit.png';
+import peaceLogo from '../assets/peace-circuit.webp';
 
 export default function Volunteering() {
   const org = {
@@ -44,11 +44,13 @@ export default function Volunteering() {
             <div className={styles.orgLogo}>
               <Image
                 src={org.logo}
-                alt={org.name}
+                alt={`${org.name} logo`}
                 className={styles.logoImg}
                 width={100}
                 height={100}
                 sizes="(max-width: 480px) 72px, (max-width: 768px) 88px, 100px"
+                loading="lazy"
+                placeholder="blur"
               />
             </div>
             <div className={styles.orgInfo}>

@@ -1,0 +1,45 @@
+.row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 40px;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.4rem 0;
+  font-size: 0.83rem;
+}
+
+.trackWrap {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-width: 0;
+}
+
+.label {
+  flex-shrink: 0;
+  max-width: 45%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #d4d4d4;
+}
+
+.track {
+  flex: 1;
+  height: 8px;
+  background: #1a1a1a;
+  border-radius: 4px;
+  overflow: hidden;
+  min-width: 30px;
+}
+
+.fill {
+  height: 100%;
+  background: #dc2626;
+  border-radius: 4px;
+}
+
+.value {
+  text-align: right;
+  color: #8a8a8a;
+  font-variant-numeric: tabular-nums;
+}

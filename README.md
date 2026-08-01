@@ -225,6 +225,55 @@ export async function POST(request: Request) {
 - Netlify Forms
 - Getform
 
+## 🔐 Admin Dashboard
+
+A private dashboard at `/admin` shows incoming project requests, first-party
+visitor analytics, and a site health/content snapshot. It's for a single
+admin (you) — there's no public sign-up.
+
+### Setup
+
+1. Copy `.env.example` to `.env` (or `.env.local`) and fill in:
+   - `DATABASE_URL` — defaults to a local SQLite file (`file:./prisma/dev.db`), zero setup required.
+   - `ADMIN_EMAIL` — the only email allowed to log in.
+   - `ADMIN_PASSWORD_HASH` — generate with `npm run hash-password -- "your-strong-password"` and paste the printed value. Never store the plain password.
+   - `AUTH_SECRET` — a random 32+ character string, e.g. `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`.
+   - `RESEND_API_KEY` — API key from https://resend.com/api-keys for notification emails.
+   - `RESEND_FROM_EMAIL` — optional verified sender (defaults to `onboarding@resend.dev` for testing).
+2. Run the database migration once: `npm run db:migrate`.
+3. Start the app (`npm run dev`) and visit `http://localhost:3000/admin/login`.
+
+### How it works
+
+- **Requests** (`/admin/requests`): every submission from the `/work-with-me`
+  survey is saved to the database first (source of truth), then a
+  notification email is sent via Resend as a backup. If the email fails,
+  the lead is still saved — the failure is logged on the request
+  (`emailSent` / `emailError`) and visible on its detail page. Click into a
+  request to see every survey field, brand colors, change its status
+  (`new → contacted → qualified → proposal → won/lost/archived`), add
+  private notes, or use the quick actions to email/WhatsApp the client.
+- **Analytics** (`/admin/visitors`) and the **Overview** (`/admin`): the
+  public site sends lightweight, cookie-free page-view and event beacons to
+  `/api/analytics` (path, referrer, UTM params, a random per-tab session id,
+  and a coarse device type parsed from the User-Agent — no fingerprinting).
+  These populate the traffic chart, top pages/referrers, device breakdown,
+  CTA click breakdown, and the Home → Work-with-me → Survey funnel. Data
+  starts appearing as soon as visitors browse the live site.
+- **Site** (`/admin/site`): a read-only snapshot of content counts (projects,
+  services) and config health checks (is the DB connected? is
+  `RESEND_API_KEY` set? is analytics collecting data?).
+
+### Notes
+
+- `/admin/*` is excluded from `sitemap.xml` and disallowed in `robots.txt`,
+  and all admin pages are `noindex`.
+- Auth is a lightweight signed-cookie session (no third-party auth
+  dependency) — see `app/lib/auth.ts` and `proxy.ts`.
+- For production on Vercel, switch `prisma/schema.prisma`'s datasource to
+  `postgresql` (Neon / Supabase / Vercel Postgres all work) and set
+  `DATABASE_URL` accordingly, then run `npm run db:deploy`.
+
 ## 📄 License
 
 This project is free to use for personal and commercial projects.

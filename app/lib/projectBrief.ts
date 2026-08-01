@@ -27,7 +27,7 @@ export type ProjectBriefPayload = {
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-const PROJECT_TYPE_LABELS: Record<string, string> = {
+export const PROJECT_TYPE_LABELS: Record<string, string> = {
   web: 'Web Project',
   landing: 'Landing Page',
   shopify: 'Shopify Store',
@@ -116,6 +116,18 @@ function formatDomains(data: ProjectBriefPayload): string {
       : domain
   );
   return domains.length ? domains.join(', ') : 'Not specified';
+}
+
+export function getBriefProjectTypesLabel(data: ProjectBriefPayload): string {
+  return formatProjectTypes(data);
+}
+
+export function getBriefDomainsLabel(data: ProjectBriefPayload): string {
+  return formatDomains(data);
+}
+
+export function getBriefColorApproachLabel(data: ProjectBriefPayload): string {
+  return COLOR_APPROACH_LABELS[data.colorApproach] || 'N/A';
 }
 
 export function buildBriefSubject(data: ProjectBriefPayload): string {

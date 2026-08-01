@@ -28,9 +28,16 @@ main {
   overflow-x: hidden;
 }
 
+/* Content visibility helps defer offscreen section work */
 section {
   width: 100%;
   overflow-x: hidden;
+  content-visibility: auto;
+  contain-intrinsic-size: auto 600px;
+}
+
+#hero {
+  content-visibility: visible;
 }
 
 /* Scrollbar styling */
