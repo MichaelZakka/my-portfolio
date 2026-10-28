@@ -28,8 +28,8 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
+  min-width: 0;
   line-height: 1;
-  flex-shrink: 0;
 }
 
 .logoName {
@@ -191,5 +191,12 @@
 
   .cta {
     width: 100%;
+  }
+}
+
+/* Small phones: the full title is in the hero right below; keep the bar to name + controls */
+@media (max-width: 479px) {
+  .logoRole {
+    display: none;
   }
 }

@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import { FileDown, Languages, Menu, X } from 'lucide-react';
 import styles from './Navigation.module.css';
+import JobTitle from './JobTitle';
 import { trackEvent } from '../lib/analyticsClient';
 import { RESUME_URL } from '../lib/site';
 import { Link, usePathname } from '../../i18n/navigation';
@@ -125,7 +126,9 @@ export default function Navigation() {
           <span className={styles.logoName}>
             Michael <span className={styles.logoAccent}>Zakka</span>
           </span>
-          <span className={styles.logoRole}>{t('meta.jobTitle')}</span>
+          <span className={styles.logoRole}>
+            <JobTitle title={t('meta.jobTitle')} />
+          </span>
         </Link>
 
         <ul

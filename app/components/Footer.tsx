@@ -1,5 +1,6 @@
 import { useTranslations } from 'next-intl';
 import styles from './Footer.module.css';
+import JobTitle from './JobTitle';
 import { Github, Linkedin, Mail } from 'lucide-react';
 import { EMAIL, GITHUB_URL, LINKEDIN_URL, SOURCE_REPO_URL } from '../lib/site';
 
@@ -18,7 +19,9 @@ export default function Footer() {
           <p className={styles.name}>
             Michael <span className={styles.accent}>Zakka</span>
           </p>
-          <p className={styles.role}>{t('meta.jobTitle')}</p>
+          <p className={styles.role}>
+            <JobTitle title={t('meta.jobTitle')} />
+          </p>
         </div>
 
         <div className={styles.center}>

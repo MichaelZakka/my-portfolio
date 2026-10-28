@@ -1,6 +1,7 @@
 import { Github, Linkedin, MapPin } from 'lucide-react';
 import styles from './Hero.module.css';
 import HeroCtas from './HeroCtas';
+import JobTitle from './JobTitle';
 import { useTranslations } from 'next-intl';
 import { GITHUB_URL, LINKEDIN_URL } from '../lib/site';
 import { TOP_STACK } from '../../data/skills';
@@ -23,7 +24,9 @@ export default function Hero() {
           </p>
           <p className={styles.greeting}>{t('greeting')}</p>
           <h1 className={styles.name}>{t('name')}</h1>
-          <p className={styles.role}>{jobTitle}</p>
+          <p className={styles.role}>
+            <JobTitle title={jobTitle} />
+          </p>
           <p className={styles.intro}>{t('intro')}</p>
           <HeroCtas />
           <ul className={styles.social}>
@@ -50,10 +53,10 @@ export default function Hero() {
               </span>
               <span className={styles.techLabel}>{t('stackLabel')}</span>
             </div>
-            <p className={styles.techPrompt} aria-hidden="true" dir="ltr">
+            <p className={styles.techPrompt} aria-hidden="true" dir="ltr" lang="en">
               <span className={styles.techSign}>$</span> ls ~/stack
             </p>
-            <ul className={styles.techList} aria-label={t('stackLabel')} dir="ltr">
+            <ul className={styles.techList} aria-label={t('stackLabel')} dir="ltr" lang="en">
               {TOP_STACK.map((tech, i) => (
                 <li key={tech} style={{ '--i': i } as React.CSSProperties}>
                   {tech}

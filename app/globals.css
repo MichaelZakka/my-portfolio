@@ -48,7 +48,8 @@
     'IBM Plex Sans Arabic Fallback', system-ui, sans-serif;
   --font-body: 'Inter', 'IBM Plex Sans Arabic', 'Inter Fallback', 'IBM Plex Sans Arabic Fallback',
     system-ui, sans-serif;
-  --font-mono: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+  --font-code: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+  --font-mono: var(--font-code);
 
   color-scheme: dark;
 }
@@ -96,6 +97,16 @@ section {
 
 #hero {
   content-visibility: visible;
+}
+
+/* Monospace has no good Arabic glyphs: Arabic text uses the body face for "mono" labels,
+   while English islands (lang="en") inside Arabic pages keep real monospace. */
+[lang='ar'] {
+  --font-mono: var(--font-body);
+}
+
+[lang='en'] {
+  --font-mono: var(--font-code);
 }
 
 h1,

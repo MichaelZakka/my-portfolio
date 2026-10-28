@@ -325,3 +325,15 @@
     flex: 1 1 100%;
   }
 }
+
+/* Uppercase tracking and mono don't suit Arabic script */
+:lang(ar) .techLabel {
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+/* Re-read --font-mono on the English islands (the inherited value was resolved on .tech) */
+.techPrompt,
+.techList {
+  font-family: var(--font-mono);
+}
