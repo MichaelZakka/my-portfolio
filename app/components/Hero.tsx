@@ -2,8 +2,7 @@ import { Github, Linkedin, MapPin } from 'lucide-react';
 import styles from './Hero.module.css';
 import HeroCtas from './HeroCtas';
 import { GITHUB_URL, JOB_TITLE, LINKEDIN_URL, OPEN_TO } from '../lib/site';
-
-const TECH = ['Next.js', 'React', 'JavaScript', 'Shopify', 'Flutter', 'Vercel'];
+import { TOP_STACK } from '../../data/skills';
 
 export default function Hero() {
   return (
@@ -55,7 +54,7 @@ export default function Hero() {
               <span className={styles.techSign}>$</span> ls ~/stack
             </p>
             <ul className={styles.techList} aria-label="Tech I work with">
-              {TECH.map((t, i) => (
+              {TOP_STACK.map((t, i) => (
                 <li key={t} style={{ '--i': i } as React.CSSProperties}>
                   {t}
                 </li>
