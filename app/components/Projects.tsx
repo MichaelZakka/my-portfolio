@@ -4,7 +4,8 @@ import { ArrowUpRight } from 'lucide-react';
 import styles from './Projects.module.css';
 import Reveal from './motion/Reveal';
 import ProjectLinks from './ProjectLinks';
-import { PUBLISHED_PROJECTS, isTodo, showValue } from '../../data/projects';
+import { PUBLISHED_PROJECTS } from '../../data/projects';
+import { isTodo, showValue } from '../../data/todo';
 
 export default function Projects() {
   return (

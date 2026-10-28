@@ -82,6 +82,17 @@
   color: var(--accent-text);
 }
 
+.note {
+  margin-block-end: var(--s-4);
+  font-size: 14px;
+  color: var(--text-dim);
+}
+
+.result {
+  color: var(--accent-text);
+  font-weight: 500;
+}
+
 .achievements {
   display: grid;
   gap: var(--s-2);

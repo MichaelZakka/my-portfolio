@@ -10,13 +10,8 @@ import JsonLd from '../../components/JsonLd';
 import ProjectLinks from '../../components/ProjectLinks';
 import { buildPageMetadata, projectJsonLd } from '../../lib/seo';
 import { getSiteUrl } from '../../lib/site';
-import {
-  PUBLISHED_PROJECTS,
-  getProject,
-  isTodo,
-  showValue,
-  visible,
-} from '../../../data/projects';
+import { PUBLISHED_PROJECTS, getProject } from '../../../data/projects';
+import { isTodo, showValue, visible } from '../../../data/todo';
 import styles from './page.module.css';
 
 type Params = { params: Promise<{ slug: string }> };

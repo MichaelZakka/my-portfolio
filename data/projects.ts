@@ -14,7 +14,7 @@ import tinyTotsImg1 from '../app/assets/tinytots/tinytots1.webp';
 /**
  * Any string starting with "TODO:" is a placeholder for Michael to fill in.
  * Placeholders render as dashed notes in development and are hidden in production
- * (see isTodo / visible below).
+ * (see data/todo.ts).
  */
 export type Link = { name: string; url: string };
 
@@ -226,17 +226,4 @@ export const PUBLISHED_PROJECTS = PROJECTS.filter((p) => p.featured);
 
 export function getProject(slug: string): Project | undefined {
   return PUBLISHED_PROJECTS.find((p) => p.slug === slug);
-}
-
-export function isTodo(value: string | undefined): boolean {
-  return Boolean(value?.startsWith('TODO'));
-}
-
-/** In production, drop TODO placeholders; in development, keep them visible. */
-export function visible(values: string[]): string[] {
-  return process.env.NODE_ENV === 'production' ? values.filter((v) => !isTodo(v)) : values;
-}
-
-export function showValue(value: string | undefined): boolean {
-  return Boolean(value) && (process.env.NODE_ENV !== 'production' || !isTodo(value));
 }
