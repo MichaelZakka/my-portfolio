@@ -11,8 +11,8 @@ import { JOB_TITLE, RESUME_URL } from '../lib/site';
 const NAV_ITEMS = [
   { id: 'hero', label: 'Home' },
   { id: 'about', label: 'About' },
-  { id: 'services', label: 'Services' },
   { id: 'projects', label: 'Projects' },
+  { id: 'experience', label: 'Experience' },
   { id: 'contact', label: 'Contact' },
 ] as const;
 

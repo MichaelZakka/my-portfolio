@@ -47,7 +47,7 @@ export default function Experience() {
     <section id="experience" className="section">
       <div className="container">
         <Reveal className="section-head">
-          <p className="eyebrow" data-index="03">Experience</p>
+          <p className="eyebrow" data-index="04">Experience</p>
           <h2 className="section-title">Where I&apos;ve Worked</h2>
         </Reveal>
         <ol className={styles.timeline}>

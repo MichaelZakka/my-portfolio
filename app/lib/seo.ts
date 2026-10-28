@@ -28,29 +28,6 @@ export const PERSON = {
   sameAs: [LINKEDIN_URL, ...(GITHUB_URL ? [GITHUB_URL] : [])],
 } as const;
 
-export const SERVICES = [
-  {
-    name: 'Web Projects',
-    description:
-      'Modern, scalable web applications with React, Next.js, and full-stack technologies.',
-  },
-  {
-    name: 'Landing Pages',
-    description:
-      'High-converting, fast, SEO-friendly landing pages optimized for performance.',
-  },
-  {
-    name: 'Shopify Stores',
-    description:
-      'Custom Shopify themes, store setup, payments, and product experiences.',
-  },
-  {
-    name: 'Mobile Applications',
-    description:
-      'Cross-platform Flutter apps for iOS and Android with polished UI/UX.',
-  },
-] as const;
-
 type BuildPageMetadataInput = {
   title: string;
   description: string;
@@ -160,35 +137,6 @@ export function websiteJsonLd() {
     description: SITE_DESCRIPTION,
     publisher: { '@id': `${siteUrl}/#person` },
     inLanguage: 'en',
-  };
-}
-
-export function professionalServiceJsonLd() {
-  const siteUrl = getSiteUrl();
-  return {
-    '@context': 'https://schema.org',
-    '@type': 'ProfessionalService',
-    '@id': `${siteUrl}/#services`,
-    name: `${PERSON.name} — Freelance Development`,
-    url: siteUrl,
-    image: `${siteUrl}/og-image.jpg`,
-    description: SITE_DESCRIPTION,
-    provider: { '@id': `${siteUrl}/#person` },
-    areaServed: 'Worldwide',
-    availableLanguage: ['English', 'Arabic'],
-    hasOfferCatalog: {
-      '@type': 'OfferCatalog',
-      name: 'Development services',
-      itemListElement: SERVICES.map((service, index) => ({
-        '@type': 'Offer',
-        position: index + 1,
-        itemOffered: {
-          '@type': 'Service',
-          name: service.name,
-          description: service.description,
-        },
-      })),
-    },
   };
 }
 

@@ -52,7 +52,7 @@ export default function Skills() {
     <section id="skills" className="section">
       <div className="container">
         <Reveal className="section-head">
-          <p className="eyebrow" data-index="04">Skills</p>
+          <p className="eyebrow" data-index="05">Skills</p>
           <h2 className="section-title">Skills &amp; Tech Stack</h2>
         </Reveal>
         <div className={styles.grid}>

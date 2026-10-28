@@ -6,7 +6,7 @@ import Skills from './components/Skills';
 import Experience from './components/Experience';
 import Education from './components/Education';
 import Volunteering from './components/Volunteering';
-import Services from './components/Services';
+import Strengths from './components/Strengths';
 import Contact from './components/Contact';
 import Footer from './components/Footer';
 import WhatsAppButton from './components/WhatsAppButton';
@@ -18,7 +18,6 @@ import {
   buildPageMetadata,
   homePageJsonLd,
   personJsonLd,
-  professionalServiceJsonLd,
   websiteJsonLd,
 } from './lib/seo';
 
@@ -43,7 +42,6 @@ export default function Home() {
         data={[
           personJsonLd(),
           websiteJsonLd(),
-          professionalServiceJsonLd(),
           homePageJsonLd(),
         ]}
       />
@@ -52,10 +50,10 @@ export default function Home() {
       <main>
         <Hero />
         <About />
-        <Services />
+        <Strengths />
+        <Projects />
         <Experience />
         <Skills />
-        <Projects />
         <Education />
         <Volunteering />
         <Contact />

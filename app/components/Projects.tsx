@@ -13,7 +13,7 @@ export default function Projects() {
       <div className="container">
         <Reveal className={`section-head ${styles.head}`}>
           <div>
-            <p className="eyebrow" data-index="05">Featured Projects</p>
+            <p className="eyebrow" data-index="03">Featured Projects</p>
             <h2 className="section-title">Recent Work</h2>
           </div>
         </Reveal>

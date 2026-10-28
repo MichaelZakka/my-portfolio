@@ -180,14 +180,14 @@ ul {
 
 /* Sections are translucent tints over the fixed circuit backdrop */
 #about,
-#experience,
 #projects,
+#skills,
 #volunteering {
   background: rgba(10, 22, 40, 0.55);
 }
 
-#services,
-#skills,
+#strengths,
+#experience,
 #education,
 #contact {
   background: rgba(6, 14, 28, 0.72);

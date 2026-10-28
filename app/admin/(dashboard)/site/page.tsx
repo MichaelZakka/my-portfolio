@@ -9,7 +9,8 @@ import {
   Activity,
 } from 'lucide-react';
 import { prisma } from '../../../lib/db';
-import { PERSON, SERVICES } from '../../../lib/seo';
+import { PERSON } from '../../../lib/seo';
+import { STRENGTHS } from '../../../../data/strengths';
 import { PROJECTS } from '../../../lib/projectsData';
 import styles from '../../admin.module.css';
 import pageStyles from './page.module.css';
@@ -212,9 +213,9 @@ export default async function AdminSitePage() {
               </span>
             </div>
             <div className={styles.detailField}>
-              <span className={styles.detailLabel}>Services offered</span>
+              <span className={styles.detailLabel}>Strengths</span>
               <span className={styles.detailValue}>
-                {SERVICES.length} — <span className={pageStyles.fileLink}>app/lib/seo.ts</span>
+                {STRENGTHS.length} — <span className={pageStyles.fileLink}>data/strengths.ts</span>
               </span>
             </div>
             <div className={styles.detailField}>
@@ -234,12 +235,12 @@ export default async function AdminSitePage() {
 
         <div className={styles.card}>
           <div className={styles.cardHeader}>
-            <span className={styles.cardTitle}>Services taxonomy</span>
+            <span className={styles.cardTitle}>Strengths</span>
           </div>
           <div className={styles.chipList}>
-            {SERVICES.map((service) => (
-              <span key={service.name} className={styles.chip} title={service.description}>
-                {service.name}
+            {STRENGTHS.map((item) => (
+              <span key={item.id} className={styles.chip} title={item.proof}>
+                {item.title}
               </span>
             ))}
           </div>
