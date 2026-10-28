@@ -14,9 +14,11 @@
     "hash-password": "node scripts/hash-password.mjs"
   },
   "dependencies": {
+    "@mdx-js/mdx": "^3.1.1",
     "@prisma/client": "^6.19.3",
     "@vercel/analytics": "^2.0.1",
     "@vercel/speed-insights": "^2.0.0",
+    "gray-matter": "^4.0.3",
     "lucide-react": "^0.562.0",
     "next": "16.1.1",
     "prisma": "^6.19.3",

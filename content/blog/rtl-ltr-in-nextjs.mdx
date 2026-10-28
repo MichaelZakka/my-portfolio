@@ -1,0 +1,38 @@
+---
+title: Handling RTL/LTR in Next.js
+date: 2026-11-01
+summary: How I build one set of components that works in both Arabic (RTL) and English (LTR) in the Next.js App Router.
+tags: [nextjs, rtl, i18n, css]
+draft: true
+---
+
+{/* TODO(michael): outline only. Write each section from your own experience before setting draft: false. */}
+
+## Why RTL is more than `dir="rtl"`
+
+- TODO: what breaks when you only flip `dir` (icons, spacing, animations, numbers)
+
+## Setting `lang` and `dir` per locale in the App Router
+
+- TODO: `app/[locale]/layout.tsx`, next-intl routing, `hreflang` alternates
+
+## Logical CSS properties
+
+- TODO: `margin-inline-start`, `inset-inline-end`, `padding-block` vs left/right
+- TODO: before/after examples from a real project (e.g. Tiny Tots)
+
+## Icons and directional UI
+
+- TODO: which icons to mirror (arrows) and which never to mirror (play, check, logos)
+
+## Mixed content: numbers, emails, code
+
+- TODO: `dir="ltr"` islands for phone numbers, emails and code snippets
+
+## Fonts and typography
+
+- TODO: Arabic font pairing, line-height, letter-spacing resets
+
+## Testing checklist
+
+- TODO: the checklist you run before shipping a bilingual page
