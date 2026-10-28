@@ -1,4 +1,6 @@
+import { GraduationCap } from 'lucide-react';
 import styles from './Education.module.css';
+import Reveal from './motion/Reveal';
 
 export default function Education() {
   const education = [
@@ -12,31 +14,30 @@ export default function Education() {
   ];
 
   return (
-    <section id="education" className={styles.education}>
-      <div className={styles.container}>
-        <h2 className={styles.sectionTitle}>Education & Certifications</h2>
-        
-        <div className={styles.section}>
-          <h3 className={styles.subsectionTitle}>Education</h3>
-          <div className={styles.educationList}>
-            {education.map((edu, idx) => (
-              <div key={idx} className={styles.educationCard}>
-                <div className={styles.cardHeader}>
-                  <div>
-                    <h4 className={styles.degree}>{edu.degree}</h4>
-                    <h5 className={styles.institution}>{edu.institution}</h5>
-                    <p className={styles.location}>{edu.location}</p>
-                  </div>
+    <section id="education" className="section">
+      <div className="container">
+        <Reveal className="section-head">
+          <p className="eyebrow" data-index="06">Education</p>
+          <h2 className="section-title">Education &amp; Certifications</h2>
+        </Reveal>
+        <div className={styles.list}>
+          {education.map((edu) => (
+            <Reveal key={edu.degree} className={`card ${styles.card}`}>
+              <GraduationCap size={36} strokeWidth={1.6} className={styles.icon} aria-hidden />
+              <div className={styles.body}>
+                <div className={styles.header}>
+                  <h3 className={styles.degree}>{edu.degree}</h3>
                   <span className={styles.duration}>{edu.duration}</span>
                 </div>
+                <p className={styles.institution}>
+                  {edu.institution} <span className={styles.location}>· {edu.location}</span>
+                </p>
                 <p className={styles.description}>{edu.description}</p>
               </div>
-            ))}
-          </div>
+            </Reveal>
+          ))}
         </div>
-
       </div>
     </section>
   );
 }
-

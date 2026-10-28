@@ -4,6 +4,7 @@ import Navigation from '../components/Navigation';
 import Footer from '../components/Footer';
 import WhatsAppButton from '../components/WhatsAppButton';
 import JsonLd from '../components/JsonLd';
+import CircuitBackground from '../components/CircuitBackground';
 import { buildPageMetadata, workWithMeJsonLd } from '../lib/seo';
 import styles from './page.module.css';
 
@@ -42,6 +43,7 @@ export default function WorkWithMePage() {
   return (
     <>
       <JsonLd data={workWithMeJsonLd()} />
+      <CircuitBackground />
       <Navigation />
       <main className={styles.main}>
         <section className={styles.section} aria-label="Work with me">

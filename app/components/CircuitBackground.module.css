@@ -1,0 +1,59 @@
+.root {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 80% 70% at 100% 50%, rgba(5, 12, 26, 0.7), transparent 70%),
+    #07122a;
+}
+
+[dir='rtl'] .root {
+  transform: scaleX(-1);
+}
+
+.svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.traces path {
+  fill: none;
+  stroke: rgba(110, 165, 255, 0.2);
+  stroke-width: 1;
+}
+
+.nodes circle {
+  fill: rgba(140, 185, 255, 0.55);
+}
+
+.pulses path {
+  fill: none;
+  stroke-linecap: round;
+  stroke-dasharray: 60 1000;
+  stroke-dashoffset: 60;
+  animation: travel var(--dur) linear var(--delay) infinite;
+}
+
+.halo {
+  stroke: rgba(61, 139, 255, 0.35);
+  stroke-width: 6;
+}
+
+.core {
+  stroke: #cfe2ff;
+  stroke-width: 1.6;
+}
+
+@keyframes travel {
+  to {
+    stroke-dashoffset: -1000;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pulses {
+    display: none;
+  }
+}

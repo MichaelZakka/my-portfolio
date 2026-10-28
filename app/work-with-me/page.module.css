@@ -7,9 +7,8 @@
 .section {
   padding: 7.5rem 2rem 6rem;
   background:
-    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(220, 38, 38, 0.12), transparent 55%),
-    radial-gradient(ellipse 60% 40% at 100% 80%, rgba(185, 28, 28, 0.08), transparent 50%),
-    #000000;
+    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(26, 115, 255, 0.14), transparent 55%),
+    rgba(6, 14, 28, 0.55);
 }
 
 .container {
@@ -21,8 +20,8 @@
 .surveyFallback {
   min-height: 32rem;
   border-radius: 20px;
-  background: rgba(64, 64, 64, 0.2);
-  border: 1px solid rgba(96, 96, 96, 0.3);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
 }
 
 @media (max-width: 968px) {

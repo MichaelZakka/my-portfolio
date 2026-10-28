@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { Menu, X } from 'lucide-react';
 import styles from './Navigation.module.css';
 import { trackEvent } from '../lib/analyticsClient';
 
@@ -10,11 +11,7 @@ const NAV_ITEMS = [
   { id: 'hero', label: 'Home' },
   { id: 'about', label: 'About' },
   { id: 'services', label: 'Services' },
-  { id: 'experience', label: 'Experience' },
-  { id: 'skills', label: 'Skills' },
   { id: 'projects', label: 'Projects' },
-  { id: 'education', label: 'Education' },
-  { id: 'volunteering', label: 'Volunteering' },
   { id: 'contact', label: 'Contact' },
 ] as const;
 
@@ -32,65 +29,52 @@ export default function Navigation() {
   const scrollToSection = (sectionId: string) => {
     const element = document.getElementById(sectionId);
     if (element) {
-      const yOffset = -80;
-      const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
+      const y = element.getBoundingClientRect().top + window.scrollY - 72;
       window.scrollTo({ top: y, behavior: 'smooth' });
     }
   };
 
   useEffect(() => {
-    if (!isHome) {
-      setActiveSection('');
-      return;
-    }
+    const onScroll = () => setIsScrolled(window.scrollY > 24);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
 
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50);
-
-      for (let i = SECTION_IDS.length - 1; i >= 0; i--) {
-        const element = document.getElementById(SECTION_IDS[i]);
-        if (element) {
-          const rect = element.getBoundingClientRect();
-          if (rect.top <= 120) {
-            setActiveSection(SECTION_IDS[i]);
-            break;
-          }
-        }
-      }
-    };
-
-    handleScroll();
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [isHome]);
-
+  // Active link: whichever tracked section crosses a band near the top of the viewport
   useEffect(() => {
-    if (!isHome) {
-      setIsScrolled(window.scrollY > 50);
-      const onScroll = () => setIsScrolled(window.scrollY > 50);
-      window.addEventListener('scroll', onScroll, { passive: true });
-      return () => window.removeEventListener('scroll', onScroll);
-    }
+    if (!isHome) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) setActiveSection(entry.target.id);
+        });
+      },
+      { rootMargin: '-30% 0px -60% 0px' }
+    );
+    SECTION_IDS.forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) observer.observe(el);
+    });
+    return () => observer.disconnect();
   }, [isHome]);
 
   useEffect(() => {
     if (!isHome) return;
     const hash = window.location.hash.replace('#', '');
-    if (!hash || !SECTION_IDS.includes(hash as (typeof SECTION_IDS)[number])) return;
+    if (!hash) return;
 
     let cancelled = false;
     const tryScroll = (attemptsLeft: number) => {
       if (cancelled) return;
-      const element = document.getElementById(hash);
-      if (element) {
+      if (document.getElementById(hash)) {
         scrollToSection(hash);
+        // Drop the hash once we've scrolled so the URL stays clean
+        window.history.replaceState(null, '', window.location.pathname + window.location.search);
         return;
       }
-      if (attemptsLeft > 0) {
-        window.setTimeout(() => tryScroll(attemptsLeft - 1), 50);
-      }
+      if (attemptsLeft > 0) window.setTimeout(() => tryScroll(attemptsLeft - 1), 50);
     };
-
     const timer = window.setTimeout(() => tryScroll(10), 50);
     return () => {
       cancelled = true;
@@ -100,61 +84,64 @@ export default function Navigation() {
 
   useEffect(() => {
     document.body.style.overflow = isMobileMenuOpen ? 'hidden' : '';
+    if (!isMobileMenuOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setIsMobileMenuOpen(false);
+    };
+    window.addEventListener('keydown', onKey);
     return () => {
       document.body.style.overflow = '';
+      window.removeEventListener('keydown', onKey);
     };
   }, [isMobileMenuOpen]);
 
   const navigateToSection = (sectionId: string) => {
     setIsMobileMenuOpen(false);
+    if (sectionId === 'hero') {
+      if (isHome) window.scrollTo({ top: 0, behavior: 'smooth' });
+      else window.location.assign('/');
+      return;
+    }
     if (isHome) {
       scrollToSection(sectionId);
       return;
     }
-    // Full navigation so hash scrolling works from other routes
     window.location.assign(`/#${sectionId}`);
   };
 
+  const solid = isScrolled || isMobileMenuOpen || !isHome;
+  const current = isHome ? activeSection : '';
+
   return (
-    <nav className={`${styles.navigation} ${isScrolled ? styles.scrolled : ''}`}>
-      {isMobileMenuOpen && (
-        <button
-          type="button"
-          className={styles.menuOverlay}
-          onClick={() => setIsMobileMenuOpen(false)}
-          aria-label="Close menu"
-        />
-      )}
-      <div className={styles.container}>
-        <button
-          type="button"
-          className={styles.mobileMenuButton}
-          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          aria-label="Toggle menu"
-          aria-expanded={isMobileMenuOpen}
-        >
-          <span className={styles.hamburger}>
-            <span className={`${styles.hamburgerLine} ${isMobileMenuOpen ? styles.open : ''}`}></span>
-            <span className={`${styles.hamburgerLine} ${isMobileMenuOpen ? styles.open : ''}`}></span>
-            <span className={`${styles.hamburgerLine} ${isMobileMenuOpen ? styles.open : ''}`}></span>
+    <header className={`${styles.navigation} ${solid ? styles.scrolled : ''}`}>
+      <nav className={`container ${styles.bar}`} aria-label="Primary">
+        <Link href="/" className={styles.logo} onClick={() => setIsMobileMenuOpen(false)}>
+          <span className={styles.logoName}>
+            Michael <span className={styles.logoAccent}>Zakka</span>
           </span>
-        </button>
-        <ul className={`${styles.navList} ${isMobileMenuOpen ? styles.mobileMenuOpen : ''}`}>
+          <span className={styles.logoRole}>Frontend Developer</span>
+        </Link>
+
+        <ul id="primary-menu" className={`${styles.navList} ${isMobileMenuOpen ? styles.open : ''}`}>
           {NAV_ITEMS.map((item) => (
             <li key={item.id}>
-              <button
-                type="button"
-                className={`${styles.navLink} ${activeSection === item.id ? styles.active : ''}`}
-                onClick={() => navigateToSection(item.id)}
+              <a
+                href={item.id === 'hero' ? '/' : `/#${item.id}`}
+                className={`${styles.navLink} ${current === item.id ? styles.active : ''}`}
+                aria-current={current === item.id ? 'true' : undefined}
+                onClick={(e) => {
+                  e.preventDefault();
+                  navigateToSection(item.id);
+                }}
               >
                 {item.label}
-              </button>
+              </a>
             </li>
           ))}
           <li className={styles.ctaItem}>
             <Link
               href="/work-with-me"
-              className={`${styles.ctaButton} ${isWorkWithMe ? styles.ctaActive : ''}`}
+              className={`btn btn-primary ${styles.cta}`}
               onClick={() => {
                 trackEvent('cta_click', { label: 'work-with-me' });
                 setIsMobileMenuOpen(false);
@@ -165,7 +152,18 @@ export default function Navigation() {
             </Link>
           </li>
         </ul>
-      </div>
-    </nav>
+
+        <button
+          type="button"
+          className={styles.menuButton}
+          onClick={() => setIsMobileMenuOpen((open) => !open)}
+          aria-label={isMobileMenuOpen ? 'Close menu' : 'Open menu'}
+          aria-expanded={isMobileMenuOpen}
+          aria-controls="primary-menu"
+        >
+          {isMobileMenuOpen ? <X size={22} aria-hidden /> : <Menu size={22} aria-hidden />}
+        </button>
+      </nav>
+    </header>
   );
 }

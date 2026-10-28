@@ -8,9 +8,9 @@
   justify-content: center;
   width: 60px;
   height: 60px;
-  background: rgba(74, 74, 74, 0.4);
+  background: rgba(15, 31, 56, 0.9);
   backdrop-filter: blur(10px);
-  color: #e0e0e0;
+  color: #fff;
   text-decoration: none;
   border-radius: 50%;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
@@ -20,11 +20,11 @@
 }
 
 .whatsappButton:hover {
-  background: rgba(220, 38, 38, 0.9);
+  background: var(--accent);
   color: #ffffff;
-  border-color: #dc2626;
+  border-color: var(--accent);
   transform: translateY(-3px) scale(1.05);
-  box-shadow: 0 8px 25px rgba(220, 38, 38, 0.6);
+  box-shadow: 0 8px 25px rgba(26, 115, 255, 0.55);
 }
 
 .whatsappButton:active {
@@ -54,7 +54,7 @@
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
   }
   50% {
-    box-shadow: 0 4px 25px rgba(220, 38, 38, 0.5), 0 0 0 10px rgba(220, 38, 38, 0.1);
+    box-shadow: 0 4px 25px rgba(26, 115, 255, 0.5), 0 0 0 10px rgba(26, 115, 255, 0.12);
   }
 }
 

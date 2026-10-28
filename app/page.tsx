@@ -7,10 +7,12 @@ import Experience from './components/Experience';
 import Education from './components/Education';
 import Volunteering from './components/Volunteering';
 import Services from './components/Services';
+import CtaBand from './components/CtaBand';
 import Contact from './components/Contact';
 import Footer from './components/Footer';
 import WhatsAppButton from './components/WhatsAppButton';
 import JsonLd from './components/JsonLd';
+import CircuitBackground from './components/CircuitBackground';
 import {
   SITE_DESCRIPTION,
   SITE_TITLE_DEFAULT,
@@ -46,6 +48,7 @@ export default function Home() {
           homePageJsonLd(),
         ]}
       />
+      <CircuitBackground />
       <Navigation />
       <main>
         <Hero />

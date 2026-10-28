@@ -1,4 +1,5 @@
 import styles from './Skills.module.css';
+import Reveal from './motion/Reveal';
 
 export default function Skills() {
   const skillCategories = [
@@ -48,27 +49,33 @@ export default function Skills() {
   ];
 
   return (
-    <section id="skills" className={styles.skills}>
-      <div className={styles.container}>
-        <h2 className={styles.sectionTitle}>Skills & Tech Stack</h2>
-        <div className={styles.skillsGrid}>
+    <section id="skills" className="section">
+      <div className="container">
+        <Reveal className="section-head">
+          <p className="eyebrow" data-index="04">Skills</p>
+          <h2 className="section-title">Skills &amp; Tech Stack</h2>
+        </Reveal>
+        <div className={styles.grid}>
           {skillCategories.map((category, idx) => (
-            <div key={idx} className={styles.categoryCard}>
-              <h3 className={styles.categoryTitle}>{category.title}</h3>
-              <div className={styles.skillsList}>
-                {category.skills.map((skill, skillIdx) => {
-                  return (
-                    <div key={skillIdx} className={styles.skillTag}>
-                      <span className={styles.skillName}>{skill.name}</span>
-                    </div>
-                  );
-                })}
+            <Reveal key={category.title} index={idx} className={styles.item}>
+              <div className={`card ${styles.card}`}>
+                <h3 className={styles.title}>{category.title}</h3>
+                <ul className={styles.chips}>
+                  {category.skills.map((skill, sIdx) => (
+                    <li
+                      key={skill.name}
+                      className={styles.chip}
+                      style={{ '--i': sIdx } as React.CSSProperties}
+                    >
+                      {skill.name}
+                    </li>
+                  ))}
+                </ul>
               </div>
-            </div>
+            </Reveal>
           ))}
         </div>
       </div>
     </section>
   );
 }
-

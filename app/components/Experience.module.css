@@ -1,224 +1,119 @@
-.experience {
-  padding: 6rem 2rem;
-  background: #000000;
-}
-
-.container {
-  max-width: 1000px;
-  margin: 0 auto;
-  width: 100%;
-}
-
-.sectionTitle {
-  font-size: 2.5rem;
-  font-weight: 700;
-  color: #e0e0e0;
-  text-align: center;
-  margin-bottom: 4rem;
-  position: relative;
-  display: inline-block;
-  left: 50%;
-  transform: translateX(-50%);
-  max-width: 100%;
-}
-
-.sectionTitle::after {
-  content: '';
-  position: absolute;
-  bottom: -10px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 60px;
-  height: 4px;
-  background: linear-gradient(90deg, #dc2626, #b91c1c);
-  border-radius: 2px;
-}
-
 .timeline {
   position: relative;
+  list-style: none;
+  display: grid;
+  gap: var(--s-5);
+  padding-inline-start: var(--s-7);
 }
 
-.timelineItem {
+/* Accent line fading out toward the oldest role */
+.timeline::before {
+  content: '';
+  position: absolute;
+  inset-block: 8px 8px;
+  inset-inline-start: 11px;
+  width: 2px;
+  background: linear-gradient(180deg, var(--accent) 0%, var(--accent-line) 60%, transparent 100%);
+}
+
+.item {
   position: relative;
-  margin-bottom: 3rem;
 }
 
-.timelineItem:last-child {
-  margin-bottom: 0;
+.dot {
+  position: absolute;
+  inset-block-start: 28px;
+  inset-inline-start: calc(var(--s-7) * -1 + 5px);
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--bg);
+  border: 3px solid var(--accent);
+  box-shadow: 0 0 0 4px var(--accent-soft);
 }
 
-.timelineMarker {
-  display: none;
-}
-
-.timelineContent {
-  background: rgba(64, 64, 64, 0.2);
-  backdrop-filter: blur(10px);
-  padding: 2rem;
-  border-radius: 15px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-  transition: all 0.3s ease;
-  border: 1px solid rgba(96, 96, 96, 0.3);
-}
-
-.timelineContent:hover {
-  transform: translateX(10px);
-  box-shadow: 0 10px 30px rgba(220, 38, 38, 0.4);
-  border-color: rgba(220, 38, 38, 0.6);
+.card {
+  padding: var(--s-6);
 }
 
 .header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 1.5rem;
-  gap: 1rem;
-  min-width: 0;
+  gap: var(--s-4);
+  flex-wrap: wrap;
+  margin-block-end: var(--s-4);
 }
 
 .role {
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: #e0e0e0;
-  margin: 0 0 0.5rem 0;
+  font-size: 20px;
 }
 
 .company {
-  font-size: 1.125rem;
-  font-weight: 500;
-  color: #dc2626;
-  margin: 0 0 0.25rem 0;
+  margin-block-start: var(--s-1);
+  font-weight: 600;
+  color: var(--accent-text);
 }
 
-.companyLink {
-  color: inherit;
-  text-decoration: none;
-  transition: color 0.3s ease;
+.company a {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
 }
 
-.companyLink:hover {
-  color: #ef4444;
+.company a:hover {
+  color: var(--accent-hover);
   text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 .location {
-  font-size: 0.9rem;
-  color: #b0b0b0;
-  margin: 0;
-  opacity: 0.7;
   font-weight: 400;
+  color: var(--text-dim);
 }
 
 .duration {
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: #e0e0e0;
-  background: #4a4a4a;
-  padding: 0.5rem 1rem;
-  border-radius: 20px;
-  white-space: nowrap;
+  flex-shrink: 0;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent-text);
 }
 
 .achievements {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
+  display: grid;
+  gap: var(--s-2);
+  color: var(--text-muted);
+  font-size: 15px;
 }
 
 .achievements li {
-  font-size: 1rem;
-  color: #b0b0b0;
-  line-height: 1.6;
-  padding-left: 1.5rem;
   position: relative;
-  opacity: 0.9;
-  overflow-wrap: break-word;
-  word-wrap: break-word;
+  padding-inline-start: var(--s-5);
 }
 
 .achievements li::before {
-  content: '▹';
+  content: '';
   position: absolute;
-  left: 0;
-  color: #dc2626;
-  font-weight: bold;
+  inset-inline-start: 4px;
+  inset-block-start: 0.7em;
+  width: 6px;
+  height: 2px;
+  background: var(--accent);
 }
 
-@media (max-width: 768px) {
-  .experience {
-    padding: 4rem 1.25rem;
+@media (max-width: 599px) {
+  .timeline {
+    padding-inline-start: var(--s-6);
   }
 
-  .sectionTitle {
-    font-size: 2rem;
-    margin-bottom: 2.5rem;
+  .dot {
+    inset-inline-start: calc(var(--s-6) * -1 + 5px);
   }
 
-  .timelineItem {
-    margin-bottom: 2rem;
-  }
-
-  .timelineContent {
-    padding: 1.5rem;
-    border-radius: 14px;
-  }
-
-  .header {
-    flex-direction: column;
-  }
-
-  .role {
-    font-size: 1.25rem;
-    line-height: 1.35;
-  }
-
-  .company {
-    font-size: 1rem;
-  }
-
-  .location {
-    font-size: 0.8125rem;
-    line-height: 1.5;
-  }
-
-  .duration {
-    align-self: flex-start;
-  }
-
-  .timelineContent:hover {
-    transform: none;
-  }
-
-  .achievements li {
-    font-size: 0.9375rem;
-    padding-left: 1.25rem;
+  .card {
+    padding: var(--s-5);
   }
 }
-
-@media (max-width: 480px) {
-  .experience {
-    padding: 3rem 1rem;
-  }
-
-  .sectionTitle {
-    font-size: 1.75rem;
-    margin-bottom: 2rem;
-  }
-
-  .timelineContent {
-    padding: 1.25rem;
-  }
-
-  .role {
-    font-size: 1.125rem;
-  }
-
-  .achievements li {
-    font-size: 0.875rem;
-    line-height: 1.55;
-  }
-}
-

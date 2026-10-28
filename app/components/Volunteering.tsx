@@ -1,6 +1,7 @@
 import Image from 'next/image';
 import styles from './Volunteering.module.css';
 import peaceLogo from '../assets/peace-circuit.webp';
+import Reveal from './motion/Reveal';
 
 export default function Volunteering() {
   const org = {
@@ -34,49 +35,49 @@ export default function Volunteering() {
   ];
 
   return (
-    <section id="volunteering" className={styles.volunteering}>
-      <div className={styles.container}>
-        <h2 className={styles.sectionTitle}>Volunteering</h2>
+    <section id="volunteering" className="section">
+      <div className="container">
+        <Reveal className="section-head">
+          <p className="eyebrow" data-index="07">Volunteering</p>
+          <h2 className="section-title">Giving Back</h2>
+        </Reveal>
 
-        <div className={styles.card}>
-          {/* Organization */}
-          <div className={styles.orgRow}>
-            <div className={styles.orgLogo}>
+        <Reveal className={`card ${styles.card}`}>
+          <div className={styles.org}>
+            <div className={styles.orgRow}>
               <Image
                 src={org.logo}
                 alt={`${org.name} logo`}
-                className={styles.logoImg}
-                width={100}
-                height={100}
-                sizes="(max-width: 480px) 72px, (max-width: 768px) 88px, 100px"
-                loading="lazy"
+                className={styles.logo}
+                width={72}
+                height={72}
+                sizes="72px"
                 placeholder="blur"
               />
-            </div>
-            <div className={styles.orgInfo}>
-              <h3 className={styles.orgName}>{org.name}</h3>
-              <p className={styles.orgField}>{org.field}</p>
-            </div>
-          </div>
-          <p className={styles.orgDescription}>{org.description}</p>
-
-          <div className={styles.divider} />
-
-          {/* Roles */}
-          <h4 className={styles.rolesLabel}>My Roles</h4>
-          <div className={styles.rolesList}>
-            {roles.map((role, idx) => (
-              <div key={idx} className={styles.roleItem}>
-                <p className={styles.roleTitle}>{role.title}</p>
-                <ul className={styles.contributions}>
-                  {role.contributions.map((item, i) => (
-                    <li key={i}>{item}</li>
-                  ))}
-                </ul>
+              <div>
+                <h3 className={styles.orgName}>{org.name}</h3>
+                <p className={styles.orgField}>{org.field}</p>
               </div>
-            ))}
+            </div>
+            <p className={styles.orgDescription}>{org.description}</p>
           </div>
-        </div>
+
+          <div className={styles.roles}>
+            <h4 className={styles.rolesLabel}>My Roles</h4>
+            <ul className={styles.rolesList}>
+              {roles.map((role) => (
+                <li key={role.title} className={styles.role}>
+                  <p className={styles.roleTitle}>{role.title}</p>
+                  <ul className={styles.contributions}>
+                    {role.contributions.map((item) => (
+                      <li key={item}>{item}</li>
+                    ))}
+                  </ul>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </Reveal>
       </div>
     </section>
   );
