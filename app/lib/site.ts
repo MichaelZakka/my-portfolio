@@ -25,9 +25,6 @@ export function getSiteUrl(): string {
 /** Single job title used across metadata, hero, nav and footer. */
 export const JOB_TITLE = 'Frontend Developer (React / Next.js)';
 
-/** What the hero "Open to" badge lists. */
-export const OPEN_TO = ['Remote', 'Damascus on-site'] as const;
-
 // TODO(michael): set your GitHub profile URL, e.g. 'https://github.com/your-username'.
 // GitHub links stay hidden everywhere while this is null.
 export const GITHUB_URL: string | null = null;

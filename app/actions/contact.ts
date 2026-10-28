@@ -8,7 +8,8 @@ import { rateLimit } from '../lib/rateLimit';
 export type ContactState =
   | { status: 'idle' }
   | { status: 'success' }
-  | { status: 'error'; message: string; fieldErrors?: ContactErrors };
+  /** `message` is a key under contact.errors */
+  | { status: 'error'; message: 'fixFields' | 'rateLimited' | 'sendFailed'; fieldErrors?: ContactErrors };
 
 const field = (formData: FormData, key: string) => String(formData.get(key) ?? '').trim();
 
@@ -19,7 +20,7 @@ export async function submitContact(_prev: ContactState, formData: FormData): Pr
   const h = await headers();
   const ip = h.get('x-forwarded-for')?.split(',')[0].trim() || h.get('x-real-ip') || 'unknown';
   if (!rateLimit(`contact:${ip}`, { limit: 5, windowMs: 10 * 60 * 1000 }).success) {
-    return { status: 'error', message: 'Too many messages. Please try again in a few minutes.' };
+    return { status: 'error', message: 'rateLimited' };
   }
 
   const input = {
@@ -29,16 +30,13 @@ export async function submitContact(_prev: ContactState, formData: FormData): Pr
   };
   const fieldErrors = validateContact(input);
   if (Object.keys(fieldErrors).length > 0) {
-    return { status: 'error', message: 'Please fix the highlighted fields.', fieldErrors };
+    return { status: 'error', message: 'fixFields', fieldErrors };
   }
 
   const result = await sendContactEmail(input);
   if (!result.sent) {
     console.error('Contact form email failed:', result.error);
-    return {
-      status: 'error',
-      message: 'Sorry, your message could not be sent. Please email me directly.',
-    };
+    return { status: 'error', message: 'sendFailed' };
   }
   return { status: 'success' };
 }

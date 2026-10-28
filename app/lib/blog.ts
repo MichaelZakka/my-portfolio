@@ -57,5 +57,9 @@ export function getPost(slug: string) {
   return allPosts().find((p) => p.slug === slug && (includeDrafts || !p.draft));
 }
 
-export const formatPostDate = (iso: string) =>
-  new Date(iso).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+export const formatPostDate = (iso: string, locale: string) =>
+  new Date(iso).toLocaleDateString(locale === 'ar' ? 'ar-SY' : 'en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });

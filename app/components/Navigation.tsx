@@ -1,30 +1,31 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { FileDown, Menu, X } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { useLocale, useTranslations } from 'next-intl';
+import { FileDown, Languages, Menu, X } from 'lucide-react';
 import styles from './Navigation.module.css';
 import { trackEvent } from '../lib/analyticsClient';
-import { JOB_TITLE, RESUME_URL } from '../lib/site';
+import { RESUME_URL } from '../lib/site';
+import { Link, usePathname } from '../../i18n/navigation';
+import { localizedPath } from '../../i18n/paths';
 
-const NAV_ITEMS = [
-  { id: 'hero', label: 'Home' },
-  { id: 'about', label: 'About' },
-  { id: 'projects', label: 'Projects' },
-  { id: 'experience', label: 'Experience' },
-  { id: 'contact', label: 'Contact' },
-] as const;
-
-const SECTION_IDS = NAV_ITEMS.map((item) => item.id);
+const NAV_ITEMS = ['hero', 'about', 'projects', 'experience', 'contact'] as const;
+const LABEL_KEY = { hero: 'home', about: 'about', projects: 'projects', experience: 'experience', contact: 'contact' } as const;
 
 export default function Navigation() {
+  const t = useTranslations();
+  const locale = useLocale();
+  const otherLocale = locale === 'ar' ? 'en' : 'ar';
+  // Locale-less pathname, e.g. "/" on both /ar and /
   const pathname = usePathname();
   const isHome = pathname === '/';
+  const home = localizedPath(locale, '/');
 
   const [isScrolled, setIsScrolled] = useState(false);
-  const [activeSection, setActiveSection] = useState(isHome ? 'hero' : '');
+  const [activeSection, setActiveSection] = useState<string>(isHome ? 'hero' : '');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLUListElement>(null);
 
   const scrollToSection = (sectionId: string) => {
     const element = document.getElementById(sectionId);
@@ -52,7 +53,7 @@ export default function Navigation() {
       },
       { rootMargin: '-30% 0px -60% 0px' }
     );
-    SECTION_IDS.forEach((id) => {
+    NAV_ITEMS.forEach((id) => {
       const el = document.getElementById(id);
       if (el) observer.observe(el);
     });
@@ -62,7 +63,7 @@ export default function Navigation() {
   useEffect(() => {
     if (!isHome) return;
     const hash = window.location.hash.replace('#', '');
-    if (!hash) return;
+    if (!hash || hash === 'main') return;
 
     let cancelled = false;
     const tryScroll = (attemptsLeft: number) => {
@@ -82,11 +83,16 @@ export default function Navigation() {
     };
   }, [isHome]);
 
+  // Mobile menu: lock scroll, move focus into the panel, Escape closes and returns focus
   useEffect(() => {
     document.body.style.overflow = isMobileMenuOpen ? 'hidden' : '';
     if (!isMobileMenuOpen) return;
+    menuRef.current?.querySelector<HTMLElement>('a')?.focus();
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setIsMobileMenuOpen(false);
+      if (e.key === 'Escape') {
+        setIsMobileMenuOpen(false);
+        menuButtonRef.current?.focus();
+      }
     };
     window.addEventListener('keydown', onKey);
     return () => {
@@ -99,14 +105,14 @@ export default function Navigation() {
     setIsMobileMenuOpen(false);
     if (sectionId === 'hero') {
       if (isHome) window.scrollTo({ top: 0, behavior: 'smooth' });
-      else window.location.assign('/');
+      else window.location.assign(home);
       return;
     }
     if (isHome) {
       scrollToSection(sectionId);
       return;
     }
-    window.location.assign(`/#${sectionId}`);
+    window.location.assign(`${home === '/' ? '' : home}/#${sectionId}`);
   };
 
   const solid = isScrolled || isMobileMenuOpen || !isHome;
@@ -114,27 +120,31 @@ export default function Navigation() {
 
   return (
     <header className={`${styles.navigation} ${solid ? styles.scrolled : ''}`}>
-      <nav className={`container ${styles.bar}`} aria-label="Primary">
+      <nav className={`container ${styles.bar}`} aria-label={t('nav.label')}>
         <Link href="/" className={styles.logo} onClick={() => setIsMobileMenuOpen(false)}>
           <span className={styles.logoName}>
             Michael <span className={styles.logoAccent}>Zakka</span>
           </span>
-          <span className={styles.logoRole}>{JOB_TITLE}</span>
+          <span className={styles.logoRole}>{t('meta.jobTitle')}</span>
         </Link>
 
-        <ul id="primary-menu" className={`${styles.navList} ${isMobileMenuOpen ? styles.open : ''}`}>
-          {NAV_ITEMS.map((item) => (
-            <li key={item.id}>
+        <ul
+          id="primary-menu"
+          ref={menuRef}
+          className={`${styles.navList} ${isMobileMenuOpen ? styles.open : ''}`}
+        >
+          {NAV_ITEMS.map((id) => (
+            <li key={id}>
               <a
-                href={item.id === 'hero' ? '/' : `/#${item.id}`}
-                className={`${styles.navLink} ${current === item.id ? styles.active : ''}`}
-                aria-current={current === item.id ? 'true' : undefined}
+                href={id === 'hero' ? home : `${home === '/' ? '' : home}/#${id}`}
+                className={`${styles.navLink} ${current === id ? styles.active : ''}`}
+                aria-current={current === id ? 'true' : undefined}
                 onClick={(e) => {
                   e.preventDefault();
-                  navigateToSection(item.id);
+                  navigateToSection(id);
                 }}
               >
-                {item.label}
+                {t(`nav.${LABEL_KEY[id]}`)}
               </a>
             </li>
           ))}
@@ -149,21 +159,35 @@ export default function Navigation() {
               }}
             >
               <FileDown size={16} aria-hidden />
-              Resume
+              {t('nav.resume')}
             </a>
           </li>
         </ul>
 
-        <button
-          type="button"
-          className={styles.menuButton}
-          onClick={() => setIsMobileMenuOpen((open) => !open)}
-          aria-label={isMobileMenuOpen ? 'Close menu' : 'Open menu'}
-          aria-expanded={isMobileMenuOpen}
-          aria-controls="primary-menu"
-        >
-          {isMobileMenuOpen ? <X size={22} aria-hidden /> : <Menu size={22} aria-hidden />}
-        </button>
+        <div className={styles.tools}>
+          <Link
+            href={pathname}
+            locale={otherLocale}
+            className={styles.lang}
+            hrefLang={otherLocale}
+            aria-label={t('common.switchLanguageLabel')}
+            onClick={() => trackEvent('cta_click', { label: `lang-${otherLocale}` })}
+          >
+            <Languages size={16} aria-hidden />
+            <span lang={otherLocale}>{t('common.switchLanguage')}</span>
+          </Link>
+          <button
+            ref={menuButtonRef}
+            type="button"
+            className={styles.menuButton}
+            onClick={() => setIsMobileMenuOpen((open) => !open)}
+            aria-label={isMobileMenuOpen ? t('nav.closeMenu') : t('nav.openMenu')}
+            aria-expanded={isMobileMenuOpen}
+            aria-controls="primary-menu"
+          >
+            {isMobileMenuOpen ? <X size={22} aria-hidden /> : <Menu size={22} aria-hidden />}
+          </button>
+        </div>
       </nav>
     </header>
   );

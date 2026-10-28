@@ -1,11 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
+import createIntlMiddleware from 'next-intl/middleware';
 import { ADMIN_SESSION_COOKIE, verifySessionToken } from './app/lib/auth';
+import { routing } from './i18n/routing';
+
+const intl = createIntlMiddleware(routing);
 
 const PUBLIC_ADMIN_PATHS = new Set(['/admin/login', '/api/admin/login']);
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  // Public pages: locale routing (/ = English, /ar = Arabic)
+  if (!pathname.startsWith('/admin') && !pathname.startsWith('/api/admin')) {
+    return intl(request);
+  }
+  return adminGuard(request, pathname);
+}
+
+async function adminGuard(request: NextRequest, pathname: string) {
   // Fail closed: if auth env is missing, never expose the dashboard.
   const authConfigured = Boolean(
     process.env.ADMIN_EMAIL && process.env.ADMIN_PASSWORD_HASH && process.env.AUTH_SECRET
@@ -38,5 +50,6 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/admin/:path*', '/api/admin/:path*'],
+  // Admin routes, plus every page except API routes, Next internals and static files
+  matcher: ['/admin/:path*', '/api/admin/:path*', '/((?!api|_next|_vercel|.*\\..*).*)'],
 };

@@ -1,0 +1,167 @@
+{
+  "meta": {
+    "jobTitle": "Frontend Developer (React / Next.js)",
+    "title": "Michael Zakka | Frontend Developer (React / Next.js)",
+    "description": "Michael Zakka is a frontend developer building production React & Next.js apps: bilingual (Arabic/English, RTL/LTR), fast, and shipped to real users. Projects, experience, and resume.",
+    "ogAlt": "Michael Zakka, Frontend Developer (React / Next.js)"
+  },
+  "common": {
+    "skipToContent": "Skip to content",
+    "switchLanguage": "عربي",
+    "switchLanguageLabel": "View this page in Arabic",
+    "opensInNewTab": "(opens in a new tab)"
+  },
+  "nav": {
+    "label": "Primary",
+    "home": "Home",
+    "about": "About",
+    "projects": "Projects",
+    "experience": "Experience",
+    "contact": "Contact",
+    "resume": "Resume",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu"
+  },
+  "hero": {
+    "openTo": "Open to {list}",
+    "openToRemote": "Remote",
+    "openToOnsite": "Damascus on-site",
+    "greeting": "Hello, I'm",
+    "name": "Michael Zakka",
+    "intro": "Frontend developer building production React & Next.js apps: bilingual (Arabic/English, RTL/LTR), fast, and shipped to real users.",
+    "viewProjects": "View Projects",
+    "downloadResume": "Download Resume",
+    "github": "GitHub profile",
+    "linkedin": "LinkedIn profile",
+    "stackLabel": "Tech I work with"
+  },
+  "about": {
+    "eyebrow": "About Me",
+    "title": "Building Solutions That Make an Impact",
+    "paragraph": "I'm a frontend developer in Damascus who builds production websites and web apps with React, Next.js and TypeScript. I've shipped bilingual Arabic/English sites for businesses in Saudi Arabia, handling RTL layouts, responsive design and Vercel deployments end to end. I care about fast pages, accessible UI and components that stay easy to change. I'm looking for a frontend role on a product team where I can own features from design to production.",
+    "downloadResume": "Download Resume",
+    "location": "Location",
+    "locationValue": "Damascus, Syria",
+    "email": "Email",
+    "linkedin": "LinkedIn",
+    "languages": "Languages",
+    "languagesValue": "Arabic, English"
+  },
+  "strengths": {
+    "eyebrow": "Strengths",
+    "title": "What I bring to a team"
+  },
+  "projects": {
+    "eyebrow": "Featured Projects",
+    "title": "Case Studies",
+    "personal": "Personal project",
+    "myRole": "My role:",
+    "stack": "Tech stack",
+    "caseStudy": "case study",
+    "screenshotAlt": "{title} website screenshot",
+    "live": "Live",
+    "code": "Code",
+    "liveLabel": "{title} live site",
+    "codeLabel": "{title} source on GitHub",
+    "private": "Client code private"
+  },
+  "caseStudy": {
+    "metaTitle": "{title} case study",
+    "allProjects": "All projects",
+    "breadcrumb": "Breadcrumb",
+    "eyebrow": "Case study",
+    "personalSuffix": "Personal project",
+    "overview": "Overview",
+    "challenge": "Challenge",
+    "solution": "Solution",
+    "results": "Results",
+    "screenshots": "Screenshots",
+    "facts": "Project facts",
+    "myRole": "My role",
+    "team": "Team",
+    "builtAt": "Built at",
+    "stack": "Tech stack",
+    "more": "More projects",
+    "previous": "Previous",
+    "next": "Next",
+    "coverAlt": "{title} homepage screenshot",
+    "shotAlt": "{title} screenshot {n}"
+  },
+  "experience": {
+    "eyebrow": "Experience",
+    "title": "Where I've Worked"
+  },
+  "skills": {
+    "eyebrow": "Skills",
+    "title": "Skills & Tech Stack"
+  },
+  "education": {
+    "eyebrow": "Education",
+    "title": "Education",
+    "degree": "Bachelor of Information Technology Engineering",
+    "institution": "Damascus University",
+    "location": "Damascus",
+    "duration": "2020 – 2025",
+    "description": "Specialized in Artificial Intelligence and natural languages"
+  },
+  "volunteering": {
+    "eyebrow": "Volunteering",
+    "title": "Giving Back",
+    "org": "Peace Circuit",
+    "logoAlt": "Peace Circuit logo",
+    "roles": "Co-founder · Website maintainer · Digital-safety trainer",
+    "text": "I maintain the website and support the IT team of Peace Circuit, a network working at the intersection of peacebuilding and technology. I also run digital-safety training sessions that help participants protect themselves and their communities online."
+  },
+  "contact": {
+    "eyebrow": "Contact",
+    "title": "Get In Touch",
+    "description": "Hiring for a frontend role, or want to talk about a project? Send a message or reach me directly.",
+    "email": "Email",
+    "linkedin": "LinkedIn",
+    "github": "GitHub",
+    "form": {
+      "title": "Send a message",
+      "name": "Name",
+      "email": "Email",
+      "message": "Message",
+      "send": "Send message",
+      "sending": "Sending…",
+      "successTitle": "Message sent",
+      "successText": "Thanks for reaching out. I'll reply by email soon."
+    },
+    "errors": {
+      "name": "Please enter your name (2–100 characters).",
+      "email": "Please enter a valid email address.",
+      "message": "Your message should be 10–5000 characters.",
+      "fixFields": "Please fix the highlighted fields.",
+      "rateLimited": "Too many messages. Please try again in a few minutes.",
+      "sendFailed": "Sorry, your message could not be sent. Please email me directly."
+    }
+  },
+  "footer": {
+    "rights": "© {year} Michael Zakka. All rights reserved.",
+    "builtWith": "Built with Next.js & TypeScript",
+    "viewSource": "view source",
+    "social": "Social links"
+  },
+  "blog": {
+    "metaTitle": "Notes",
+    "metaDescription": "Notes by Michael Zakka on React, Next.js, RTL/LTR interfaces and frontend engineering.",
+    "eyebrow": "Notes",
+    "title": "Writing",
+    "lead": "Short notes on React, Next.js and building bilingual interfaces.",
+    "empty": "The first notes are being written. Check back soon.",
+    "allNotes": "All notes",
+    "draft": "Draft (dev only)"
+  },
+  "workWithMe": {
+    "metaTitle": "Work with me",
+    "metaDescription": "Tell Michael Zakka about your project: web apps, landing pages, Shopify stores, or Flutter mobile apps. Share goals, brand, and visual direction.",
+    "loading": "Loading project survey"
+  },
+  "notFound": {
+    "title": "Page not found",
+    "text": "This page doesn't exist or has moved.",
+    "back": "Back to home"
+  }
+}

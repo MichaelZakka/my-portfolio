@@ -28,10 +28,25 @@
   color: var(--text-muted);
 }
 
+.center {
+  text-align: center;
+}
+
 .copyright {
   font-size: 14px;
   color: var(--text-muted);
-  text-align: center;
+}
+
+.built {
+  margin-block-start: 2px;
+  font-size: 13px;
+  color: var(--text-dim);
+}
+
+.built a {
+  color: var(--accent-text);
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 .links {
@@ -72,7 +87,7 @@
     justify-content: center;
   }
 
-  .copyright {
+  .center {
     order: 3;
   }
 }

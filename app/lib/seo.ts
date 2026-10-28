@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import { GITHUB_URL, JOB_TITLE, LINKEDIN_URL, getSiteUrl } from './site';
 import type { Project } from '../../data/projects';
+import { routing, type Locale } from '../../i18n/routing';
+import { OG_LOCALE, localizedPath } from '../../i18n/paths';
 
 export const SITE_NAME = 'Michael Zakka';
 export const SITE_TITLE_DEFAULT = `Michael Zakka | ${JOB_TITLE}`;
@@ -31,6 +33,8 @@ export const PERSON = {
 } as const;
 
 type BuildPageMetadataInput = {
+  /** Defaults to English. Drives canonical URL, hreflang alternates and og:locale. */
+  locale?: string;
   title: string;
   description: string;
   path?: string;
@@ -42,6 +46,7 @@ type BuildPageMetadataInput = {
 };
 
 export function buildPageMetadata({
+  locale = routing.defaultLocale,
   title,
   description,
   path = '/',
@@ -52,8 +57,13 @@ export function buildPageMetadata({
   absoluteTitle = false,
 }: BuildPageMetadataInput & { absoluteTitle?: boolean }): Metadata {
   const siteUrl = getSiteUrl();
-  const url = path === '/' ? siteUrl : `${siteUrl}${path}`;
+  const absolute = (p: string) => (p === '/' ? siteUrl : `${siteUrl}${p}`);
+  const canonical = localizedPath(locale, path);
+  const url = absolute(canonical);
   const ogImage = image ?? `${siteUrl}/og-image.jpg`;
+  const languages = Object.fromEntries(
+    routing.locales.map((l) => [l, absolute(localizedPath(l, path))])
+  );
 
   return {
     title: absoluteTitle ? { absolute: title } : title,
@@ -62,11 +72,12 @@ export function buildPageMetadata({
     authors: [{ name: PERSON.name, url: siteUrl }],
     creator: PERSON.name,
     alternates: {
-      canonical: path,
+      canonical,
+      languages: { ...languages, 'x-default': absolute(path) },
     },
     openGraph: {
       type: ogType,
-      locale: 'en_US',
+      locale: OG_LOCALE[locale as Locale] ?? OG_LOCALE.en,
       url,
       siteName: SITE_NAME,
       title,
@@ -140,17 +151,18 @@ export function websiteJsonLd() {
     name: SITE_NAME,
     description: SITE_DESCRIPTION,
     publisher: { '@id': `${siteUrl}/#person` },
-    inLanguage: 'en',
+    inLanguage: [...routing.locales],
   };
 }
 
-export function homePageJsonLd() {
+export function homePageJsonLd(locale: string = routing.defaultLocale) {
   const siteUrl = getSiteUrl();
+  const pageUrl = `${siteUrl}${localizedPath(locale, '/') === '/' ? '' : localizedPath(locale, '/')}`;
   return {
     '@context': 'https://schema.org',
     '@type': 'WebPage',
-    '@id': `${siteUrl}/#webpage`,
-    url: siteUrl,
+    '@id': `${pageUrl}/#webpage`,
+    url: pageUrl,
     name: SITE_TITLE_DEFAULT,
     description: SITE_DESCRIPTION,
     isPartOf: { '@id': `${siteUrl}/#website` },
@@ -159,13 +171,13 @@ export function homePageJsonLd() {
       '@type': 'ImageObject',
       url: `${siteUrl}/og-image.jpg`,
     },
-    inLanguage: 'en',
+    inLanguage: locale,
   };
 }
 
-export function workWithMeJsonLd() {
+export function workWithMeJsonLd(locale: string = routing.defaultLocale) {
   const siteUrl = getSiteUrl();
-  const pageUrl = `${siteUrl}/work-with-me`;
+  const pageUrl = `${siteUrl}${localizedPath(locale, '/work-with-me')}`;
   return {
     '@context': 'https://schema.org',
     '@type': 'WebPage',
@@ -200,13 +212,13 @@ export function workWithMeJsonLd() {
         },
       ],
     },
-    inLanguage: 'en',
+    inLanguage: locale,
   };
 }
 
-export function projectJsonLd(project: Project) {
+export function projectJsonLd(project: Project, locale: string = routing.defaultLocale) {
   const siteUrl = getSiteUrl();
-  const pageUrl = `${siteUrl}/projects/${project.slug}`;
+  const pageUrl = `${siteUrl}${localizedPath(locale, `/projects/${project.slug}`)}`;
   return {
     '@context': 'https://schema.org',
     '@type': 'CreativeWork',
@@ -218,6 +230,6 @@ export function projectJsonLd(project: Project) {
     ...(project.images[0] ? { image: `${siteUrl}${project.images[0].src}` } : {}),
     keywords: project.stack.filter((t) => !t.startsWith('TODO')).join(', '),
     creator: { '@id': `${siteUrl}/#person` },
-    inLanguage: 'en',
+    inLanguage: locale,
   };
 }

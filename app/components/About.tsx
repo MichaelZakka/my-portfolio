@@ -1,40 +1,38 @@
+import { useTranslations } from 'next-intl';
 import { MapPin, Mail, Linkedin, Languages, Download } from 'lucide-react';
 import styles from './About.module.css';
 import Reveal from './motion/Reveal';
 import { EMAIL, LINKEDIN_URL, RESUME_URL } from '../lib/site';
 
-const INFO = [
-  { icon: MapPin, label: 'Location', value: 'Damascus, Syria' },
-  { icon: Mail, label: 'Email', value: EMAIL, href: `mailto:${EMAIL}` },
-  { icon: Linkedin, label: 'LinkedIn', value: 'in/michael-zakka', href: LINKEDIN_URL, ltr: true },
-  { icon: Languages, label: 'Languages', value: 'Arabic, English' },
-];
-
 export default function About() {
+  const t = useTranslations('about');
+
+  const info = [
+    { icon: MapPin, label: t('location'), value: t('locationValue') },
+    { icon: Mail, label: t('email'), value: EMAIL, href: `mailto:${EMAIL}`, ltr: true },
+    { icon: Linkedin, label: t('linkedin'), value: 'in/michael-zakka', href: LINKEDIN_URL, ltr: true },
+    { icon: Languages, label: t('languages'), value: t('languagesValue') },
+  ];
+
   return (
-    <section id="about" className="section">
+    <section id="about" className="section" aria-labelledby="about-title">
       <div className={`container ${styles.grid}`}>
         <Reveal>
-          <p className="eyebrow" data-index="01">About Me</p>
-          <h2 className="section-title">Building Solutions That Make an Impact</h2>
-          <p className={styles.paragraph}>
-            I&apos;m a frontend developer in Damascus who builds production websites and web apps
-            with React, Next.js and TypeScript. I&apos;ve shipped bilingual Arabic/English sites for
-            businesses in Saudi Arabia, handling RTL layouts, responsive design and Vercel
-            deployments end to end. I care about fast pages, accessible UI and components that stay
-            easy to change. I&apos;m looking for a frontend role on a product team where I can own
-            features from design to production.
-          </p>
+          <p className="eyebrow" data-index="01">{t('eyebrow')}</p>
+          <h2 id="about-title" className="section-title">
+            {t('title')}
+          </h2>
+          <p className={styles.paragraph}>{t('paragraph')}</p>
 
           <a href={RESUME_URL} download className="btn btn-primary">
-            Download Resume
+            {t('downloadResume')}
             <Download size={17} aria-hidden />
           </a>
         </Reveal>
 
         <Reveal index={1} className={`card ${styles.infoCard}`}>
           <dl>
-            {INFO.map(({ icon: Icon, label, value, href, ltr }) => (
+            {info.map(({ icon: Icon, label, value, href, ltr }) => (
               <div key={label} className={styles.infoRow}>
                 <Icon size={22} aria-hidden className={styles.infoIcon} />
                 <div>

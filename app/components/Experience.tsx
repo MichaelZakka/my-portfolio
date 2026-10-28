@@ -1,19 +1,28 @@
+import { useMessages, useTranslations } from 'next-intl';
 import { ArrowUpRight } from 'lucide-react';
 import styles from './Experience.module.css';
 import Reveal from './motion/Reveal';
 import { EXPERIENCE } from '../../data/experience';
 import { isTodo, showValue } from '../../data/todo';
+import { contentFrom, localizeRole } from '../lib/localizedContent';
 
 export default function Experience() {
+  const t = useTranslations('experience');
+  const content = contentFrom(useMessages());
+
   return (
-    <section id="experience" className="section">
+    <section id="experience" className="section" aria-labelledby="experience-title">
       <div className="container">
         <Reveal className="section-head">
-          <p className="eyebrow" data-index="04">Experience</p>
-          <h2 className="section-title">Where I&apos;ve Worked</h2>
+          <p className="eyebrow" data-index="04">{t('eyebrow')}</p>
+          <h2 id="experience-title" className="section-title">
+            {t('title')}
+          </h2>
         </Reveal>
         <ol className={styles.timeline}>
-          {EXPERIENCE.map((exp, idx) => (
+          {EXPERIENCE.map((raw, idx) => {
+            const exp = localizeRole(raw, content);
+            return (
             <Reveal as="li" key={exp.id} index={idx} className={styles.item}>
               <span className={styles.dot} aria-hidden="true" />
               <article className={`card ${styles.card}`}>
@@ -50,7 +59,8 @@ export default function Experience() {
                 </ul>
               </article>
             </Reveal>
-          ))}
+            );
+          })}
         </ol>
       </div>
     </section>

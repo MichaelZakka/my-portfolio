@@ -1,109 +1,57 @@
 import type { MetadataRoute } from 'next';
-import fs from 'fs';
-import path from 'path';
 import { getSiteUrl } from './lib/site';
+import { getPosts } from './lib/blog';
 import { PUBLISHED_PROJECTS } from '../data/projects';
+import { routing } from '../i18n/routing';
+import { localizedPath } from '../i18n/paths';
 
 type SitemapEntry = MetadataRoute.Sitemap[number];
+type Route = { path: string } & Pick<SitemapEntry, 'changeFrequency' | 'priority'>;
 
-const PAGE_FILE = /^page\.(tsx|ts|jsx|js)$/;
-const SKIP_DIRS = new Set(['api', 'components', 'lib', 'hooks', 'utils', 'types', 'admin']);
+/** Every public, indexable route (locale-less). Each is emitted once per locale with hreflang alternates. */
+function getRoutes(): Route[] {
+  const publishedPosts = getPosts().filter((p) => !p.draft);
+  return [
+    { path: '/', changeFrequency: 'monthly', priority: 1 },
+    ...PUBLISHED_PROJECTS.map((p): Route => ({
+      path: `/projects/${p.slug}`,
+      changeFrequency: 'monthly',
+      priority: 0.8,
+    })),
+    { path: '/work-with-me', changeFrequency: 'yearly', priority: 0.4 },
+    // The blog index is noindexed until a post is published
+    ...(publishedPosts.length > 0
+      ? [
+          { path: '/blog', changeFrequency: 'weekly', priority: 0.6 } as Route,
+          ...publishedPosts.map((p): Route => ({
+            path: `/blog/${p.slug}`,
+            changeFrequency: 'yearly',
+            priority: 0.5,
+          })),
+        ]
+      : []),
+  ];
+}
 
-/** Route metadata overrides keyed by pathname (e.g. "/", "/work-with-me"). */
-const ROUTE_META: Record<
-  string,
-  Pick<SitemapEntry, 'changeFrequency' | 'priority'>
-> = {
-  '/': { changeFrequency: 'monthly', priority: 1 },
-  '/work-with-me': { changeFrequency: 'monthly', priority: 0.8 },
-};
-
-/**
- * Walk `app/` and collect static route paths from `page.*` files.
- * Skips route groups, private folders, API, and dynamic `[param]` segments.
- */
-function getStaticAppRoutes(appDir: string): string[] {
-  const routes: string[] = [];
-
-  const walk = (dir: string, urlPath: string) => {
-    let entries: fs.Dirent[];
-    try {
-      entries = fs.readdirSync(dir, { withFileTypes: true });
-    } catch {
-      return;
-    }
-
-    const hasPage = entries.some(
-      (entry) => entry.isFile() && PAGE_FILE.test(entry.name)
-    );
-
-    if (hasPage) {
-      routes.push(urlPath || '/');
-    }
-
-    for (const entry of entries) {
-      if (!entry.isDirectory()) continue;
-
-      const name = entry.name;
-
-      // Private folders (_components) and known non-route folders
-      if (name.startsWith('_') || name.startsWith('.') || SKIP_DIRS.has(name)) {
-        continue;
-      }
-
-      // Route groups: (marketing) — do not affect the URL
-      if (name.startsWith('(') && name.endsWith(')')) {
-        walk(path.join(dir, name), urlPath);
-        continue;
-      }
-
-      // Dynamic segments — handled separately if/when added
-      if (name.startsWith('[') && name.endsWith(']')) {
-        continue;
-      }
-
-      walk(path.join(dir, name), `${urlPath}/${name}`);
-    }
+export default function sitemap(): MetadataRoute.Sitemap {
+  const siteUrl = getSiteUrl();
+  const lastModified = new Date();
+  const url = (locale: string, path: string) => {
+    const p = localizedPath(locale, path);
+    return p === '/' ? siteUrl : `${siteUrl}${p}`;
   };
 
-  walk(appDir, '');
-  return Array.from(new Set(routes)).sort((a, b) => {
-    if (a === '/') return -1;
-    if (b === '/') return 1;
-    return a.localeCompare(b);
-  });
-}
-
-/** Dynamic routes: one entry per published case study. */
-function getDynamicRoutes(siteUrl: string, lastModified: Date): MetadataRoute.Sitemap {
-  return PUBLISHED_PROJECTS.map((project) => ({
-    url: `${siteUrl}/projects/${project.slug}`,
-    lastModified,
-    changeFrequency: 'monthly',
-    priority: 0.7,
-  }));
-}
-
-export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const siteUrl = getSiteUrl();
-  const appDir = path.join(process.cwd(), 'app');
-  const lastModified = new Date();
-
-  const staticRoutes = getStaticAppRoutes(appDir).map((route): SitemapEntry => {
-    const meta = ROUTE_META[route] ?? {
-      changeFrequency: 'monthly' as const,
-      priority: 0.6,
-    };
-
-    return {
-      url: route === '/' ? siteUrl : `${siteUrl}${route}`,
-      lastModified,
-      changeFrequency: meta.changeFrequency,
-      priority: meta.priority,
-    };
-  });
-
-  const dynamicRoutes = getDynamicRoutes(siteUrl, lastModified);
-
-  return [...staticRoutes, ...dynamicRoutes];
+  return getRoutes().flatMap((route) =>
+    routing.locales.map(
+      (locale): SitemapEntry => ({
+        url: url(locale, route.path),
+        lastModified,
+        changeFrequency: route.changeFrequency,
+        priority: route.priority,
+        alternates: {
+          languages: Object.fromEntries(routing.locales.map((l) => [l, url(l, route.path)])),
+        },
+      })
+    )
+  );
 }

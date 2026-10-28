@@ -1,12 +1,14 @@
+import { useTranslations } from 'next-intl';
 import styles from './Footer.module.css';
 import { Github, Linkedin, Mail } from 'lucide-react';
-import { EMAIL, GITHUB_URL, JOB_TITLE, LINKEDIN_URL } from '../lib/site';
+import { EMAIL, GITHUB_URL, LINKEDIN_URL, SOURCE_REPO_URL } from '../lib/site';
 
 export default function Footer() {
+  const t = useTranslations();
   const socialLinks = [
     ...(GITHUB_URL ? [{ name: 'GitHub', url: GITHUB_URL, icon: Github }] : []),
     { name: 'LinkedIn', url: LINKEDIN_URL, icon: Linkedin },
-    { name: 'Email', url: `mailto:${EMAIL}`, icon: Mail },
+    { name: t('contact.email'), url: `mailto:${EMAIL}`, icon: Mail },
   ];
 
   return (
@@ -16,14 +18,25 @@ export default function Footer() {
           <p className={styles.name}>
             Michael <span className={styles.accent}>Zakka</span>
           </p>
-          <p className={styles.role}>{JOB_TITLE}</p>
+          <p className={styles.role}>{t('meta.jobTitle')}</p>
         </div>
 
-        <p className={styles.copyright}>
-          © {new Date().getFullYear()} Michael Zakka. All rights reserved.
-        </p>
+        <div className={styles.center}>
+          <p className={styles.copyright}>{t('footer.rights', { year: new Date().getFullYear() })}</p>
+          <p className={styles.built}>
+            {t('footer.builtWith')}
+            {SOURCE_REPO_URL && (
+              <>
+                {', '}
+                <a href={SOURCE_REPO_URL} target="_blank" rel="noopener noreferrer">
+                  {t('footer.viewSource')}
+                </a>
+              </>
+            )}
+          </p>
+        </div>
 
-        <ul className={styles.links}>
+        <ul className={styles.links} aria-label={t('footer.social')}>
           {socialLinks.map((link) => {
             const IconComponent = link.icon;
             return (
@@ -31,8 +44,7 @@ export default function Footer() {
                 <a
                   href={link.url}
                   className={styles.socialLink}
-                  target={link.url.startsWith('http') ? '_blank' : undefined}
-                  rel="noopener noreferrer"
+                  {...(link.url.startsWith('http') ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
                   aria-label={link.name}
                   title={link.name}
                 >

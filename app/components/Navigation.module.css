@@ -55,6 +55,7 @@
   display: flex;
   align-items: center;
   gap: var(--s-6);
+  margin-inline-start: auto;
 }
 
 .navLink {
@@ -90,6 +91,33 @@
 
 .ctaItem {
   margin-inline-start: var(--s-2);
+}
+
+.tools {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+}
+
+.lang {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 40px;
+  padding: 0 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-strong);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-muted);
+  transition:
+    color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.lang:hover {
+  color: var(--text);
+  border-color: var(--accent-line);
 }
 
 .menuButton {

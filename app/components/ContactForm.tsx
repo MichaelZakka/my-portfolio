@@ -1,6 +1,7 @@
 'use client';
 
 import { useActionState, useState, type FormEvent } from 'react';
+import { useTranslations } from 'next-intl';
 import { CheckCircle2, Loader2, Send } from 'lucide-react';
 import styles from './Contact.module.css';
 import { submitContact, type ContactState } from '../actions/contact';
@@ -10,6 +11,7 @@ import { trackEvent } from '../lib/analyticsClient';
 const INITIAL: ContactState = { status: 'idle' };
 
 export default function ContactForm() {
+  const t = useTranslations('contact');
   const [state, formAction, pending] = useActionState(submitContact, INITIAL);
   const [clientErrors, setClientErrors] = useState<ContactErrors>({});
 
@@ -35,8 +37,8 @@ export default function ContactForm() {
     return (
       <div className={`card ${styles.formCard} ${styles.success}`} role="status">
         <CheckCircle2 size={32} aria-hidden className={styles.successIcon} />
-        <h3 className={styles.formTitle}>Message sent</h3>
-        <p className={styles.formHint}>Thanks for reaching out. I&apos;ll reply by email soon.</p>
+        <h3 className={styles.formTitle}>{t('form.successTitle')}</h3>
+        <p className={styles.formHint}>{t('form.successText')}</p>
       </div>
     );
   }
@@ -50,10 +52,10 @@ export default function ContactForm() {
 
   return (
     <form className={`card ${styles.formCard}`} action={formAction} onSubmit={onSubmit} noValidate>
-      <h3 className={styles.formTitle}>Send a message</h3>
+      <h3 className={styles.formTitle}>{t('form.title')}</h3>
 
       <div className={styles.formRow}>
-        <label htmlFor="contact-name">Name</label>
+        <label htmlFor="contact-name">{t('form.name')}</label>
         <input
           {...fieldProps('name')}
           className={styles.field}
@@ -65,13 +67,13 @@ export default function ContactForm() {
         />
         {errors.name && (
           <p id="contact-name-error" className={styles.fieldError}>
-            {errors.name}
+            {t(`errors.${errors.name}`)}
           </p>
         )}
       </div>
 
       <div className={styles.formRow}>
-        <label htmlFor="contact-email">Email</label>
+        <label htmlFor="contact-email">{t('form.email')}</label>
         <input
           {...fieldProps('email')}
           className={styles.field}
@@ -83,13 +85,13 @@ export default function ContactForm() {
         />
         {errors.email && (
           <p id="contact-email-error" className={styles.fieldError}>
-            {errors.email}
+            {t(`errors.${errors.email}`)}
           </p>
         )}
       </div>
 
       <div className={styles.formRow}>
-        <label htmlFor="contact-message">Message</label>
+        <label htmlFor="contact-message">{t('form.message')}</label>
         <textarea
           {...fieldProps('message')}
           className={`${styles.field} ${styles.textarea}`}
@@ -100,7 +102,7 @@ export default function ContactForm() {
         />
         {errors.message && (
           <p id="contact-message-error" className={styles.fieldError}>
-            {errors.message}
+            {t(`errors.${errors.message}`)}
           </p>
         )}
       </div>
@@ -112,7 +114,9 @@ export default function ContactForm() {
       </div>
 
       <p className={styles.formStatus} role="alert">
-        {state.status === 'error' && Object.keys(clientErrors).length === 0 ? state.message : ''}
+        {state.status === 'error' && Object.keys(clientErrors).length === 0
+          ? t(`errors.${state.message}`)
+          : ''}
       </p>
 
       <button type="submit" className="btn btn-primary" disabled={pending}>
@@ -121,7 +125,7 @@ export default function ContactForm() {
         ) : (
           <Send size={18} aria-hidden className="flip-rtl" />
         )}
-        {pending ? 'Sending…' : 'Send message'}
+        {pending ? t('form.sending') : t('form.send')}
       </button>
     </form>
   );

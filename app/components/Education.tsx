@@ -1,24 +1,28 @@
+import { useTranslations } from 'next-intl';
 import { GraduationCap } from 'lucide-react';
 import styles from './Education.module.css';
 import Reveal from './motion/Reveal';
 
 export default function Education() {
+  const t = useTranslations('education');
   const education = [
     {
-      degree: 'Bachelor of Information Technology Engineering',
-      institution: 'Damascus University',
-      location: 'Damascus',
-      duration: '2020 - 2025',
-      description: 'Specialized in Artificial Intelligence and natural languages',
+      degree: t('degree'),
+      institution: t('institution'),
+      location: t('location'),
+      duration: t('duration'),
+      description: t('description'),
     },
   ];
 
   return (
-    <section id="education" className="section">
+    <section id="education" className="section" aria-labelledby="education-title">
       <div className="container">
         <Reveal className="section-head">
-          <p className="eyebrow" data-index="06">Education</p>
-          <h2 className="section-title">Education</h2>
+          <p className="eyebrow" data-index="06">{t('eyebrow')}</p>
+          <h2 id="education-title" className="section-title">
+            {t('title')}
+          </h2>
         </Reveal>
         <div className={styles.list}>
           {education.map((edu) => (

@@ -4,8 +4,10 @@ import { ArrowRight, FileDown } from 'lucide-react';
 import styles from './Hero.module.css';
 import { trackEvent } from '../lib/analyticsClient';
 import { RESUME_URL } from '../lib/site';
+import { useTranslations } from 'next-intl';
 
 export default function HeroCtas() {
+  const t = useTranslations('hero');
   const scrollToSection = (sectionId: string) => {
     const element = document.getElementById(sectionId);
     if (element) {
@@ -25,7 +27,7 @@ export default function HeroCtas() {
           scrollToSection('projects');
         }}
       >
-        View Projects
+        {t('viewProjects')}
         <ArrowRight size={18} aria-hidden className="flip-rtl" />
       </a>
       <a
@@ -35,7 +37,7 @@ export default function HeroCtas() {
         onClick={() => trackEvent('cta_click', { label: 'hero-resume' })}
       >
         <FileDown size={18} aria-hidden />
-        Download Resume
+        {t('downloadResume')}
       </a>
     </div>
   );
