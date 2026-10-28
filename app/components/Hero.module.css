@@ -133,17 +133,6 @@
   }
 }
 
-/* Signature: the Arabic name as a quiet bilingual echo */
-.nameAr {
-  display: block;
-  margin-block-start: var(--s-2);
-  font-family: var(--font-arabic), sans-serif;
-  font-size: 0.42em;
-  font-weight: 600;
-  letter-spacing: 0;
-  color: var(--text-dim);
-  text-align: start;
-}
 
 .role {
   margin-block-start: var(--s-3);
@@ -287,9 +276,9 @@
   color: var(--text-dim);
 }
 
+/* Transform-only entrance: the h1 is the LCP element, so it must never start invisible */
 @keyframes rise {
   from {
-    opacity: 0;
     transform: translateY(16px);
   }
 }
@@ -312,9 +301,6 @@
     padding-block: 0 var(--s-8);
   }
 
-  .nameAr {
-    text-align: center;
-  }
 
   .intro {
     margin-inline: auto;

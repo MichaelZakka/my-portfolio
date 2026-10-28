@@ -34,13 +34,13 @@ export default function About() {
           <dl>
             {info.map(({ icon: Icon, label, value, href, ltr }) => (
               <div key={label} className={styles.infoRow}>
-                <Icon size={22} aria-hidden className={styles.infoIcon} />
-                <div>
-                  <dt className={styles.infoLabel}>{label}</dt>
-                  <dd className={styles.infoValue} dir={ltr ? 'ltr' : undefined}>
-                    {href ? <a href={href}>{value}</a> : value}
-                  </dd>
-                </div>
+                <dt className={styles.infoLabel}>
+                  <Icon size={22} aria-hidden className={styles.infoIcon} />
+                  {label}
+                </dt>
+                <dd className={styles.infoValue} dir={ltr ? 'ltr' : undefined}>
+                  {href ? <a href={href}>{value}</a> : value}
+                </dd>
               </div>
             ))}
           </dl>

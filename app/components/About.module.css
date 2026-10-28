@@ -36,9 +36,9 @@
 }
 
 .infoRow {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--s-4);
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr);
+  column-gap: var(--s-4);
   padding-block: var(--s-5);
   border-block-end: 1px solid var(--border);
 }
@@ -53,16 +53,18 @@
 }
 
 .infoIcon {
-  flex-shrink: 0;
+  grid-row: span 2;
   color: var(--accent-text);
 }
 
 .infoLabel {
+  display: contents;
   font-weight: 600;
   font-size: 15px;
 }
 
 .infoValue {
+  grid-column: 2;
   color: var(--text-muted);
   font-size: 15px;
   overflow-wrap: anywhere;

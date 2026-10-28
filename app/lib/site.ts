@@ -22,7 +22,7 @@ export function getSiteUrl(): string {
   return 'http://localhost:3000';
 }
 
-/** Single job title used across metadata, hero, nav and footer. */
+/** English job title for JSON-LD; the UI reads meta.jobTitle from messages/<locale>.json. */
 export const JOB_TITLE = 'Frontend Developer (React / Next.js)';
 
 // TODO(michael): set your GitHub profile URL, e.g. 'https://github.com/your-username'.

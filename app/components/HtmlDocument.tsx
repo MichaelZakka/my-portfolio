@@ -19,7 +19,8 @@ const inter = Inter({
 
 const plexArabic = IBM_Plex_Sans_Arabic({
   subsets: ['arabic'],
-  weight: ['400', '600', '700'],
+  // 600 maps to 700; fewer files keeps Arabic pages fast
+  weight: ['400', '700'],
   variable: '--font-arabic',
   display: 'swap',
   preload: false,
@@ -42,6 +43,10 @@ export default function HtmlDocument({
       className={`${spaceGrotesk.variable} ${inter.variable} ${plexArabic.variable}`}
     >
       <body>
+        {/* Scroll-reveal hides content until JS runs; without JS, show everything */}
+        <noscript>
+          <style>{'.reveal{opacity:1!important;transform:none!important}'}</style>
+        </noscript>
         <Suspense fallback={null}>
           <AnalyticsTracker />
         </Suspense>

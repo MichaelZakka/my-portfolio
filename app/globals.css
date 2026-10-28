@@ -14,6 +14,8 @@
 
   --accent: #1a73ff;
   --accent-hover: #3d8bff;
+  /* Background for white text: #1a73ff only reaches 4.25:1, this clears AA (5:1) */
+  --accent-strong: #1668e8;
   --accent-text: #5c9dff; /* accent used as small text — AA on navy */
   --accent-soft: rgba(26, 115, 255, 0.12);
   --accent-line: rgba(26, 115, 255, 0.4);
@@ -39,18 +41,18 @@
   --shadow-hover: 0 10px 30px rgba(0, 0, 0, 0.35);
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
 
-  --font-heading: var(--font-space-grotesk), var(--font-arabic), system-ui, sans-serif;
-  --font-body: var(--font-inter), var(--font-arabic), system-ui, sans-serif;
+  /* Latin glyphs come from Space Grotesk/Inter; Arabic glyphs fall through to IBM Plex Sans Arabic
+     before the metric fallbacks (Arial has Arabic glyphs and would otherwise win).
+     Family names are the ones next/font registers (see app/components/HtmlDocument.tsx). */
+  --font-heading: 'Space Grotesk', 'IBM Plex Sans Arabic', 'Space Grotesk Fallback',
+    'IBM Plex Sans Arabic Fallback', system-ui, sans-serif;
+  --font-body: 'Inter', 'IBM Plex Sans Arabic', 'Inter Fallback', 'IBM Plex Sans Arabic Fallback',
+    system-ui, sans-serif;
   --font-mono: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
 
   color-scheme: dark;
 }
 
-/* Arabic: prefer Plex Arabic first, drop tight tracking */
-:root:lang(ar) {
-  --font-heading: var(--font-arabic), var(--font-space-grotesk), sans-serif;
-  --font-body: var(--font-arabic), var(--font-inter), sans-serif;
-}
 
 /* ============================================================
    Reset
@@ -138,7 +140,7 @@ ul {
 }
 
 ::selection {
-  background: var(--accent);
+  background: var(--accent-strong);
   color: #fff;
 }
 
@@ -293,12 +295,12 @@ ul {
 }
 
 .btn-primary {
-  background: var(--accent);
+  background: var(--accent-strong);
   color: #fff;
 }
 
 .btn-primary:hover {
-  background: var(--accent-hover);
+  background: #1259c6;
 }
 
 .btn-outline {
@@ -339,7 +341,7 @@ ul {
   z-index: 200;
   padding: 10px 16px;
   border-radius: var(--radius-sm);
-  background: var(--accent);
+  background: var(--accent-strong);
   color: #fff;
   font-weight: 600;
   transform: translateY(-200%);
