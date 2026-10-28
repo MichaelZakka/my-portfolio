@@ -3,9 +3,10 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Menu, X } from 'lucide-react';
+import { FileDown, Menu, X } from 'lucide-react';
 import styles from './Navigation.module.css';
 import { trackEvent } from '../lib/analyticsClient';
+import { JOB_TITLE, RESUME_URL } from '../lib/site';
 
 const NAV_ITEMS = [
   { id: 'hero', label: 'Home' },
@@ -20,7 +21,6 @@ const SECTION_IDS = NAV_ITEMS.map((item) => item.id);
 export default function Navigation() {
   const pathname = usePathname();
   const isHome = pathname === '/';
-  const isWorkWithMe = pathname === '/work-with-me';
 
   const [isScrolled, setIsScrolled] = useState(false);
   const [activeSection, setActiveSection] = useState(isHome ? 'hero' : '');
@@ -119,7 +119,7 @@ export default function Navigation() {
           <span className={styles.logoName}>
             Michael <span className={styles.logoAccent}>Zakka</span>
           </span>
-          <span className={styles.logoRole}>Frontend Developer</span>
+          <span className={styles.logoRole}>{JOB_TITLE}</span>
         </Link>
 
         <ul id="primary-menu" className={`${styles.navList} ${isMobileMenuOpen ? styles.open : ''}`}>
@@ -139,17 +139,18 @@ export default function Navigation() {
             </li>
           ))}
           <li className={styles.ctaItem}>
-            <Link
-              href="/work-with-me"
+            <a
+              href={RESUME_URL}
+              download
               className={`btn btn-primary ${styles.cta}`}
               onClick={() => {
-                trackEvent('cta_click', { label: 'work-with-me' });
+                trackEvent('cta_click', { label: 'nav-resume' });
                 setIsMobileMenuOpen(false);
               }}
-              aria-current={isWorkWithMe ? 'page' : undefined}
             >
-              Work with me
-            </Link>
+              <FileDown size={16} aria-hidden />
+              Resume
+            </a>
           </li>
         </ul>
 

@@ -1,5 +1,6 @@
 import styles from './Footer.module.css';
 import { Linkedin, Mail, MessageCircle } from 'lucide-react';
+import { JOB_TITLE } from '../lib/site';
 
 export default function Footer() {
   const socialLinks = [
@@ -27,7 +28,7 @@ export default function Footer() {
           <p className={styles.name}>
             Michael <span className={styles.accent}>Zakka</span>
           </p>
-          <p className={styles.role}>Frontend Developer</p>
+          <p className={styles.role}>{JOB_TITLE}</p>
         </div>
 
         <p className={styles.copyright}>

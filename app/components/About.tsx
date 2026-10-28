@@ -1,13 +1,7 @@
-import { Briefcase, FolderCheck, CalendarCheck, Globe2, MapPin, Mail, Phone, Languages, Download } from 'lucide-react';
+import { MapPin, Mail, Phone, Languages, Download } from 'lucide-react';
 import styles from './About.module.css';
 import Reveal from './motion/Reveal';
-
-const FACTS = [
-  { icon: Briefcase, label: '2+ years shipping production work' },
-  { icon: FolderCheck, label: '5 featured client & personal projects' },
-  { icon: CalendarCheck, label: 'Available for freelance' },
-  { icon: Globe2, label: 'Clients in Syria & Saudi Arabia' },
-];
+import { RESUME_URL } from '../lib/site';
 
 const INFO = [
   { icon: MapPin, label: 'Location', value: 'Damascus, Syria' },
@@ -24,16 +18,16 @@ export default function About() {
           <p className="eyebrow" data-index="01">About Me</p>
           <h2 className="section-title">Building Solutions That Make an Impact</h2>
           <p className={styles.paragraph}>
-            Information Technology Engineering graduate and Frontend Developer specializing in building
-            complete web solutions. I&apos;m driven by the intersection of technology and business, creating
-            digital products that deliver both technical quality and measurable value. Always exploring new
-            opportunities to turn innovative ideas into impactful applications.
+            I&apos;m a frontend developer in Damascus who builds production websites and web apps
+            with React, Next.js and TypeScript. I&apos;ve shipped bilingual Arabic/English sites for
+            businesses in Saudi Arabia, handling RTL layouts, responsive design and Vercel
+            deployments end to end. I care about fast pages, accessible UI and components that stay
+            easy to change. I&apos;m looking for a frontend role on a product team where I can own
+            features from design to production.
           </p>
 
-
-
-          <a href="/michael-zakka-cv.pdf" download className="btn btn-primary">
-            Download CV
+          <a href={RESUME_URL} download className="btn btn-primary">
+            Download Resume
             <Download size={17} aria-hidden />
           </a>
         </Reveal>

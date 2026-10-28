@@ -1,5 +1,7 @@
+import { Github, Linkedin, MapPin } from 'lucide-react';
 import styles from './Hero.module.css';
 import HeroCtas from './HeroCtas';
+import { GITHUB_URL, JOB_TITLE, LINKEDIN_URL, OPEN_TO } from '../lib/site';
 
 const TECH = ['Next.js', 'React', 'JavaScript', 'Shopify', 'Flutter', 'Vercel'];
 
@@ -10,16 +12,35 @@ export default function Hero() {
 
       <div className={`container ${styles.inner}`}>
         <div className={styles.text}>
+          <p className={styles.badge}>
+            <span className={styles.badgeDot} aria-hidden="true" />
+            Open to {OPEN_TO.join(' · ')}
+            <MapPin size={14} aria-hidden />
+          </p>
           <p className={styles.greeting}>Hello, I&apos;m</p>
           <h1 className={styles.name}>
             Michael Zakka
           </h1>
-          <h2 className={styles.role}>Frontend Developer</h2>
+          <p className={styles.role}>{JOB_TITLE}</p>
           <p className={styles.intro}>
-            I build fast, bilingual Arabic/English websites and web apps for businesses in
-            Syria, Saudi Arabia, and beyond.
+            Frontend developer building production React &amp; Next.js apps: bilingual
+            (Arabic/English, RTL/LTR), fast, and shipped to real users.
           </p>
           <HeroCtas />
+          <ul className={styles.social}>
+            {GITHUB_URL && (
+              <li>
+                <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer" aria-label="GitHub profile">
+                  <Github size={20} aria-hidden />
+                </a>
+              </li>
+            )}
+            <li>
+              <a href={LINKEDIN_URL} target="_blank" rel="noopener noreferrer" aria-label="LinkedIn profile">
+                <Linkedin size={20} aria-hidden />
+              </a>
+            </li>
+          </ul>
 
           <div className={styles.tech}>
             <div className={styles.techBar} aria-hidden="true">

@@ -1,8 +1,9 @@
 'use client';
 
-import { ArrowRight, Mail } from 'lucide-react';
+import { ArrowRight, FileDown } from 'lucide-react';
 import styles from './Hero.module.css';
 import { trackEvent } from '../lib/analyticsClient';
+import { RESUME_URL } from '../lib/site';
 
 export default function HeroCtas() {
   const scrollToSection = (sectionId: string) => {
@@ -24,20 +25,17 @@ export default function HeroCtas() {
           scrollToSection('projects');
         }}
       >
-        View My Work
+        View Projects
         <ArrowRight size={18} aria-hidden className="flip-rtl" />
       </a>
       <a
-        href="#contact"
+        href={RESUME_URL}
+        download
         className="btn btn-outline"
-        onClick={(e) => {
-          e.preventDefault();
-          trackEvent('cta_click', { label: 'hero-contact' });
-          scrollToSection('contact');
-        }}
+        onClick={() => trackEvent('cta_click', { label: 'hero-resume' })}
       >
-        <Mail size={18} aria-hidden />
-        Contact Me
+        <FileDown size={18} aria-hidden />
+        Download Resume
       </a>
     </div>
   );

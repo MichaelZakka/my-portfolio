@@ -7,7 +7,6 @@ import Experience from './components/Experience';
 import Education from './components/Education';
 import Volunteering from './components/Volunteering';
 import Services from './components/Services';
-import CtaBand from './components/CtaBand';
 import Contact from './components/Contact';
 import Footer from './components/Footer';
 import WhatsAppButton from './components/WhatsAppButton';

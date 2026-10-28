@@ -8,7 +8,7 @@ import {
   SITE_NAME,
   SITE_TITLE_DEFAULT,
 } from './lib/seo';
-import { getSiteUrl } from './lib/site';
+import { JOB_TITLE, getSiteUrl } from './lib/site';
 import { Inter, Space_Grotesk, IBM_Plex_Sans_Arabic } from 'next/font/google';
 import AnalyticsTracker from './components/AnalyticsTracker';
 import './globals.css';
@@ -72,7 +72,7 @@ export const metadata: Metadata = {
         url: ogImage,
         width: 1200,
         height: 630,
-        alt: `${SITE_NAME} — IT Engineer & Full-Stack Developer`,
+        alt: `${SITE_NAME} — ${JOB_TITLE}`,
       },
     ],
   },

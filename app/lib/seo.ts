@@ -1,34 +1,31 @@
 import type { Metadata } from 'next';
-import { getSiteUrl } from './site';
+import { GITHUB_URL, JOB_TITLE, LINKEDIN_URL, getSiteUrl } from './site';
 
 export const SITE_NAME = 'Michael Zakka';
-export const SITE_TITLE_DEFAULT = 'Michael Zakka | IT Engineer & Full-Stack Developer';
+export const SITE_TITLE_DEFAULT = `Michael Zakka | ${JOB_TITLE}`;
 export const SITE_DESCRIPTION =
-  'Portfolio of Michael Zakka — IT Engineer and Full-Stack Developer specializing in React, Next.js, Shopify, and Flutter. Explore projects, services, and experience.';
+  'Michael Zakka is a frontend developer building production React & Next.js apps: bilingual (Arabic/English, RTL/LTR), fast, and shipped to real users. Projects, experience, and resume.';
 export const SITE_KEYWORDS = [
   'Michael Zakka',
-  'IT Engineer',
-  'Full-Stack Developer',
+  'Frontend Developer',
+  'React Developer',
+  'Next.js Developer',
+  'TypeScript',
+  'RTL',
+  'Arabic English bilingual websites',
+  'Frontend Developer Damascus',
+  'Remote Frontend Developer',
   'Portfolio',
-  'Web Development',
-  'Next.js',
-  'React',
-  'Flutter Developer',
-  'Shopify',
-  'Freelance Developer',
 ];
 
 export const PERSON = {
   name: 'Michael Zakka',
-  jobTitle: 'IT Engineer & Full-Stack Developer',
+  jobTitle: JOB_TITLE,
   email: 'michealzakka@gmail.com',
   telephone: '+963992833739',
   addressLocality: 'Damascus',
   addressCountry: 'SY',
-  sameAs: [
-    'https://linkedin.com/in/michael-zakka',
-    'https://wa.me/963992833739',
-  ],
+  sameAs: [LINKEDIN_URL, ...(GITHUB_URL ? [GITHUB_URL] : [])],
 } as const;
 
 export const SERVICES = [
@@ -142,12 +139,12 @@ export function personJsonLd() {
     },
     sameAs: [...PERSON.sameAs],
     knowsAbout: [
-      'Web Development',
-      'Next.js',
+      'Frontend Development',
       'React',
-      'Flutter',
+      'Next.js',
+      'TypeScript',
+      'Right-to-left (RTL) web layouts',
       'Shopify',
-      'Full-Stack Development',
     ],
   };
 }
