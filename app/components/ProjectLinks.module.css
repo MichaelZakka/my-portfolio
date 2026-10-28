@@ -1,0 +1,26 @@
+.links {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-2);
+}
+
+.sm :global(.btn) {
+  height: 36px;
+  padding: 0 14px;
+  font-size: 14px;
+}
+
+.private {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 12px;
+  border-radius: var(--radius-sm);
+  border: 1px dashed var(--border-strong);
+  font-size: 13px;
+  color: var(--text-muted);
+}

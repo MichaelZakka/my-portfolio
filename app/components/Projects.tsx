@@ -1,31 +1,31 @@
-'use client';
-
 import Image from 'next/image';
+import Link from 'next/link';
 import { ArrowUpRight } from 'lucide-react';
 import styles from './Projects.module.css';
-import { trackEvent } from '../lib/analyticsClient';
-import { PROJECTS } from '../lib/projectsData';
 import Reveal from './motion/Reveal';
+import ProjectLinks from './ProjectLinks';
+import { PUBLISHED_PROJECTS, isTodo, showValue } from '../../data/projects';
 
 export default function Projects() {
   return (
-    <section id="projects" className="section">
+    <section id="projects" className="section" aria-labelledby="projects-title">
       <div className="container">
-        <Reveal className={`section-head ${styles.head}`}>
-          <div>
-            <p className="eyebrow" data-index="03">Featured Projects</p>
-            <h2 className="section-title">Recent Work</h2>
-          </div>
+        <Reveal className="section-head">
+          <p className="eyebrow" data-index="03">Featured Projects</p>
+          <h2 id="projects-title" className="section-title">
+            Case Studies
+          </h2>
         </Reveal>
 
         <ul className={styles.grid}>
-          {PROJECTS.map((project, idx) => {
-            const cover = project.images?.[0];
+          {PUBLISHED_PROJECTS.map((project, idx) => {
+            const cover = project.images[0];
+            const href = `/projects/${project.slug}`;
             return (
-              <Reveal as="li" key={project.title} index={idx % 3} className={styles.item}>
+              <Reveal as="li" key={project.slug} index={idx % 3} className={styles.item}>
                 <article className={`card card-interactive ${styles.card}`}>
                   <div className={styles.media}>
-                    {cover ? (
+                    {cover && (
                       <Image
                         src={cover}
                         alt={`${project.title} website screenshot`}
@@ -34,74 +34,37 @@ export default function Projects() {
                         placeholder="blur"
                         className={styles.image}
                       />
-                    ) : (
-                      <span className={styles.emoji} aria-hidden="true">
-                        {project.image}
-                      </span>
                     )}
-                    {project.isSelfProject && <span className={styles.badge}>Personal project</span>}
+                    {project.personal && <span className={styles.badge}>Personal project</span>}
                   </div>
 
                   <div className={styles.body}>
                     <h3 className={styles.title}>
-                      {project.liveUrl ? (
-                        <a
-                          href={project.liveUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className={styles.titleLink}
-                          onClick={() =>
-                            trackEvent('cta_click', {
-                              label: 'project-live',
-                              meta: { project: project.title },
-                            })
-                          }
-                        >
-                          {project.title}
-                          <ArrowUpRight size={18} aria-hidden className={styles.arrow} />
-                          <span className="visually-hidden"> (opens live site)</span>
-                        </a>
-                      ) : (
-                        project.title
-                      )}
+                      <Link href={href} className={styles.titleLink}>
+                        {project.title}
+                        <ArrowUpRight size={18} aria-hidden className={styles.arrow} />
+                        <span className="visually-hidden"> case study</span>
+                      </Link>
                     </h3>
-                    <p className={styles.stack}>{project.technologies.join(' / ')}</p>
-                    <p className={styles.description}>{project.description}</p>
-                    {project.employer && (
-                      <p className={styles.meta}>
-                        Built at{' '}
-                        {project.employerUrl ? (
-                          <a href={project.employerUrl} target="_blank" rel="noopener noreferrer">
-                            {project.employer}
-                          </a>
-                        ) : (
-                          project.employer
-                        )}
-                        {project.collaborators?.length ? (
-                          <>
-                            {' '}with{' '}
-                            {project.collaborators.map((c, i) => (
-                              <span key={c.name}>
-                                {i > 0 && ', '}
-                                <a href={c.url} target="_blank" rel="noopener noreferrer">
-                                  {c.name}
-                                </a>
-                              </span>
-                            ))}
-                          </>
-                        ) : null}
+                    <p className={styles.summary}>{project.summary}</p>
+                    {showValue(project.role) && (
+                      <p className={`${styles.role} ${isTodo(project.role) ? 'todo' : ''}`}>
+                        <span className={styles.roleLabel}>My role:</span> {project.role}
                       </p>
                     )}
-                    {project.githubUrl && !project.isSelfProject && (
-                      <a
-                        href={project.githubUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className={styles.meta}
-                      >
-                        View source on GitHub
-                      </a>
-                    )}
+                    <ul className={styles.stack} aria-label="Tech stack">
+                      {project.stack.map((tech) => (
+                        <li key={tech}>{tech}</li>
+                      ))}
+                    </ul>
+                    <div className={styles.footer}>
+                      <ProjectLinks
+                        title={project.title}
+                        liveUrl={project.liveUrl}
+                        repoUrl={project.repoUrl}
+                        repoPrivateNote={project.repoPrivateNote}
+                      />
+                    </div>
                   </div>
                 </article>
               </Reveal>

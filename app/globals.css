@@ -323,6 +323,14 @@ ul {
   transform: scaleX(-1);
 }
 
+/* TODO placeholders from data files — only ever rendered in development */
+.todo {
+  outline: 1px dashed #f5b84b;
+  outline-offset: 2px;
+  color: #f5d08b !important;
+  background: rgba(245, 184, 75, 0.08);
+}
+
 .visually-hidden {
   position: absolute;
   width: 1px;

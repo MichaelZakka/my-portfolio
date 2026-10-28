@@ -11,7 +11,7 @@ import {
 import { prisma } from '../../../lib/db';
 import { PERSON } from '../../../lib/seo';
 import { STRENGTHS } from '../../../../data/strengths';
-import { PROJECTS } from '../../../lib/projectsData';
+import { PUBLISHED_PROJECTS } from '../../../../data/projects';
 import styles from '../../admin.module.css';
 import pageStyles from './page.module.css';
 
@@ -208,8 +208,8 @@ export default async function AdminSitePage() {
             <div className={styles.detailField}>
               <span className={styles.detailLabel}>Featured projects</span>
               <span className={styles.detailValue}>
-                {PROJECTS.length} —{' '}
-                <span className={pageStyles.fileLink}>app/lib/projectsData.ts</span>
+                {PUBLISHED_PROJECTS.length} —{' '}
+                <span className={pageStyles.fileLink}>data/projects.ts</span>
               </span>
             </div>
             <div className={styles.detailField}>
@@ -220,7 +220,7 @@ export default async function AdminSitePage() {
             </div>
             <div className={styles.detailField}>
               <span className={styles.detailLabel}>Public pages</span>
-              <span className={styles.detailValue}>/ and /work-with-me</span>
+              <span className={styles.detailValue}>/, /projects/[slug] and /work-with-me</span>
             </div>
             <div className={styles.detailField}>
               <span className={styles.detailLabel}>Project intake survey</span>

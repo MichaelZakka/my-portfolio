@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { GITHUB_URL, JOB_TITLE, LINKEDIN_URL, getSiteUrl } from './site';
+import type { Project } from '../../data/projects';
 
 export const SITE_NAME = 'Michael Zakka';
 export const SITE_TITLE_DEFAULT = `Michael Zakka | ${JOB_TITLE}`;
@@ -35,6 +36,8 @@ type BuildPageMetadataInput = {
   keywords?: string[];
   ogType?: 'website' | 'profile';
   noIndex?: boolean;
+  /** Absolute URL of the social preview image; defaults to /og-image.jpg. */
+  image?: string;
 };
 
 export function buildPageMetadata({
@@ -44,11 +47,12 @@ export function buildPageMetadata({
   keywords = SITE_KEYWORDS,
   ogType = 'website',
   noIndex = false,
+  image,
   absoluteTitle = false,
 }: BuildPageMetadataInput & { absoluteTitle?: boolean }): Metadata {
   const siteUrl = getSiteUrl();
   const url = path === '/' ? siteUrl : `${siteUrl}${path}`;
-  const ogImage = `${siteUrl}/og-image.jpg`;
+  const ogImage = image ?? `${siteUrl}/og-image.jpg`;
 
   return {
     title: absoluteTitle ? { absolute: title } : title,
@@ -196,6 +200,24 @@ export function workWithMeJsonLd() {
         },
       ],
     },
+    inLanguage: 'en',
+  };
+}
+
+export function projectJsonLd(project: Project) {
+  const siteUrl = getSiteUrl();
+  const pageUrl = `${siteUrl}/projects/${project.slug}`;
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'CreativeWork',
+    '@id': `${pageUrl}#work`,
+    name: project.title,
+    description: project.summary,
+    url: pageUrl,
+    ...(project.liveUrl ? { sameAs: project.liveUrl } : {}),
+    ...(project.images[0] ? { image: `${siteUrl}${project.images[0].src}` } : {}),
+    keywords: project.stack.filter((t) => !t.startsWith('TODO')).join(', '),
+    creator: { '@id': `${siteUrl}/#person` },
     inLanguage: 'en',
   };
 }

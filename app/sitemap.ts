@@ -2,6 +2,7 @@ import type { MetadataRoute } from 'next';
 import fs from 'fs';
 import path from 'path';
 import { getSiteUrl } from './lib/site';
+import { PUBLISHED_PROJECTS } from '../data/projects';
 
 type SitemapEntry = MetadataRoute.Sitemap[number];
 
@@ -73,13 +74,14 @@ function getStaticAppRoutes(appDir: string): string[] {
   });
 }
 
-/**
- * Placeholder for future dynamic routes (blog posts, project detail pages, etc.).
- * Return absolute URL entries when those routes exist.
- */
-async function getDynamicRoutes(_siteUrl: string): Promise<MetadataRoute.Sitemap> {
-  // No dynamic app routes yet (projects live as homepage sections).
-  return [];
+/** Dynamic routes: one entry per published case study. */
+function getDynamicRoutes(siteUrl: string, lastModified: Date): MetadataRoute.Sitemap {
+  return PUBLISHED_PROJECTS.map((project) => ({
+    url: `${siteUrl}/projects/${project.slug}`,
+    lastModified,
+    changeFrequency: 'monthly',
+    priority: 0.7,
+  }));
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -101,7 +103,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     };
   });
 
-  const dynamicRoutes = await getDynamicRoutes(siteUrl);
+  const dynamicRoutes = getDynamicRoutes(siteUrl, lastModified);
 
   return [...staticRoutes, ...dynamicRoutes];
 }
