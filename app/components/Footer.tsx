@@ -1,24 +1,12 @@
 import styles from './Footer.module.css';
-import { Linkedin, Mail, MessageCircle } from 'lucide-react';
-import { JOB_TITLE } from '../lib/site';
+import { Github, Linkedin, Mail } from 'lucide-react';
+import { EMAIL, GITHUB_URL, JOB_TITLE, LINKEDIN_URL } from '../lib/site';
 
 export default function Footer() {
   const socialLinks = [
-    {
-      name: 'LinkedIn',
-      url: 'https://linkedin.com/in/michael-zakka',
-      icon: Linkedin,
-    },
-    {
-      name: 'WhatsApp',
-      url: 'https://wa.me/963992833739',
-      icon: MessageCircle,
-    },
-    {
-      name: 'Email',
-      url: 'mailto:michealzakka@gmail.com',
-      icon: Mail,
-    },
+    ...(GITHUB_URL ? [{ name: 'GitHub', url: GITHUB_URL, icon: Github }] : []),
+    { name: 'LinkedIn', url: LINKEDIN_URL, icon: Linkedin },
+    { name: 'Email', url: `mailto:${EMAIL}`, icon: Mail },
   ];
 
   return (

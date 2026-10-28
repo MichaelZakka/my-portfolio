@@ -23,6 +23,7 @@ export const PERSON = {
   name: 'Michael Zakka',
   jobTitle: JOB_TITLE,
   email: 'michealzakka@gmail.com',
+  // Private: used by the admin dashboard only, never rendered on public pages or JSON-LD.
   telephone: '+963992833739',
   addressLocality: 'Damascus',
   addressCountry: 'SY',
@@ -112,7 +113,6 @@ export function personJsonLd() {
     image: `${siteUrl}/og-image.jpg`,
     jobTitle: PERSON.jobTitle,
     email: `mailto:${PERSON.email}`,
-    telephone: PERSON.telephone,
     address: {
       '@type': 'PostalAddress',
       addressLocality: PERSON.addressLocality,

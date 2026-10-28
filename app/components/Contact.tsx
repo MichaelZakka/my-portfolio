@@ -1,65 +1,59 @@
-'use client';
-
+import { Github, Linkedin, Mail } from 'lucide-react';
 import styles from './Contact.module.css';
-import { Mail, Phone, MapPin } from 'lucide-react';
-import { trackEvent } from '../lib/analyticsClient';
 import Reveal from './motion/Reveal';
+import ContactForm from './ContactForm';
+import { EMAIL, GITHUB_URL, LINKEDIN_URL } from '../lib/site';
 
 export default function Contact() {
-  const items = [
-    {
-      icon: Mail,
-      label: 'Email',
-      value: 'michealzakka@gmail.com',
-      href: 'mailto:michealzakka@gmail.com',
-      track: 'mailto',
-    },
-    {
-      icon: Phone,
-      label: 'Phone',
-      value: '+963 992 833 739',
-      href: 'tel:+963992833739',
-      track: 'tel',
-    },
-    { icon: MapPin, label: 'Location', value: 'Damascus - Syria' },
+  const channels = [
+    { icon: Mail, label: 'Email', value: EMAIL, href: `mailto:${EMAIL}` },
+    { icon: Linkedin, label: 'LinkedIn', value: 'in/michael-zakka', href: LINKEDIN_URL },
+    ...(GITHUB_URL
+      ? [{ icon: Github, label: 'GitHub', value: GITHUB_URL.replace('https://', ''), href: GITHUB_URL }]
+      : []),
   ];
 
   return (
-    <section id="contact" className="section">
+    <section id="contact" className="section" aria-labelledby="contact-title">
       <div className="container">
         <Reveal className="section-head center">
           <p className="eyebrow" data-index="08">Contact</p>
-          <h2 className="section-title">Get In Touch</h2>
+          <h2 id="contact-title" className="section-title">
+            Get In Touch
+          </h2>
           <span className="accent-bar" aria-hidden="true" />
           <p className={styles.description}>
-            I&apos;m always open to discussing new projects, creative ideas, or opportunities to be part
-            of your vision. Feel free to reach out!
+            Hiring for a frontend role, or want to talk about a project? Send a message or reach me
+            directly.
           </p>
         </Reveal>
-        <ul className={styles.grid}>
-          {items.map(({ icon: Icon, label, value, href, track }, idx) => (
-            <Reveal as="li" key={label} index={idx} className={styles.item}>
-              <div className={`card ${href ? 'card-interactive' : ''} ${styles.card}`}>
-                <span className={styles.icon}>
-                  <Icon size={22} aria-hidden />
-                </span>
-                <h3 className={styles.label}>{label}</h3>
-                {href ? (
-                  <a
-                    href={href}
-                    className={styles.value}
-                    dir={track === 'tel' ? 'ltr' : undefined}
-                    onClick={() => trackEvent('cta_click', { label: track })}
-                  >
-                    {value}
-                  </a>
-                ) : (
-                  <p className={styles.value}>{value}</p>
-                )}
-              </div>
-            </Reveal>
-          ))}
-        </ul>
+
+        <div className={styles.layout}>
+          <ul className={styles.channels}>
+            {channels.map(({ icon: Icon, label, value, href }, idx) => (
+              <Reveal as="li" key={label} index={idx} className={styles.item}>
+                <a
+                  href={href}
+                  className={`card card-interactive ${styles.channel}`}
+                  {...(href.startsWith('http') ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+                >
+                  <span className={styles.icon}>
+                    <Icon size={22} aria-hidden />
+                  </span>
+                  <span>
+                    <span className={styles.label}>{label}</span>
+                    <span className={styles.value} dir="ltr">
+                      {value}
+                    </span>
+                  </span>
+                </a>
+              </Reveal>
+            ))}
+          </ul>
+          <Reveal index={1}>
+            <ContactForm />
+          </Reveal>
+        </div>
       </div>
     </section>
   );

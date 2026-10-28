@@ -2,7 +2,6 @@ import type { Metadata } from 'next';
 import dynamic from 'next/dynamic';
 import Navigation from '../components/Navigation';
 import Footer from '../components/Footer';
-import WhatsAppButton from '../components/WhatsAppButton';
 import JsonLd from '../components/JsonLd';
 import CircuitBackground from '../components/CircuitBackground';
 import { buildPageMetadata, workWithMeJsonLd } from '../lib/seo';
@@ -53,7 +52,6 @@ export default function WorkWithMePage() {
         </section>
       </main>
       <Footer />
-      <WhatsAppButton />
     </>
   );
 }

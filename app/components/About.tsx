@@ -1,12 +1,12 @@
-import { MapPin, Mail, Phone, Languages, Download } from 'lucide-react';
+import { MapPin, Mail, Linkedin, Languages, Download } from 'lucide-react';
 import styles from './About.module.css';
 import Reveal from './motion/Reveal';
-import { RESUME_URL } from '../lib/site';
+import { EMAIL, LINKEDIN_URL, RESUME_URL } from '../lib/site';
 
 const INFO = [
   { icon: MapPin, label: 'Location', value: 'Damascus, Syria' },
-  { icon: Mail, label: 'Email', value: 'michealzakka@gmail.com', href: 'mailto:michealzakka@gmail.com' },
-  { icon: Phone, label: 'Phone / WhatsApp', value: '+963 992 833 739', href: 'tel:+963992833739', ltr: true },
+  { icon: Mail, label: 'Email', value: EMAIL, href: `mailto:${EMAIL}` },
+  { icon: Linkedin, label: 'LinkedIn', value: 'in/michael-zakka', href: LINKEDIN_URL, ltr: true },
   { icon: Languages, label: 'Languages', value: 'Arabic, English' },
 ];
 

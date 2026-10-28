@@ -9,7 +9,6 @@ import Volunteering from './components/Volunteering';
 import Strengths from './components/Strengths';
 import Contact from './components/Contact';
 import Footer from './components/Footer';
-import WhatsAppButton from './components/WhatsAppButton';
 import JsonLd from './components/JsonLd';
 import CircuitBackground from './components/CircuitBackground';
 import {
@@ -59,7 +58,6 @@ export default function Home() {
         <Contact />
       </main>
       <Footer />
-      <WhatsAppButton />
     </>
   );
 }

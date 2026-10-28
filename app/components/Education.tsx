@@ -18,7 +18,7 @@ export default function Education() {
       <div className="container">
         <Reveal className="section-head">
           <p className="eyebrow" data-index="06">Education</p>
-          <h2 className="section-title">Education &amp; Certifications</h2>
+          <h2 className="section-title">Education</h2>
         </Reveal>
         <div className={styles.list}>
           {education.map((edu) => (
