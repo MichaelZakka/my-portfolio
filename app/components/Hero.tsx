@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import { Github } from 'lucide-react';
 import styles from './Hero.module.css';
 import HeroCtas from './HeroCtas';
@@ -53,6 +54,7 @@ export default function Hero() {
             </ul>
           </div>
         </div>
+
       </div>
 
     </section>

@@ -35,5 +35,4 @@ export const SOURCE_REPO_URL: string | null = null;
 export const LINKEDIN_URL = 'https://linkedin.com/in/michael-zakka';
 export const EMAIL = 'michealzakka@gmail.com';
 
-// TODO(michael): add the updated CV at public/michael-zakka-cv.pdf (link 404s until then).
 export const RESUME_URL = '/michael-zakka-cv.pdf';
