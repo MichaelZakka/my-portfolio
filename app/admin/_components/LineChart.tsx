@@ -42,11 +42,11 @@ export default function LineChart({ data, height = 200 }: LineChartProps) {
         y1={height - padding}
         x2={width - padding}
         y2={height - padding}
-        stroke="#232323"
+        stroke="#1b2f52"
         strokeWidth={1}
       />
-      <polyline points={viewsPath} fill="none" stroke="#dc2626" strokeWidth={2.5} />
-      <polyline points={visitorsPath} fill="none" stroke="#4a90ff" strokeWidth={2} strokeDasharray="4 3" />
+      <polyline points={viewsPath} fill="none" stroke="#3d8bff" strokeWidth={2.5} />
+      <polyline points={visitorsPath} fill="none" stroke="#34d399" strokeWidth={2} strokeDasharray="4 3" />
       {data.map((d, i) =>
         i % labelEvery === 0 ? (
           <text
@@ -54,7 +54,7 @@ export default function LineChart({ data, height = 200 }: LineChartProps) {
             x={padding + i * stepX}
             y={height - 6}
             fontSize="10"
-            fill="#6b6b6b"
+            fill="#7d8ba3"
             textAnchor="middle"
           >
             {d.date.slice(5)}

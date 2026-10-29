@@ -1,6 +1,5 @@
 import { useTranslations } from 'next-intl';
 import styles from './Footer.module.css';
-import JobTitle from './JobTitle';
 import { Github, Linkedin, Mail } from 'lucide-react';
 import { EMAIL, GITHUB_URL, LINKEDIN_URL, SOURCE_REPO_URL } from '../lib/site';
 
@@ -20,7 +19,7 @@ export default function Footer() {
             Michael <span className={styles.accent}>Zakka</span>
           </p>
           <p className={styles.role}>
-            <JobTitle title={t('meta.jobTitle')} />
+            {t('meta.jobTitle').replace(/\s*\([^)]*\)/, '')}
           </p>
         </div>
 

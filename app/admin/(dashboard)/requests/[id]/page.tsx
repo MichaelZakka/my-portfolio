@@ -263,7 +263,7 @@ export default async function AdminRequestDetailPage({ params }: Params) {
                     <span className={styles.timelineDot} />
                     <span>
                       {event.fromStatus ? `${event.fromStatus} → ${event.toStatus}` : event.toStatus}{' '}
-                      <span style={{ color: '#6b6b6b' }}>
+                      <span style={{ color: '#7d8ba3' }}>
                         · {new Date(event.createdAt).toLocaleString()}
                       </span>
                     </span>

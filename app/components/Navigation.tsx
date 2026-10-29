@@ -2,11 +2,9 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
-import { FileDown, Languages, Menu, X } from 'lucide-react';
+import { Languages, Menu, X } from 'lucide-react';
 import styles from './Navigation.module.css';
-import JobTitle from './JobTitle';
 import { trackEvent } from '../lib/analyticsClient';
-import { RESUME_URL } from '../lib/site';
 import { Link, usePathname } from '../../i18n/navigation';
 import { localizedPath } from '../../i18n/paths';
 
@@ -127,7 +125,7 @@ export default function Navigation() {
             Michael <span className={styles.logoAccent}>Zakka</span>
           </span>
           <span className={styles.logoRole}>
-            <JobTitle title={t('meta.jobTitle')} />
+            {t('meta.jobTitle').replace(/\s*\([^)]*\)/, '')}
           </span>
         </Link>
 
@@ -152,18 +150,17 @@ export default function Navigation() {
             </li>
           ))}
           <li className={styles.ctaItem}>
-            <a
-              href={RESUME_URL}
-              download
+            <Link
+              href="/work-with-me"
               className={`btn btn-primary ${styles.cta}`}
+              aria-current={pathname === '/work-with-me' ? 'page' : undefined}
               onClick={() => {
-                trackEvent('cta_click', { label: 'nav-resume' });
+                trackEvent('cta_click', { label: 'work-with-me' });
                 setIsMobileMenuOpen(false);
               }}
             >
-              <FileDown size={16} aria-hidden />
-              {t('nav.resume')}
-            </a>
+              {t('nav.workWithMe')}
+            </Link>
           </li>
         </ul>
 

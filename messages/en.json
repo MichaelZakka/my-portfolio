@@ -1,9 +1,9 @@
 {
   "meta": {
-    "jobTitle": "Frontend Developer (React / Next.js)",
-    "title": "Michael Zakka | Frontend Developer (React / Next.js)",
-    "description": "Michael Zakka is a frontend developer building production React & Next.js apps: bilingual (Arabic/English, RTL/LTR), fast, and shipped to real users. Projects, experience, and resume.",
-    "ogAlt": "Michael Zakka, Frontend Developer (React / Next.js)"
+    "jobTitle": "Web Developer (React / Next.js)",
+    "title": "Michael Zakka | Web Developer (React / Next.js)",
+    "description": "Michael Zakka is a web developer building production React & Next.js apps: bilingual (Arabic/English, RTL/LTR), fast, and shipped to real users. Projects, experience, and resume.",
+    "ogAlt": "Michael Zakka, Web Developer (React / Next.js)"
   },
   "common": {
     "skipToContent": "Skip to content",
@@ -19,6 +19,7 @@
     "experience": "Experience",
     "contact": "Contact",
     "resume": "Resume",
+    "workWithMe": "Work with me",
     "openMenu": "Open menu",
     "closeMenu": "Close menu"
   },
@@ -28,7 +29,7 @@
     "openToOnsite": "Damascus on-site",
     "greeting": "Hello, I'm",
     "name": "Michael Zakka",
-    "intro": "Frontend developer building production React & Next.js apps: bilingual (Arabic/English, RTL/LTR), fast, and shipped to real users.",
+    "intro": "Web developer building production React & Next.js apps: bilingual (Arabic/English, RTL/LTR), fast, and shipped to real users.",
     "viewProjects": "View Projects",
     "downloadResume": "Download Resume",
     "github": "GitHub profile",
@@ -38,7 +39,7 @@
   "about": {
     "eyebrow": "About Me",
     "title": "Building Solutions That Make an Impact",
-    "paragraph": "I'm a frontend developer in Damascus who builds production websites and web apps with React, Next.js and TypeScript. I've shipped bilingual Arabic/English sites for businesses in Saudi Arabia, handling RTL layouts, responsive design and Vercel deployments end to end. I care about fast pages, accessible UI and components that stay easy to change. I'm looking for a frontend role on a product team where I can own features from design to production.",
+    "paragraph": "I'm a web developer in Damascus who builds production websites and web apps with React, Next.js and TypeScript. I've shipped bilingual Arabic/English sites for businesses in Saudi Arabia, handling RTL layouts, responsive design and Vercel deployments end to end. I care about fast pages, accessible UI and components that stay easy to change. I'm looking for a web development role on a product team where I can own features from design to production.",
     "downloadResume": "Download Resume",
     "location": "Location",
     "locationValue": "Damascus, Syria",
@@ -97,12 +98,22 @@
   },
   "education": {
     "eyebrow": "Education",
-    "title": "Education",
+    "title": "Education & Certifications",
     "degree": "Bachelor of Information Technology Engineering",
     "institution": "Damascus University",
     "location": "Damascus",
     "duration": "2020 – 2025",
-    "description": "Specialized in Artificial Intelligence and natural languages"
+    "description": "Specialized in Artificial Intelligence and natural languages",
+    "certTitle": "IELTS Academic",
+    "certIssuer": "English language proficiency",
+    "certDate": "May 2026",
+    "certDateFull": "Earned on 26 May 2026",
+    "overall": "Overall band",
+    "listening": "Listening",
+    "reading": "Reading",
+    "writing": "Writing",
+    "speaking": "Speaking",
+    "bandsLabel": "IELTS Academic band scores"
   },
   "volunteering": {
     "eyebrow": "Volunteering",
@@ -115,7 +126,7 @@
   "contact": {
     "eyebrow": "Contact",
     "title": "Get In Touch",
-    "description": "Hiring for a frontend role, or want to talk about a project? Send a message or reach me directly.",
+    "description": "Hiring for a web development role, or want to talk about a project? Send a message or reach me directly.",
     "email": "Email",
     "linkedin": "LinkedIn",
     "github": "GitHub",
@@ -146,7 +157,7 @@
   },
   "blog": {
     "metaTitle": "Notes",
-    "metaDescription": "Notes by Michael Zakka on React, Next.js, RTL/LTR interfaces and frontend engineering.",
+    "metaDescription": "Notes by Michael Zakka on React, Next.js, RTL/LTR interfaces and web development.",
     "eyebrow": "Notes",
     "title": "Writing",
     "lead": "Short notes on React, Next.js and building bilingual interfaces.",

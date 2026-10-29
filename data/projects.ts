@@ -25,11 +25,13 @@ export type Project = {
   summary: string;
   /** Longer overview for the case-study page. */
   overview: string;
-  role: string;
+  /** Optional: the card and case study hide the line when it's missing. */
+  role?: string;
   team: string;
   stack: string[];
   challenges: string[];
   solutions: string[];
+  /** Real, measurable outcomes only; the Results section is hidden while empty. */
   results: string[];
   liveUrl?: string;
   repoUrl?: string;
@@ -46,12 +48,6 @@ export type Project = {
 const TGMENA: Link = { name: 'TGMENA (Toward Greatness)', url: 'https://www.tgmena.com/' };
 const AHMAD_AFIF: Link = { name: 'Ahmad Afif', url: 'https://www.ahmad-afif.com/' };
 const CLIENT_PRIVATE = 'Client code private';
-
-const METRIC_TODOS = [
-  'TODO: Lighthouse scores (performance / accessibility / best practices / SEO)',
-  'TODO: page load time (e.g. LCP on mobile)',
-  'TODO: delivery time (brief to launch)',
-];
 
 export const PROJECTS: Project[] = [
   {
@@ -70,9 +66,8 @@ export const PROJECTS: Project[] = [
       'Structured lesson pages with Next.js routing and a responsive layout.',
       'Deployed on Vercel for instant previews and production builds.',
     ],
-    results: [...METRIC_TODOS.slice(0, 2)],
+    results: [],
     liveUrl: 'https://learn-programming-azure.vercel.app/',
-    repoUrl: undefined, // TODO: add the public GitHub repo URL if this project's code is public
     images: [learnProgrammingImg, learnProgrammingImg1, learnProgrammingImg2],
     featured: true,
     personal: true,
@@ -83,7 +78,7 @@ export const PROJECTS: Project[] = [
     summary: 'Bilingual landing page for a Saudi branding and visual identity company.',
     overview:
       'A landing page built with Next.js for a branding company based in Saudi Arabia, specialized in brand identity and visual design. Focused on presenting the company’s services with a polished, modern layout tailored to the regional market.',
-    role: 'Frontend developer at TGMENA: built and deployed the site',
+    role: 'Web developer at TGMENA: built and deployed the site',
     team: 'TGMENA team',
     stack: ['Next.js', 'JavaScript', 'Vercel'],
     challenges: [
@@ -95,7 +90,7 @@ export const PROJECTS: Project[] = [
       'Responsive layout and optimized images for small screens.',
       'Next.js build deployed on Vercel.',
     ],
-    results: [...METRIC_TODOS],
+    results: [],
     liveUrl: 'https://newlogo.sa/',
     repoPrivateNote: CLIENT_PRIVATE,
     images: [newLogoImg, newLogoImg1],
@@ -108,7 +103,7 @@ export const PROJECTS: Project[] = [
     summary: 'Bilingual landing page for a Saudi signage company serving businesses and stores.',
     overview:
       'A landing page built with Next.js for SAM Sign, a company specialized in signs for businesses and stores. Designed to showcase their signage solutions and help potential clients understand services with a clear, professional presentation.',
-    role: 'Frontend developer at TGMENA: built and deployed the site',
+    role: 'Web developer at TGMENA: built and deployed the site',
     team: 'TGMENA team',
     stack: ['Next.js', 'JavaScript', 'Vercel'],
     challenges: [
@@ -119,7 +114,7 @@ export const PROJECTS: Project[] = [
       'Responsive design and optimized product imagery.',
       'Next.js build deployed on Vercel.',
     ],
-    results: [...METRIC_TODOS],
+    results: [],
     liveUrl: 'https://samsign.sa/',
     repoPrivateNote: CLIENT_PRIVATE,
     images: [samSignImg1, samSignImg],
@@ -132,7 +127,6 @@ export const PROJECTS: Project[] = [
     summary: 'Company site for TGMENA, a technical solutions, branding and marketing agency.',
     overview:
       'A landing page built with Next.js for TGMENA (Toward Greatness), a company specialized in technical solutions, branding, and marketing services. Designed to present the company’s full offering with a modern, professional layout that reflects their multi-service expertise.',
-    role: 'TODO: my exact contribution on this project (built together with Ahmad Afif)',
     team: 'TGMENA team, with Ahmad Afif',
     stack: ['Next.js', 'JavaScript', 'Vercel'],
     challenges: [
@@ -142,7 +136,7 @@ export const PROJECTS: Project[] = [
       'Responsive, section-based layout for each service line.',
       'Next.js build deployed on Vercel.',
     ],
-    results: [...METRIC_TODOS],
+    results: [],
     liveUrl: 'https://www.tgmena.com/',
     repoPrivateNote: CLIENT_PRIVATE,
     images: [tgmenaImg, tgmenaImg1],
@@ -156,7 +150,6 @@ export const PROJECTS: Project[] = [
     summary: 'Bilingual Arabic/English site for a kindergarten in Saudi Arabia.',
     overview:
       'A bilingual landing page built with Next.js for Tiny Tots, a kindergarten in Saudi Arabia. Designed to introduce the school’s programs and values to parents with a warm, trustworthy presentation suited to the local market.',
-    role: 'TODO: my exact contribution on this project (built together with Ahmad Afif)',
     team: 'TGMENA team, with Ahmad Afif',
     stack: ['Next.js', 'JavaScript', 'Vercel'],
     challenges: [
@@ -168,7 +161,7 @@ export const PROJECTS: Project[] = [
       'Responsive design with optimized images.',
       'Next.js build deployed on Vercel.',
     ],
-    results: [...METRIC_TODOS],
+    results: [],
     liveUrl: 'https://tinytotsksa.com/',
     repoPrivateNote: CLIENT_PRIVATE,
     images: [tinyTotsImg, tinyTotsImg1],

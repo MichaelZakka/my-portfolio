@@ -10,13 +10,13 @@ export const STRENGTHS: Strength[] = [
     id: 'nextjs',
     title: 'Production Next.js apps',
     proof:
-      'Shipped four client sites on Next.js and Vercel at TGMENA, from first commit to live domain.',
+      'Shipped four client sites on Next.js and Vercel, from first commit to live domain.',
   },
   {
     id: 'rtl',
     title: 'Bilingual RTL/LTR UI',
     proof:
-      'Built Arabic/English layouts that mirror correctly, including the bilingual Tiny Tots, New Logo and SAM Sign sites.',
+      'Built Arabic/English layouts that mirror correctly across bilingual client sites.',
   },
   {
     id: 'performance',
@@ -27,6 +27,6 @@ export const STRENGTHS: Strength[] = [
   {
     id: 'shopify',
     title: 'E-commerce / Shopify',
-    proof: 'Create and manage Shopify stores as part of my current role at Toward Greatness.',
+    proof: 'Create and manage Shopify stores as part of my current role.',
   },
 ];

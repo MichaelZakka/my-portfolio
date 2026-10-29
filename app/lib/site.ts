@@ -23,7 +23,7 @@ export function getSiteUrl(): string {
 }
 
 /** English job title for JSON-LD; the UI reads meta.jobTitle from messages/<locale>.json. */
-export const JOB_TITLE = 'Frontend Developer (React / Next.js)';
+export const JOB_TITLE = 'Web Developer (React / Next.js)';
 
 // TODO(michael): set your GitHub profile URL, e.g. 'https://github.com/your-username'.
 // GitHub links stay hidden everywhere while this is null.

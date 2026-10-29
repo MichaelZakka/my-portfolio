@@ -1,4 +1,4 @@
-/** Work history, newest first. `result` strings starting with "TODO:" are hidden in production. */
+/** Work history, newest first. Add an optional `result` (a real number or outcome) to any achievement. */
 export type Achievement = { text: string; result?: string };
 
 export type Role = {
@@ -24,16 +24,13 @@ export const EXPERIENCE: Role[] = [
     location: 'Remote · Full time',
     achievements: [
       {
-        text: 'Built and launched bilingual Arabic/English client sites (New Logo, SAM Sign, Tiny Tots) and the TGMENA site with React and Next.js on Vercel.',
-        result: 'TODO: measurable outcome, e.g. Lighthouse score or brief-to-launch time',
+        text: 'Built and launched bilingual Arabic/English client sites and the company website with React and Next.js on Vercel.'
       },
       {
-        text: 'Set up and managed Shopify stores for agency clients.',
-        result: 'TODO: number of stores or a store outcome',
+        text: 'Set up and managed Shopify stores for agency clients.'
       },
       {
-        text: 'Evaluated technical options with the team to choose the stack for client projects.',
-        result: 'TODO: outcome of those decisions',
+        text: 'Evaluated technical options with the team to choose the stack for client projects.'
       },
     ],
   },
@@ -45,16 +42,13 @@ export const EXPERIENCE: Role[] = [
     location: 'Remote',
     achievements: [
       {
-        text: 'Delivered responsive web apps and landing pages with React and Next.js for clients across different industries.',
-        result: 'TODO: number of clients or projects delivered',
+        text: 'Delivered responsive web apps and landing pages with React and Next.js for clients across different industries.'
       },
       {
-        text: 'Owned projects end to end, from requirements gathering to deployment.',
-        result: 'TODO: typical delivery time',
+        text: 'Owned projects end to end, from requirements gathering to deployment.'
       },
       {
-        text: 'Managed client communication directly to keep scope and deadlines on track.',
-        result: 'TODO: e.g. on-time delivery or repeat clients',
+        text: 'Managed client communication directly to keep scope and deadlines on track.'
       },
     ],
   },
@@ -67,16 +61,13 @@ export const EXPERIENCE: Role[] = [
     location: 'On site · Damascus (AlShalaan) · Full time',
     achievements: [
       {
-        text: 'Built cross-platform Android and iOS apps in Flutter from SRS documents and UI/UX designs.',
-        result: 'TODO: number of apps shipped or users reached',
+        text: 'Built cross-platform Android and iOS apps in Flutter from SRS documents and UI/UX designs.'
       },
       {
-        text: 'Integrated backend APIs together with the backend team.',
-        result: 'TODO: outcome',
+        text: 'Integrated backend APIs together with the backend team.'
       },
       {
-        text: 'Delivered responsive, user-friendly UI in close collaboration with designers and stakeholders.',
-        result: 'TODO: outcome',
+        text: 'Delivered responsive, user-friendly UI in close collaboration with designers and stakeholders.'
       },
     ],
   },

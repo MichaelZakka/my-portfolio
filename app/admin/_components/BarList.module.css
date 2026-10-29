@@ -20,13 +20,13 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  color: #d4d4d4;
+  color: #c9d2e0;
 }
 
 .track {
   flex: 1;
   height: 8px;
-  background: #1a1a1a;
+  background: #0f1f38;
   border-radius: 4px;
   overflow: hidden;
   min-width: 30px;
@@ -34,12 +34,12 @@
 
 .fill {
   height: 100%;
-  background: #dc2626;
+  background: #1668e8;
   border-radius: 4px;
 }
 
 .value {
   text-align: right;
-  color: #8a8a8a;
+  color: #8d9ab0;
   font-variant-numeric: tabular-nums;
 }

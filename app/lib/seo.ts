@@ -7,17 +7,17 @@ import { OG_LOCALE, localizedPath } from '../../i18n/paths';
 export const SITE_NAME = 'Michael Zakka';
 export const SITE_TITLE_DEFAULT = `Michael Zakka | ${JOB_TITLE}`;
 export const SITE_DESCRIPTION =
-  'Michael Zakka is a frontend developer building production React & Next.js apps: bilingual (Arabic/English, RTL/LTR), fast, and shipped to real users. Projects, experience, and resume.';
+  'Michael Zakka is a web developer building production React & Next.js apps: bilingual (Arabic/English, RTL/LTR), fast, and shipped to real users. Projects, experience, and resume.';
 export const SITE_KEYWORDS = [
   'Michael Zakka',
-  'Frontend Developer',
+  'Web Developer',
   'React Developer',
   'Next.js Developer',
   'TypeScript',
   'RTL',
   'Arabic English bilingual websites',
-  'Frontend Developer Damascus',
-  'Remote Frontend Developer',
+  'Web Developer Damascus',
+  'Remote Web Developer',
   'Portfolio',
 ];
 
@@ -131,7 +131,7 @@ export function personJsonLd() {
     },
     sameAs: [...PERSON.sameAs],
     knowsAbout: [
-      'Frontend Development',
+      'Web Development',
       'React',
       'Next.js',
       'TypeScript',

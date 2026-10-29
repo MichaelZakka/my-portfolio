@@ -11,14 +11,14 @@
   gap: 1rem;
   padding: 0.6rem 0.7rem;
   border-radius: 8px;
-  background: #0e0e0e;
-  border: 1px solid #1e1e1e;
+  background: #0a1628;
+  border: 1px solid #13284a;
   text-decoration: none;
   color: inherit;
 }
 
 .recentRow:hover {
-  border-color: #2a2a2a;
+  border-color: #22385c;
 }
 
 .recentInfo {
@@ -36,7 +36,7 @@
 
 .recentMeta {
   font-size: 0.76rem;
-  color: #7a7a7a;
+  color: #7d8ba3;
   margin-top: 0.15rem;
 }
 
@@ -46,7 +46,7 @@
   justify-content: space-between;
   padding: 0.45rem 0;
   font-size: 0.85rem;
-  border-bottom: 1px solid #1a1a1a;
+  border-bottom: 1px solid #0f1f38;
 }
 
 .statusRow:last-child {
@@ -57,7 +57,7 @@
   display: flex;
   gap: 1.25rem;
   font-size: 0.78rem;
-  color: #8a8a8a;
+  color: #8d9ab0;
   margin-bottom: 0.75rem;
 }
 

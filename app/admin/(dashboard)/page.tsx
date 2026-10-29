@@ -120,11 +120,11 @@ export default async function AdminOverviewPage() {
           </div>
           <div className={pageStyles.legend}>
             <span className={pageStyles.legendItem}>
-              <span className={pageStyles.legendDot} style={{ background: '#dc2626' }} />
+              <span className={pageStyles.legendDot} style={{ background: '#3d8bff' }} />
               Page views
             </span>
             <span className={pageStyles.legendItem}>
-              <span className={pageStyles.legendDot} style={{ background: '#4a90ff' }} />
+              <span className={pageStyles.legendDot} style={{ background: '#34d399' }} />
               Unique visitors
             </span>
           </div>

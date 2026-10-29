@@ -4,7 +4,7 @@
   justify-content: space-between;
   margin-top: 1rem;
   font-size: 0.82rem;
-  color: #8a8a8a;
+  color: #8d9ab0;
 }
 
 .pageLinks {
@@ -15,8 +15,8 @@
 .pageLink {
   padding: 0.35rem 0.75rem;
   border-radius: 6px;
-  border: 1px solid #2a2a2a;
-  color: #d4d4d4;
+  border: 1px solid #22385c;
+  color: #c9d2e0;
   text-decoration: none;
   font-size: 0.8rem;
 }
@@ -27,7 +27,7 @@
 }
 
 .emailCell {
-  color: #8a8a8a;
+  color: #8d9ab0;
   font-size: 0.8rem;
 }
 

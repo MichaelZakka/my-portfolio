@@ -6,14 +6,14 @@
   display: grid;
   grid-template-columns: 240px 1fr;
   min-height: 100vh;
-  background: #0a0a0a;
-  color: #e6e6e6;
+  background: #07122a;
+  color: #e6edf7;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 .sidebar {
-  background: #111111;
-  border-right: 1px solid #232323;
+  background: #0b1830;
+  border-right: 1px solid #1b2f52;
   display: flex;
   flex-direction: column;
   padding: 1.5rem 1rem;
@@ -31,7 +31,7 @@
 
 .brandSub {
   font-size: 0.72rem;
-  color: #8a8a8a;
+  color: #8d9ab0;
   margin-bottom: 1.75rem;
 }
 
@@ -49,7 +49,7 @@
   gap: 0.65rem;
   padding: 0.6rem 0.75rem;
   border-radius: 8px;
-  color: #b3b3b3;
+  color: #a9b4c6;
   text-decoration: none;
   font-size: 0.88rem;
   font-weight: 500;
@@ -57,17 +57,17 @@
 }
 
 .navLink:hover {
-  background: #1a1a1a;
+  background: #0f1f38;
   color: #fff;
 }
 
 .navLinkActive {
   background: #1c1414;
-  color: #ff6b5e;
+  color: #5c9dff;
 }
 
 .sidebarFooter {
-  border-top: 1px solid #232323;
+  border-top: 1px solid #1b2f52;
   padding-top: 1rem;
   margin-top: 1rem;
 }
@@ -80,14 +80,14 @@
   padding: 0.6rem 0.75rem;
   border-radius: 8px;
   background: transparent;
-  border: 1px solid #2a2a2a;
-  color: #b3b3b3;
+  border: 1px solid #22385c;
+  color: #a9b4c6;
   font-size: 0.85rem;
   cursor: pointer;
 }
 
 .logoutButton:hover {
-  background: #1a1a1a;
+  background: #0f1f38;
   color: #fff;
 }
 
@@ -109,7 +109,7 @@
 
 .pageSubtitle {
   font-size: 0.9rem;
-  color: #8a8a8a;
+  color: #8d9ab0;
 }
 
 .kpiGrid {
@@ -120,8 +120,8 @@
 }
 
 .kpiCard {
-  background: #131313;
-  border: 1px solid #232323;
+  background: #0d1b33;
+  border: 1px solid #1b2f52;
   border-radius: 12px;
   padding: 1.1rem 1.25rem;
 }
@@ -130,7 +130,7 @@
   font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: #8a8a8a;
+  color: #8d9ab0;
   margin-bottom: 0.5rem;
 }
 
@@ -142,7 +142,7 @@
 
 .kpiHint {
   font-size: 0.78rem;
-  color: #6b6b6b;
+  color: #7d8ba3;
   margin-top: 0.35rem;
 }
 
@@ -154,8 +154,8 @@
 }
 
 .card {
-  background: #131313;
-  border: 1px solid #232323;
+  background: #0d1b33;
+  border: 1px solid #1b2f52;
   border-radius: 12px;
   padding: 1.25rem 1.4rem;
   margin-bottom: 1.25rem;
@@ -178,7 +178,7 @@
 
 .cardMeta {
   font-size: 0.78rem;
-  color: #6b6b6b;
+  color: #7d8ba3;
 }
 
 .table {
@@ -192,16 +192,16 @@
   font-size: 0.72rem;
   text-transform: uppercase;
   letter-spacing: 0.03em;
-  color: #7a7a7a;
+  color: #7d8ba3;
   padding: 0.6rem 0.75rem;
-  border-bottom: 1px solid #232323;
+  border-bottom: 1px solid #1b2f52;
   white-space: nowrap;
 }
 
 .table td {
   padding: 0.7rem 0.75rem;
-  border-bottom: 1px solid #1a1a1a;
-  color: #d4d4d4;
+  border-bottom: 1px solid #0f1f38;
+  color: #c9d2e0;
   vertical-align: top;
 }
 
@@ -210,7 +210,7 @@
 }
 
 .table tbody tr:hover {
-  background: #171717;
+  background: #0f1f38;
 }
 
 .tableRowLink {
@@ -238,7 +238,7 @@
 .badgeProposal { background: #2b1c3a; color: #c79bf0; border-color: #452d5c; }
 .badgeWon { background: #123a24; color: #4fe08c; border-color: #1e5c3a; }
 .badgeLost { background: #3a1414; color: #f07a7a; border-color: #5c2020; }
-.badgeArchived { background: #1e1e1e; color: #999; border-color: #333; }
+.badgeArchived { background: #13284a; color: #97a3b8; border-color: #2c4268; }
 
 .button {
   display: inline-flex;
@@ -256,22 +256,22 @@
 }
 
 .buttonPrimary {
-  background: #dc2626;
+  background: #1668e8;
   color: #fff;
 }
 
 .buttonPrimary:hover {
-  background: #c11f1f;
+  background: #1259c6;
 }
 
 .buttonSecondary {
-  background: #1a1a1a;
-  color: #e6e6e6;
-  border-color: #2a2a2a;
+  background: #0f1f38;
+  color: #e6edf7;
+  border-color: #22385c;
 }
 
 .buttonSecondary:hover {
-  background: #232323;
+  background: #1b2f52;
 }
 
 .button:disabled {
@@ -297,17 +297,17 @@
   font-size: 0.72rem;
   text-transform: uppercase;
   letter-spacing: 0.03em;
-  color: #7a7a7a;
+  color: #7d8ba3;
 }
 
 .input,
 .select,
 .textarea {
-  background: #0e0e0e;
-  border: 1px solid #2a2a2a;
+  background: #0a1628;
+  border: 1px solid #22385c;
   border-radius: 8px;
   padding: 0.5rem 0.7rem;
-  color: #e6e6e6;
+  color: #e6edf7;
   font-size: 0.85rem;
   font-family: inherit;
 }
@@ -315,9 +315,9 @@
 .input:focus,
 .select:focus,
 .textarea:focus {
-  outline: 2px solid #dc2626;
+  outline: 2px solid #1668e8;
   outline-offset: 1px;
-  border-color: #dc2626;
+  border-color: #1668e8;
 }
 
 .textarea {
@@ -328,11 +328,11 @@
 .emptyState {
   text-align: center;
   padding: 3rem 1rem;
-  color: #7a7a7a;
+  color: #7d8ba3;
 }
 
 .emptyStateTitle {
-  color: #d4d4d4;
+  color: #c9d2e0;
   font-weight: 600;
   margin-bottom: 0.4rem;
 }
@@ -367,8 +367,8 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  background: #0e0e0e;
-  border: 1px solid #2a2a2a;
+  background: #0a1628;
+  border: 1px solid #22385c;
   border-radius: 8px;
   padding: 0.4rem 0.7rem;
   font-size: 0.8rem;
@@ -397,12 +397,12 @@
   font-size: 0.72rem;
   text-transform: uppercase;
   letter-spacing: 0.03em;
-  color: #7a7a7a;
+  color: #7d8ba3;
 }
 
 .detailValue {
   font-size: 0.9rem;
-  color: #e6e6e6;
+  color: #e6edf7;
   word-break: break-word;
 }
 
@@ -413,12 +413,12 @@
 }
 
 .chip {
-  background: #1a1a1a;
-  border: 1px solid #2a2a2a;
+  background: #0f1f38;
+  border: 1px solid #22385c;
   border-radius: 999px;
   padding: 0.2rem 0.65rem;
   font-size: 0.78rem;
-  color: #d4d4d4;
+  color: #c9d2e0;
 }
 
 .link {
@@ -435,14 +435,14 @@
   display: flex;
   gap: 0.75rem;
   font-size: 0.83rem;
-  color: #b3b3b3;
+  color: #a9b4c6;
 }
 
 .timelineDot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #dc2626;
+  background: #1668e8;
   margin-top: 0.4rem;
   flex-shrink: 0;
 }
@@ -457,8 +457,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: #0e0e0e;
-  border: 1px solid #2a2a2a;
+  background: #0a1628;
+  border: 1px solid #22385c;
   border-radius: 8px;
   padding: 0.7rem 0.9rem;
   font-size: 0.85rem;

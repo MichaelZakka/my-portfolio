@@ -1,15 +1,13 @@
-import { Github, Linkedin, MapPin } from 'lucide-react';
+import { Github } from 'lucide-react';
 import styles from './Hero.module.css';
 import HeroCtas from './HeroCtas';
-import JobTitle from './JobTitle';
 import { useTranslations } from 'next-intl';
-import { GITHUB_URL, LINKEDIN_URL } from '../lib/site';
+import { GITHUB_URL } from '../lib/site';
 import { TOP_STACK } from '../../data/skills';
 
 export default function Hero() {
   const t = useTranslations('hero');
   const jobTitle = useTranslations('meta')('jobTitle');
-  const openTo = [t('openToRemote'), t('openToOnsite')].join(' · ');
 
   return (
     <section id="hero" className={styles.hero}>
@@ -17,32 +15,21 @@ export default function Hero() {
 
       <div className={`container ${styles.inner}`}>
         <div className={styles.text}>
-          <p className={styles.badge}>
-            <span className={styles.badgeDot} aria-hidden="true" />
-            {t('openTo', { list: openTo })}
-            <MapPin size={14} aria-hidden />
-          </p>
           <p className={styles.greeting}>{t('greeting')}</p>
           <h1 className={styles.name}>{t('name')}</h1>
-          <p className={styles.role}>
-            <JobTitle title={jobTitle} />
-          </p>
+          {/* Hero shows the short title; the "(React / Next.js)" part stays in metadata, nav and footer */}
+          <p className={styles.role}>{jobTitle.replace(/\s*\([^)]*\)/, '')}</p>
           <p className={styles.intro}>{t('intro')}</p>
           <HeroCtas />
-          <ul className={styles.social}>
-            {GITHUB_URL && (
+          {GITHUB_URL && (
+            <ul className={styles.social}>
               <li>
                 <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer" aria-label={t('github')}>
                   <Github size={20} aria-hidden />
                 </a>
               </li>
-            )}
-            <li>
-              <a href={LINKEDIN_URL} target="_blank" rel="noopener noreferrer" aria-label={t('linkedin')}>
-                <Linkedin size={20} aria-hidden />
-              </a>
-            </li>
-          </ul>
+            </ul>
+          )}
 
           <div className={styles.tech}>
             <div className={styles.techBar} aria-hidden="true">
