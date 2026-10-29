@@ -135,10 +135,43 @@
 
 
 .role {
+  display: inline-block;
   margin-block-start: var(--s-3);
+  font-family: var(--font-heading);
   font-size: clamp(1.75rem, 4vw, 2.75rem);
-  font-weight: 500;
-  color: var(--text);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  /* White fading into the accent, with a light band that sweeps across */
+  background: linear-gradient(
+    100deg,
+    var(--text) 0%,
+    var(--text) 35%,
+    var(--accent-hover) 50%,
+    var(--text) 65%,
+    var(--accent-text) 100%
+  );
+  background-size: 250% 100%;
+  background-position: 100% 0;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: roleShimmer 6s ease-in-out infinite;
+}
+
+:global([dir='rtl']) .role {
+  letter-spacing: 0;
+}
+
+@keyframes roleShimmer {
+  0%, 100% { background-position: 100% 0; }
+  50% { background-position: 0% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .role {
+    animation: none;
+  }
 }
 
 .intro {
