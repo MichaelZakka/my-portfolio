@@ -3,7 +3,7 @@ import { prisma } from '../db';
 import { isAdminEmail } from './access';
 import { logActivity, updateActivityMeta } from './activity';
 import { INVITATION_TTL_DAYS, invitationState, type PortalLocale } from './constants';
-import { generateToken } from './credentials';
+import { generateToken, hashToken, TOKEN_PATTERN } from './credentials';
 import { portalUrl, sendInvitationEmail } from './email';
 
 /**
@@ -169,6 +169,20 @@ export async function resendInvitation(input: {
     expiresAt,
     locale: invitation.user?.locale ?? 'en',
   });
+}
+
+/** Resolves an invite link for the accept page and API. */
+export async function findInvitationByToken(token: string) {
+  if (!TOKEN_PATTERN.test(token)) return null;
+  const invitation = await prisma.invitation.findUnique({
+    where: { tokenHash: hashToken(token) },
+    include: {
+      project: { select: { id: true, name: true } },
+      user: { select: { id: true, name: true, role: true, passwordHash: true, emailVerifiedAt: true } },
+    },
+  });
+  if (!invitation) return null;
+  return { ...invitation, state: invitationState(invitation) };
 }
 
 export async function revokeInvitation(projectId: string, invitationId: string): Promise<boolean> {

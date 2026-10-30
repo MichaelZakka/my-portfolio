@@ -3,6 +3,14 @@ import createNextIntlPlugin from 'next-intl/plugin';
 
 const withNextIntl = createNextIntlPlugin('./i18n/request.ts');
 
+// The client portal is private: never framed, indexed, or leaking its URLs
+// (invite and reset links carry tokens) through the Referer header.
+const portalHeaders = [
+  { key: 'X-Frame-Options', value: 'DENY' },
+  { key: 'X-Robots-Tag', value: 'noindex, nofollow' },
+  { key: 'Referrer-Policy', value: 'no-referrer' },
+];
+
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   compress: true,
@@ -14,6 +22,15 @@ const nextConfig: NextConfig = {
   },
   experimental: {
     optimizePackageImports: ['lucide-react'],
+    // forbidden() lets portal pages answer a real 403 for other clients' projects
+    authInterrupts: true,
+  },
+  async headers() {
+    return [
+      { source: '/portal', headers: portalHeaders },
+      { source: '/portal/:path*', headers: portalHeaders },
+      { source: '/api/portal/:path*', headers: portalHeaders },
+    ];
   },
 };
 
