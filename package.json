@@ -11,6 +11,7 @@
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",
     "db:studio": "prisma studio",
+    "db:seed": "node prisma/seed.mjs",
     "hash-password": "node scripts/hash-password.mjs"
   },
   "dependencies": {
