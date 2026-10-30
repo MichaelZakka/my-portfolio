@@ -26,14 +26,20 @@ const plexArabic = IBM_Plex_Sans_Arabic({
   preload: false,
 });
 
-/** <html>/<body> shell shared by the localized site and the admin dashboard. */
+/**
+ * <html>/<body> shell shared by the localized site, the admin dashboard and
+ * the client portal. The portal passes analytics={false}: its URLs can carry
+ * invite/reset tokens and it is private, so no page views are recorded.
+ */
 export default function HtmlDocument({
   lang,
   dir,
+  analytics = true,
   children,
 }: {
   lang: string;
   dir: 'ltr' | 'rtl';
+  analytics?: boolean;
   children: ReactNode;
 }) {
   return (
@@ -47,12 +53,18 @@ export default function HtmlDocument({
         <noscript>
           <style>{'.reveal{opacity:1!important;transform:none!important}'}</style>
         </noscript>
-        <Suspense fallback={null}>
-          <AnalyticsTracker />
-        </Suspense>
+        {analytics && (
+          <Suspense fallback={null}>
+            <AnalyticsTracker />
+          </Suspense>
+        )}
         {children}
-        <Analytics />
-        <SpeedInsights />
+        {analytics && (
+          <>
+            <Analytics />
+            <SpeedInsights />
+          </>
+        )}
       </body>
     </html>
   );
