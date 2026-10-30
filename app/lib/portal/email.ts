@@ -256,11 +256,12 @@ export async function sendStatusChangedEmail(input: {
   });
 }
 
-/** Folds several per-recipient results into one { sent, error } for the record. */
+/** Folds per-recipient results into one { sent, error } for the record (recipients named only when several). */
 export function combineResults(results: { to: string; result: EmailSendResult }[]): EmailSendResult {
   if (results.length === 0) return { sent: false, error: 'No recipients.' };
   const failures = results.filter((r) => !r.result.sent);
   if (failures.length === 0) return { sent: true };
+  if (results.length === 1) return { sent: false, error: failures[0].result.error ?? 'failed' };
   return {
     sent: false,
     error: failures.map((f) => `${f.to}: ${f.result.error ?? 'failed'}`).join('; ').slice(0, 1000),

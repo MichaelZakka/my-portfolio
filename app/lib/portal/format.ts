@@ -29,10 +29,14 @@ export function formatDate(date: Date, locale: string): string {
   return new Intl.DateTimeFormat(intlLocale(locale), { dateStyle: 'medium', timeZone: 'UTC' }).format(date);
 }
 
+/** Explicit fields: Intl rejects dateStyle/timeStyle combined with timeZoneName. */
 export function formatDateTime(date: Date, locale: string): string {
   return new Intl.DateTimeFormat(intlLocale(locale), {
-    dateStyle: 'medium',
-    timeStyle: 'short',
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
     timeZone: getPortalTimeZone(),
     timeZoneName: 'short',
   }).format(date);

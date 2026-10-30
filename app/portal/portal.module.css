@@ -117,6 +117,13 @@
   padding: var(--s-6) var(--gutter) var(--s-8);
 }
 
+/* globals.css lazily renders every <section> (content-visibility: auto) for the
+   long marketing page. Portal sections are short, linked by #anchors and must
+   always render, so opt out here. */
+.main section {
+  content-visibility: visible;
+}
+
 @media (max-width: 640px) {
   .userEmail {
     display: none;
@@ -583,6 +590,7 @@
 /* ---------- Milestones timeline ---------- */
 
 .timeline {
+  list-style: none;
   display: flex;
   flex-direction: column;
 }
@@ -665,6 +673,7 @@
 }
 
 .taskList {
+  list-style: none;
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -718,6 +727,7 @@
 /* ---------- Messages ---------- */
 
 .thread {
+  list-style: none;
   display: flex;
   flex-direction: column;
   gap: var(--s-3);
@@ -781,6 +791,7 @@
 /* ---------- Files ---------- */
 
 .fileList {
+  list-style: none;
   display: flex;
   flex-direction: column;
 }
@@ -843,6 +854,7 @@
 /* ---------- Activity ---------- */
 
 .activityList {
+  list-style: none;
   display: flex;
   flex-direction: column;
   gap: var(--s-3);
