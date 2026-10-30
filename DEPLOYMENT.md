@@ -2,6 +2,127 @@
 
 This guide covers deploying your portfolio to various hosting platforms.
 
+## 🧩 Client portal in production
+
+The client portal (`/portal` for clients, `/admin/projects` for you) needs four
+things in production that local development fakes: a real database, private file
+storage, email, and the auth secret. Everything below assumes Vercel.
+
+### 1. Switch Prisma from SQLite to Postgres
+
+SQLite is a local file; Vercel's filesystem is read-only and per-instance, so
+production needs a managed Postgres (Neon, Supabase, or Postgres from the Vercel
+Marketplace). The schema was written for both providers (enum-like fields are
+validated strings, list fields are JSON text), so only the provider changes.
+
+Migrations are provider-specific, though: the files in `prisma/migrations` are
+SQLite SQL and cannot be replayed on Postgres. Create a Postgres baseline once:
+
+1. Create the database and copy its connection string. For serverless, use the
+   **pooled** URL as `DATABASE_URL` and the **direct** URL as `DIRECT_URL`, and add
+   `directUrl = env("DIRECT_URL")` under `url` in the `datasource` block.
+2. In `prisma/schema.prisma`, set `provider = "postgresql"`.
+3. Keep the SQLite history for reference and start a Postgres one:
+   ```bash
+   git mv prisma/migrations prisma/migrations-sqlite
+   # with DATABASE_URL / DIRECT_URL pointing at an empty development Postgres database:
+   npx prisma migrate dev --name init
+   ```
+   This writes `prisma/migrations/<timestamp>_init` and a `migration_lock.toml`
+   with `provider = "postgresql"`. Commit both.
+4. Apply it to production: `npm run db:deploy` (runs `prisma migrate deploy`)
+   with the production `DATABASE_URL`, or set Vercel's build command to
+   `prisma migrate deploy && next build`. `prisma generate` already runs on
+   `postinstall`.
+5. Existing SQLite data (leads, analytics) is not copied automatically. Export
+   what you need (for example with `npx prisma studio` or a small script) before
+   switching.
+6. From then on, develop against Postgres too (a Neon dev branch or local
+   Postgres): one schema cannot point at both providers at once.
+
+### 2. Files: private Vercel Blob
+
+Create a Blob store in Vercel → **Storage**, and connect it to the project; Vercel
+adds `BLOB_READ_WRITE_TOKEN`. With that token present the portal stores new
+uploads in Blob automatically (or set `STORAGE_DRIVER=vercel-blob`).
+
+- Blobs are written with `access: "private"`. The browser never receives a blob
+  URL: downloads stream through `/api/portal/projects/[id]/files/[fileId]` (members
+  only, files shared with the client) and `/api/admin/projects/[id]/files/[fileId]`.
+- Each file records which driver stored it, so older local files stay readable if
+  you switch drivers, and the `local` driver is refused on Vercel (uploads answer
+  503 rather than writing to a disposable disk).
+- Vercel Functions reject request bodies over 4.5 MB, so `PORTAL_MAX_UPLOAD_MB`
+  defaults to 4. Larger files would need direct client-to-Blob uploads.
+- Allowed types: PDF, PNG, JPEG, GIF, WebP, ZIP, DOCX, XLSX, PPTX, TXT, CSV. The
+  type comes from the extension and is checked against the file's leading bytes;
+  downloads are always sent as attachments with `nosniff`.
+- After connecting the store, upload and download one file on a preview
+  deployment to confirm the token works.
+
+### 3. Email (Resend)
+
+- Verify your domain in Resend and set `RESEND_FROM_EMAIL` to an address on it.
+  Without a verified domain, Resend's test sender only delivers to your own
+  Resend account address (that is why earlier test invitations failed).
+- Set `NEXT_PUBLIC_SITE_URL` to the canonical production URL. Invitation and
+  password-reset links are built from it, never from the request's Host header.
+- `PORTAL_NOTIFY_EMAIL` is where a client's new message is sent (defaults to the
+  inbox in `app/lib/projectBrief.ts`). Your messages and status changes are
+  emailed to each client with access, in the language they use the portal in.
+- Every send is recorded like `Lead.emailSent/emailError`: on the invitation,
+  the reset token, the message, or (for status changes) the activity entry. The
+  admin project screen shows failures.
+- Without `RESEND_API_KEY` nothing is sent. In development the invitation and
+  reset links are printed to the server console instead. In any environment the
+  admin sees a copyable invitation link right after creating or resending one.
+
+### 4. Auth and security
+
+- `AUTH_SECRET` (32+ random characters) signs both admin and portal session
+  cookies. Portal tokens are signed over a separate prefix, so a client's cookie
+  can never verify as an admin session. Rotating the secret signs everyone out.
+- `proxy.ts` gates `/portal` and `/api/portal` (fail closed, like `/admin`), and
+  every portal page and API route re-checks the session and project membership on
+  the server: another client's project answers 403, an unknown one 404.
+- Client passwords are bcrypt; invitation and reset tokens are 256-bit random
+  values stored only as SHA-256 hashes. Invitations expire after 7 days, reset
+  links after 60 minutes and work once; a password reset signs out all other
+  sessions.
+- Sign-in, password reset and invitation endpoints are rate-limited per IP (and
+  per email for sign-in and reset). Like the existing admin limiter this is
+  in-memory per instance; use a shared store (e.g. Upstash Redis) for strict limits.
+- Next.js 16.1.1 has published security advisories, including proxy-bypass
+  issues; upgrading to 16.4.1 or later is recommended. The portal does not rely
+  on `proxy.ts` alone, but the rest of the site does for `/admin`.
+- On 16.1.1, `router.refresh()` can skip applying a refresh whose response
+  arrives within a few milliseconds, so the project screens re-read their own
+  APIs after each change instead. Re-test with plain `router.refresh()` after
+  upgrading if you want to simplify them.
+
+### 5. Environment variables
+
+| Variable | Needed for | Notes |
+| --- | --- | --- |
+| `DATABASE_URL` (+ `DIRECT_URL`) | everything | Postgres in production (see step 1) |
+| `AUTH_SECRET` | admin + portal | 32+ random characters |
+| `ADMIN_EMAIL`, `ADMIN_PASSWORD_HASH` | admin | unchanged; the admin also authors portal messages |
+| `NEXT_PUBLIC_SITE_URL` | portal emails | canonical URL used in invite/reset links |
+| `RESEND_API_KEY`, `RESEND_FROM_EMAIL` | portal emails | verified domain sender |
+| `PORTAL_NOTIFY_EMAIL` | optional | where clients' messages are emailed |
+| `PORTAL_TIME_ZONE` | optional | IANA zone for timestamps, default `UTC` |
+| `PORTAL_MAX_UPLOAD_MB` | optional | default 4 (Vercel body limit 4.5 MB) |
+| `BLOB_READ_WRITE_TOKEN` | portal files | added by connecting a Vercel Blob store |
+| `STORAGE_DRIVER`, `STORAGE_LOCAL_DIR` | optional | `local` / `vercel-blob`; local folder (dev) |
+
+### 6. Demo data
+
+`npm run db:seed` creates the admin identity row, a demo client
+(`client@example.com` / `portal-demo-2026`, overridable with `SEED_CLIENT_EMAIL`
+and `SEED_CLIENT_PASSWORD`) and a project with milestones, tasks and a message. It
+refuses to run when `NODE_ENV=production`. Never seed a production database with
+the demo password.
+
 ## 🚀 Quick Deploy Options
 
 ### Option 1: Vercel (Recommended - Easiest)
