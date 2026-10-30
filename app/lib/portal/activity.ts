@@ -1,6 +1,6 @@
 import type { Prisma, PrismaClient } from '@prisma/client';
 import { prisma } from '../db';
-import type { ActivityType } from './constants';
+import { PROJECT_STATUS_LABELS, isProjectStatus, type ActivityType } from './constants';
 
 type Db = PrismaClient | Prisma.TransactionClient;
 
@@ -22,6 +22,8 @@ export type ActivityMeta = {
   STATUS_CHANGED: { from: string; to: string; emailSent?: boolean; emailError?: string | null };
 };
 
+const statusLabel = (status: string) => (isProjectStatus(status) ? PROJECT_STATUS_LABELS[status] : status);
+
 const SUMMARIES: { [T in ActivityType]: (meta: ActivityMeta[T]) => string } = {
   PROJECT_CREATED: (m) => `Project "${m.name}" created`,
   CLIENT_INVITED: (m) => `Invited ${m.email}`,
@@ -32,7 +34,7 @@ const SUMMARIES: { [T in ActivityType]: (meta: ActivityMeta[T]) => string } = {
   TASK_COMPLETED: (m) => `Task completed: ${m.title}`,
   MESSAGE_SENT: (m) => `${m.senderName} sent a message`,
   FILE_UPLOADED: (m) => `File uploaded: ${m.filename}`,
-  STATUS_CHANGED: (m) => `Status changed from ${m.from} to ${m.to}`,
+  STATUS_CHANGED: (m) => `Status changed from ${statusLabel(m.from)} to ${statusLabel(m.to)}`,
 };
 
 /** The one place portal events are recorded. Pass a transaction client to log atomically with the change. */

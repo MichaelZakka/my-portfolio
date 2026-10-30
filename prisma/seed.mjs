@@ -151,7 +151,7 @@ async function main() {
   for (const task of tasks) {
     await log('TASK_CREATED', `Task added: ${task.title}`, { taskId: task.id, title: task.title }, task.visibleToClient, ago(12));
   }
-  await log('STATUS_CHANGED', 'Status changed from planning to in_progress', { from: 'planning', to: 'in_progress' }, true, ago(12));
+  await log('STATUS_CHANGED', 'Status changed from Planning to In progress', { from: 'planning', to: 'in_progress' }, true, ago(12));
   for (const task of tasks.filter((t) => t.status === 'done')) {
     await log('TASK_COMPLETED', `Task completed: ${task.title}`, { taskId: task.id, title: task.title }, task.visibleToClient, ago(7));
   }

@@ -6,8 +6,12 @@ import type { PortalLocale } from './constants';
  * is no hydration mismatch between server and browser clocks.
  */
 
-/** Same Intl locales as the blog (app/lib/blog.ts). */
-const INTL_LOCALE: Record<PortalLocale, string> = { en: 'en-US', ar: 'ar-SY' };
+/**
+ * Levantine month names like the blog (app/lib/blog.ts), but Latin digits:
+ * numbers inside translated sentences ("1 من 3") and the site's Arabic copy
+ * use them, so dates and sizes match on the same page.
+ */
+const INTL_LOCALE: Record<PortalLocale, string> = { en: 'en-US', ar: 'ar-SY-u-nu-latn' };
 
 export function getPortalTimeZone(): string {
   const zone = process.env.PORTAL_TIME_ZONE?.trim();
@@ -53,7 +57,8 @@ export function formatBytes(bytes: number, locale: string): string {
   return new Intl.NumberFormat(intlLocale(locale), {
     style: 'unit',
     unit: units[unit],
-    unitDisplay: 'short',
+    // "74 bytes" (the short English form is the odd "74 byte"), "1.5 kB", "4 MB"
+    unitDisplay: unit === 0 ? 'long' : 'short',
     maximumFractionDigits: unit === 0 ? 0 : 1,
   }).format(value);
 }
