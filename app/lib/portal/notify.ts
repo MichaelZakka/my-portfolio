@@ -1,0 +1,107 @@
+import { prisma } from '../db';
+import { updateActivityMeta } from './activity';
+import {
+  adminNotifyAddress,
+  combineResults,
+  portalUrl,
+  sendNewMessageEmail,
+  sendStatusChangedEmail,
+} from './email';
+
+/**
+ * "Tell the other party" notifications. These run after the response is sent
+ * (via next/server `after`), then record the outcome like Lead.emailSent.
+ * Every client member gets their own email, in their own language, so
+ * addresses are never exposed to each other.
+ */
+
+async function clientRecipients(projectId: string) {
+  const members = await prisma.projectMember.findMany({
+    where: { projectId, user: { role: 'client' } },
+    select: { user: { select: { email: true, locale: true } } },
+  });
+  return members.map((m) => m.user);
+}
+
+export async function notifyAboutMessage(input: {
+  messageId: string;
+  projectId: string;
+  projectName: string;
+  senderName: string;
+  senderEmail: string;
+  senderRole: string;
+  content: string;
+}) {
+  let outcome;
+  if (input.senderRole === 'client') {
+    const to = adminNotifyAddress();
+    const result = await sendNewMessageEmail({
+      to,
+      locale: 'en',
+      projectName: input.projectName,
+      senderName: input.senderName,
+      content: input.content,
+      url: portalUrl(`/admin/projects/${input.projectId}`),
+      replyTo: input.senderEmail,
+    });
+    outcome = combineResults([{ to, result }]);
+  } else {
+    const recipients = await clientRecipients(input.projectId);
+    const results = await Promise.all(
+      recipients.map(async (user) => ({
+        to: user.email,
+        result: await sendNewMessageEmail({
+          to: user.email,
+          locale: user.locale,
+          projectName: input.projectName,
+          senderName: input.senderName,
+          content: input.content,
+          url: portalUrl(`/portal/projects/${input.projectId}`),
+        }),
+      }))
+    );
+    outcome = recipients.length
+      ? combineResults(results)
+      : { sent: false, error: 'No client has access to this project yet.' };
+  }
+
+  await prisma.message.update({
+    where: { id: input.messageId },
+    data: { emailSent: outcome.sent, emailError: outcome.error ?? null },
+  });
+  if (!outcome.sent) console.error('[portal] Message notification not sent:', outcome.error);
+}
+
+export async function notifyAboutStatusChange(input: {
+  activityId: string;
+  projectId: string;
+  projectName: string;
+  fromStatus: string;
+  toStatus: string;
+  phase: string;
+}) {
+  const recipients = await clientRecipients(input.projectId);
+  const results = await Promise.all(
+    recipients.map(async (user) => ({
+      to: user.email,
+      result: await sendStatusChangedEmail({
+        to: user.email,
+        locale: user.locale,
+        projectName: input.projectName,
+        fromStatus: input.fromStatus,
+        toStatus: input.toStatus,
+        phase: input.phase,
+        url: portalUrl(`/portal/projects/${input.projectId}`),
+      }),
+    }))
+  );
+  const outcome = recipients.length
+    ? combineResults(results)
+    : { sent: false, error: 'No client has access to this project yet.' };
+
+  await updateActivityMeta(input.activityId, {
+    emailSent: outcome.sent,
+    emailError: outcome.error ?? null,
+  });
+  if (!outcome.sent) console.error('[portal] Status notification not sent:', outcome.error);
+}
