@@ -20,14 +20,14 @@ export type AdminMilestone = {
 
 type Action = ReturnType<typeof useAdminAction>;
 
-function StatusSelect({ id, value, onChange, disabled }: { id: string; value: string; onChange: (value: string) => void; disabled?: boolean }) {
+function StatusSelect({ id, value, onChange, busy }: { id: string; value: string; onChange: (value: string) => void; busy?: boolean }) {
   return (
     <select
       id={id}
       className={`${styles.select} ${projectStyles.compactSelect}`}
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      disabled={disabled}
+      aria-disabled={busy}
     >
       {WORK_STATUSES.map((status) => (
         <option key={status} value={status}>
@@ -76,8 +76,8 @@ function MilestoneRow({
         <button
           type="button"
           className={projectStyles.iconButton}
-          onClick={() => patch('move', { move: 'up' })}
-          disabled={busy || isFirst}
+          onClick={() => !isFirst && patch('move', { move: 'up' })}
+          aria-disabled={busy || isFirst}
           aria-label={`Move “${milestone.title}” up`}
         >
           <ArrowUp size={15} aria-hidden="true" />
@@ -85,8 +85,8 @@ function MilestoneRow({
         <button
           type="button"
           className={projectStyles.iconButton}
-          onClick={() => patch('move', { move: 'down' })}
-          disabled={busy || isLast}
+          onClick={() => !isLast && patch('move', { move: 'down' })}
+          aria-disabled={busy || isLast}
           aria-label={`Move “${milestone.title}” down`}
         >
           <ArrowDown size={15} aria-hidden="true" />
@@ -118,7 +118,7 @@ function MilestoneRow({
                 value={dueDate}
                 onChange={(e) => setDueDate(e.target.value)}
               />
-              <button type="submit" className={`${styles.button} ${styles.buttonPrimary}`} disabled={busy}>
+              <button type="submit" className={`${styles.button} ${styles.buttonPrimary}`} aria-disabled={busy}>
                 {pending === `edit-${milestone.id}` ? 'Saving…' : 'Save'}
               </button>
               <button type="button" className={`${styles.button} ${styles.buttonSecondary}`} onClick={() => setEditing(false)}>
@@ -149,7 +149,7 @@ function MilestoneRow({
             id={`milestone-status-${milestone.id}`}
             value={milestone.status}
             onChange={(status) => patch('status', { status })}
-            disabled={busy}
+            busy={busy}
           />
           <button type="button" className={`${styles.button} ${styles.buttonSecondary}`} onClick={() => setEditing(true)}>
             Edit
@@ -158,7 +158,7 @@ function MilestoneRow({
             type="button"
             className={`${projectStyles.iconButton} ${projectStyles.iconButtonDanger}`}
             onClick={remove}
-            disabled={busy}
+            aria-disabled={busy}
             aria-label={`Delete milestone “${milestone.title}”`}
           >
             <Trash2 size={15} aria-hidden="true" />
@@ -268,7 +268,7 @@ export default function MilestonesPanel({ projectId, milestones }: { projectId: 
           <StatusSelect id="milestone-status" value={status} onChange={setStatus} />
         </div>
         <div>
-          <button type="submit" className={`${styles.button} ${styles.buttonPrimary}`} disabled={action.pending !== null}>
+          <button type="submit" className={`${styles.button} ${styles.buttonPrimary}`} aria-disabled={action.pending !== null}>
             {action.pending === 'add' ? 'Adding…' : 'Add milestone'}
           </button>
         </div>

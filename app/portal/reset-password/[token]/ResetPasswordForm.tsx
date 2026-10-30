@@ -18,6 +18,7 @@ export default function ResetPasswordForm({ token }: { token: string }) {
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
+    if (submitting) return;
     setError('');
     if (password !== confirm) {
       setError(errorMessage({ code: 'passwordMismatch' }));
@@ -78,7 +79,7 @@ export default function ResetPasswordForm({ token }: { token: string }) {
           onChange={(e) => setConfirm(e.target.value)}
         />
       </div>
-      <button type="submit" className={`btn btn-primary ${styles.submit}`} disabled={submitting} aria-busy={submitting}>
+      <button type="submit" className={`btn btn-primary ${styles.submit}`} aria-disabled={submitting} aria-busy={submitting}>
         {submitting ? t('savingPassword') : t('savePassword')}
       </button>
     </form>

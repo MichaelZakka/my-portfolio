@@ -1,7 +1,6 @@
 'use client';
 
 import { FormEvent, useRef, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { readJson, useErrorMessage, type ApiErrorBody } from '../../../_components/useErrorMessage';
 import styles from '../../../portal.module.css';
@@ -12,13 +11,13 @@ type Props = {
   /** maxBytes formatted for the current locale on the server. */
   maxSizeLabel: string;
   accept: string;
+  onUploaded: () => Promise<void>;
 };
 
 /** Size and type are checked here for instant feedback; the server enforces both again. */
-export default function FileUploadForm({ projectId, maxBytes, maxSizeLabel, accept }: Props) {
+export default function FileUploadForm({ projectId, maxBytes, maxSizeLabel, accept, onUploaded }: Props) {
   const t = useTranslations('portal.project');
   const errorMessage = useErrorMessage();
-  const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File | null>(null);
   const [error, setError] = useState('');
@@ -27,6 +26,7 @@ export default function FileUploadForm({ projectId, maxBytes, maxSizeLabel, acce
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
+    if (uploading) return;
     setError('');
     setNotice('');
     if (!file) {
@@ -49,8 +49,10 @@ export default function FileUploadForm({ projectId, maxBytes, maxSizeLabel, acce
       }
       setFile(null);
       if (inputRef.current) inputRef.current.value = '';
+      await onUploaded();
       setNotice(t('uploaded'));
-      router.refresh();
+      // The cleared form disables Upload; return focus to the file picker.
+      inputRef.current?.focus();
     } catch {
       setError(errorMessage({ code: 'network' }));
     } finally {
@@ -88,7 +90,13 @@ export default function FileUploadForm({ projectId, maxBytes, maxSizeLabel, acce
         <span className={styles.hint} role="status">
           {notice}
         </span>
-        <button type="submit" className="btn btn-primary" disabled={uploading || !file} aria-busy={uploading}>
+        <button
+          type="submit"
+          className="btn btn-primary"
+          disabled={!file && !uploading}
+          aria-disabled={uploading}
+          aria-busy={uploading}
+        >
           {uploading ? t('uploading') : t('uploadButton')}
         </button>
       </div>

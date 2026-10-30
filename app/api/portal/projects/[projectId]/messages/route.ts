@@ -4,6 +4,7 @@ import { rateLimit } from '../../../../../lib/rateLimit';
 import { authorizeClientProject } from '../../../../../lib/portal/access';
 import { logActivity } from '../../../../../lib/portal/activity';
 import { apiError, parseJsonBody, rateLimited } from '../../../../../lib/portal/http';
+import { getPortalLocale } from '../../../../../lib/portal/locale';
 import { notifyAboutMessage } from '../../../../../lib/portal/notify';
 import { presentMessages } from '../../../../../lib/portal/present';
 import { displayName, getProjectMessages } from '../../../../../lib/portal/queries';
@@ -16,8 +17,8 @@ export async function GET(request: Request, { params }: RouteParams) {
   const auth = await authorizeClientProject(request, projectId);
   if (!auth.ok) return auth.response;
 
-  const messages = await getProjectMessages(auth.project.id);
-  return NextResponse.json({ messages: presentMessages(messages, auth.user.id) });
+  const [messages, locale] = await Promise.all([getProjectMessages(auth.project.id), getPortalLocale()]);
+  return NextResponse.json({ messages: presentMessages(messages, auth.user.id, { locale }) });
 }
 
 export async function POST(request: Request, { params }: RouteParams) {

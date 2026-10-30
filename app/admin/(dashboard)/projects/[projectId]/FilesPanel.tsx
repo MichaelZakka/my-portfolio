@@ -43,7 +43,10 @@ export default function FilesPanel({ projectId, files, maxBytes, maxSizeLabel, a
     const result = await run('upload', base, { method: 'POST', body });
     if (result) {
       setFile(null);
-      if (inputRef.current) inputRef.current.value = '';
+      if (inputRef.current) {
+        inputRef.current.value = '';
+        inputRef.current.focus(); // Upload is disabled again; keep keyboard focus nearby
+      }
     }
   };
 
@@ -96,7 +99,7 @@ export default function FilesPanel({ projectId, files, maxBytes, maxSizeLabel, a
                   type="button"
                   className={projectStyles.iconButton}
                   onClick={() => toggleVisibility(item)}
-                  disabled={pending !== null}
+                  aria-disabled={pending !== null}
                   aria-label={item.visibleToClient ? `Hide ${item.filename} from the client` : `Share ${item.filename} with the client`}
                   title={item.visibleToClient ? 'Shared with client — click to hide' : 'Internal — click to share'}
                 >
@@ -106,7 +109,7 @@ export default function FilesPanel({ projectId, files, maxBytes, maxSizeLabel, a
                   type="button"
                   className={`${projectStyles.iconButton} ${projectStyles.iconButtonDanger}`}
                   onClick={() => remove(item)}
-                  disabled={pending !== null}
+                  aria-disabled={pending !== null}
                   aria-label={`Delete ${item.filename}`}
                 >
                   <Trash2 size={15} aria-hidden="true" />
@@ -139,7 +142,7 @@ export default function FilesPanel({ projectId, files, maxBytes, maxSizeLabel, a
           Visible to client
         </label>
         <div className={projectStyles.formActions}>
-          <button type="submit" className={`${styles.button} ${styles.buttonPrimary}`} disabled={!file || pending !== null}>
+          <button type="submit" className={`${styles.button} ${styles.buttonPrimary}`} disabled={!file && pending === null} aria-disabled={pending !== null}>
             {pending === 'upload' ? 'Uploading…' : 'Upload'}
           </button>
         </div>

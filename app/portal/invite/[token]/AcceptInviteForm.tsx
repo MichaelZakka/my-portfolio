@@ -28,6 +28,7 @@ export default function AcceptInviteForm({ token, email, defaultName, hasAccount
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
+    if (submitting) return;
     setError('');
     if (!hasAccount && password !== confirm) {
       setError(errorMessage({ code: 'passwordMismatch' }));
@@ -120,7 +121,7 @@ export default function AcceptInviteForm({ token, email, defaultName, hasAccount
           />
         </div>
       )}
-      <button type="submit" className={`btn btn-primary ${styles.submit}`} disabled={submitting} aria-busy={submitting}>
+      <button type="submit" className={`btn btn-primary ${styles.submit}`} aria-disabled={submitting} aria-busy={submitting}>
         {submitting ? t('accepting') : t('accept')}
       </button>
     </form>

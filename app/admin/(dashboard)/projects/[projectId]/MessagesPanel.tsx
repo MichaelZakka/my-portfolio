@@ -1,6 +1,6 @@
 'use client';
 
-import { FormEvent, KeyboardEvent, useState } from 'react';
+import { FormEvent, KeyboardEvent, useRef, useState } from 'react';
 import { MESSAGE_MAX_LENGTH } from '../../../../lib/portal/constants';
 import { jsonInit, useAdminAction } from '../useAdminAction';
 import styles from '../../../admin.module.css';
@@ -18,12 +18,16 @@ export type AdminMessage = {
 
 export default function MessagesPanel({ projectId, messages }: { projectId: string; messages: AdminMessage[] }) {
   const { run, pending, error } = useAdminAction();
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [content, setContent] = useState('');
 
   const send = async () => {
     if (!content.trim() || pending) return;
     const result = await run('send', `/api/admin/projects/${projectId}/messages`, jsonInit('POST', { content }));
-    if (result) setContent('');
+    if (result) {
+      setContent('');
+      textareaRef.current?.focus(); // Send is disabled again; stay in the composer
+    }
   };
 
   const handleSubmit = (event: FormEvent) => {
@@ -85,6 +89,7 @@ export default function MessagesPanel({ projectId, messages }: { projectId: stri
           Message to the client
         </label>
         <textarea
+          ref={textareaRef}
           id="admin-message"
           className={styles.textarea}
           dir="auto"
@@ -99,7 +104,8 @@ export default function MessagesPanel({ projectId, messages }: { projectId: stri
           <button
             type="submit"
             className={`${styles.button} ${styles.buttonPrimary}`}
-            disabled={pending !== null || !content.trim()}
+            disabled={!content.trim() && pending === null}
+            aria-disabled={pending !== null}
           >
             {pending === 'send' ? 'Sending…' : 'Send message'}
           </button>

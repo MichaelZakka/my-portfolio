@@ -101,7 +101,7 @@ export default function ClientAccessPanel({
                 type="button"
                 className={`${styles.button} ${styles.buttonSecondary}`}
                 onClick={() => removeMember(member)}
-                disabled={pending !== null}
+                aria-disabled={pending !== null}
               >
                 {pending === `remove-${member.id}` ? 'Removing…' : 'Remove'}
               </button>
@@ -149,7 +149,7 @@ export default function ClientAccessPanel({
             </div>
           </div>
           <div className={projectStyles.formActions}>
-            <button type="submit" className={`${styles.button} ${styles.buttonPrimary}`} disabled={pending !== null}>
+            <button type="submit" className={`${styles.button} ${styles.buttonPrimary}`} aria-disabled={pending !== null}>
               {pending === 'invite' ? 'Sending…' : 'Send invitation'}
             </button>
           </div>
@@ -187,7 +187,7 @@ export default function ClientAccessPanel({
                         type="button"
                         className={`${styles.button} ${styles.buttonSecondary}`}
                         onClick={() => resend(invitation)}
-                        disabled={pending !== null}
+                        aria-disabled={pending !== null}
                       >
                         {pending === `resend-${invitation.id}` ? 'Sending…' : 'Resend'}
                       </button>
@@ -196,7 +196,7 @@ export default function ClientAccessPanel({
                           type="button"
                           className={`${styles.button} ${styles.buttonSecondary}`}
                           onClick={() => revoke(invitation)}
-                          disabled={pending !== null}
+                          aria-disabled={pending !== null}
                         >
                           {pending === `revoke-${invitation.id}` ? 'Revoking…' : 'Revoke'}
                         </button>

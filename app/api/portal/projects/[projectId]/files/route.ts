@@ -3,6 +3,7 @@ import { rateLimit } from '../../../../../lib/rateLimit';
 import { authorizeClientProject } from '../../../../../lib/portal/access';
 import { readUpload, storeProjectFile } from '../../../../../lib/portal/files';
 import { apiError, rateLimited } from '../../../../../lib/portal/http';
+import { getPortalLocale } from '../../../../../lib/portal/locale';
 import { presentFiles } from '../../../../../lib/portal/present';
 import { getProjectFiles } from '../../../../../lib/portal/queries';
 
@@ -13,8 +14,11 @@ export async function GET(request: Request, { params }: RouteParams) {
   const auth = await authorizeClientProject(request, projectId);
   if (!auth.ok) return auth.response;
 
-  const files = await getProjectFiles(auth.project.id, { clientView: true });
-  return NextResponse.json({ files: presentFiles(files, auth.project.id) });
+  const [files, locale] = await Promise.all([
+    getProjectFiles(auth.project.id, { clientView: true }),
+    getPortalLocale(),
+  ]);
+  return NextResponse.json({ files: presentFiles(files, auth.project.id, { locale }) });
 }
 
 export async function POST(request: Request, { params }: RouteParams) {

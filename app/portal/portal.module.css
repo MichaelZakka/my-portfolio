@@ -900,3 +900,11 @@
     animation: none;
   }
 }
+
+/* Busy or unavailable buttons. Busy states use aria-disabled so the button
+   keeps keyboard focus while a request runs (disabled would drop it). */
+.form :global(.btn):disabled,
+.form :global(.btn)[aria-disabled='true'] {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

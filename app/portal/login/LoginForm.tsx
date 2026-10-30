@@ -24,6 +24,7 @@ export default function LoginForm({ from }: { from?: string }) {
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
+    if (submitting) return;
     setSubmitting(true);
     setError('');
     try {
@@ -78,7 +79,7 @@ export default function LoginForm({ from }: { from?: string }) {
           aria-invalid={error ? true : undefined}
         />
       </div>
-      <button type="submit" className={`btn btn-primary ${styles.submit}`} disabled={submitting} aria-busy={submitting}>
+      <button type="submit" className={`btn btn-primary ${styles.submit}`} aria-disabled={submitting} aria-busy={submitting}>
         {submitting ? t('signingIn') : t('signIn')}
       </button>
       <p className={styles.authFooter}>

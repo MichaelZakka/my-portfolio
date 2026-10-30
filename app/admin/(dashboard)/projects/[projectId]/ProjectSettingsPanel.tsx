@@ -41,6 +41,7 @@ export default function ProjectSettingsPanel({ project }: Props) {
 
   const handleSave = async (event: FormEvent) => {
     event.preventDefault();
+    if (!hasChanges) return;
     const body: Record<string, string | null> = { ...changes };
     if ('estimatedCompletion' in body && !body.estimatedCompletion) body.estimatedCompletion = null;
     const result = await run('save', `/api/admin/projects/${project.id}`, jsonInit('PATCH', body));
@@ -147,7 +148,7 @@ export default function ProjectSettingsPanel({ project }: Props) {
           <button
             type="submit"
             className={`${styles.button} ${styles.buttonPrimary}`}
-            disabled={!hasChanges || pending !== null}
+            aria-disabled={!hasChanges || pending !== null}
           >
             {pending === 'save' ? 'Saving…' : 'Save changes'}
           </button>
@@ -155,7 +156,7 @@ export default function ProjectSettingsPanel({ project }: Props) {
             type="button"
             className={`${styles.button} ${styles.buttonSecondary}`}
             onClick={toggleArchive}
-            disabled={pending !== null}
+            aria-disabled={pending !== null}
           >
             {pending === 'archive' ? 'Working…' : project.archived ? 'Restore project' : 'Archive project'}
           </button>

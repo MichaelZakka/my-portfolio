@@ -213,7 +213,7 @@ export default function NewProjectForm({ lead }: { lead: Lead | null }) {
       </fieldset>
 
       <div className={projectStyles.formActions} style={{ marginTop: '1.25rem' }}>
-        <button type="submit" className={`${styles.button} ${styles.buttonPrimary}`} disabled={pending !== null}>
+        <button type="submit" className={`${styles.button} ${styles.buttonPrimary}`} aria-disabled={pending !== null}>
           {pending ? 'Creating…' : 'Create project'}
         </button>
       </div>

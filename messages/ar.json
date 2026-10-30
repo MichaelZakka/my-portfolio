@@ -420,7 +420,7 @@
       "phaseLabel": "المرحلة الحالية",
       "etaLabel": "الإنجاز المتوقع",
       "progressLabel": "التقدّم",
-      "progressDetail": "المراحل المكتملة: {done} من {total}",
+      "progressCaption": "{percent}٪ · المراحل المكتملة: {done} من {total}",
       "progressEmpty": "سيظهر التقدّم بعد إضافة المراحل.",
       "progressAria": "تقدّم المشروع",
       "archivedNotice": "هذا المشروع مؤرشف. لا يزال بإمكانك قراءة سجله وتنزيل الملفات.",

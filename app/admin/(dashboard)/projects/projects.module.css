@@ -141,17 +141,18 @@
   cursor: pointer;
 }
 
-.iconButton:hover:not(:disabled) {
+.iconButton:hover:not(:disabled):not([aria-disabled='true']) {
   color: var(--text);
   background: var(--bg-elevated-2);
 }
 
-.iconButton:disabled {
+.iconButton:disabled,
+.iconButton[aria-disabled='true'] {
   opacity: 0.35;
   cursor: not-allowed;
 }
 
-.iconButtonDanger:hover:not(:disabled) {
+.iconButtonDanger:hover:not(:disabled):not([aria-disabled='true']) {
   color: var(--danger-text);
   border-color: var(--danger);
 }
@@ -200,6 +201,10 @@
   font-size: 0.85rem;
   color: var(--text-muted);
   cursor: pointer;
+}
+
+.checkboxLabel input[aria-disabled='true'] {
+  opacity: 0.6;
 }
 
 .checkboxLabel input {

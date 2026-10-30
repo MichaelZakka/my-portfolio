@@ -280,9 +280,15 @@
   background: #1b2f52;
 }
 
-.button:disabled {
+.button:disabled,
+.button[aria-disabled='true'] {
   opacity: 0.55;
   cursor: not-allowed;
+}
+
+/* Busy controls keep focus (aria-disabled) but look unavailable */
+.select[aria-disabled='true'] {
+  opacity: 0.6;
 }
 
 .filtersBar {

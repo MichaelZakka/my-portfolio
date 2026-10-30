@@ -17,6 +17,7 @@ export default function ForgotPasswordForm() {
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
+    if (submitting) return;
     setSubmitting(true);
     setError('');
     try {
@@ -69,7 +70,7 @@ export default function ForgotPasswordForm() {
           onChange={(e) => setEmail(e.target.value)}
         />
       </div>
-      <button type="submit" className={`btn btn-primary ${styles.submit}`} disabled={submitting} aria-busy={submitting}>
+      <button type="submit" className={`btn btn-primary ${styles.submit}`} aria-disabled={submitting} aria-busy={submitting}>
         {submitting ? t('sendingLink') : t('sendLink')}
       </button>
       <p className={styles.authFooter}>

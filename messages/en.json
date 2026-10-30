@@ -279,7 +279,7 @@
       "phaseLabel": "Current phase",
       "etaLabel": "Estimated completion",
       "progressLabel": "Progress",
-      "progressDetail": "{done} of {total} milestones complete",
+      "progressCaption": "{percent}% · {done} of {total} milestones complete",
       "progressEmpty": "Progress will show once milestones are added.",
       "progressAria": "Project progress",
       "archivedNotice": "This project is archived. You can still read its history and download files.",

@@ -1,16 +1,15 @@
 'use client';
 
-import { FormEvent, KeyboardEvent, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { FormEvent, KeyboardEvent, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { MESSAGE_MAX_LENGTH } from '../../../../lib/portal/constants';
 import { jsonRequest, readJson, useErrorMessage, type ApiErrorBody } from '../../../_components/useErrorMessage';
 import styles from '../../../portal.module.css';
 
-export default function ReplyForm({ projectId }: { projectId: string }) {
+export default function ReplyForm({ projectId, onSent }: { projectId: string; onSent: () => Promise<void> }) {
   const t = useTranslations('portal.project');
   const errorMessage = useErrorMessage();
-  const router = useRouter();
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [content, setContent] = useState('');
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
@@ -28,8 +27,10 @@ export default function ReplyForm({ projectId }: { projectId: string }) {
         return;
       }
       setContent('');
+      await onSent();
       setNotice(t('sent'));
-      router.refresh();
+      // The emptied form disables Send; keep keyboard users in the composer.
+      textareaRef.current?.focus();
     } catch {
       setError(errorMessage({ code: 'network' }));
     } finally {
@@ -57,6 +58,7 @@ export default function ReplyForm({ projectId }: { projectId: string }) {
           {t('replyLabel')}
         </label>
         <textarea
+          ref={textareaRef}
           id="portal-reply"
           className={styles.textarea}
           dir="auto"
@@ -75,7 +77,13 @@ export default function ReplyForm({ projectId }: { projectId: string }) {
         <span className={styles.hint} role="status">
           {notice}
         </span>
-        <button type="submit" className="btn btn-primary" disabled={sending || !content.trim()} aria-busy={sending}>
+        <button
+          type="submit"
+          className="btn btn-primary"
+          disabled={!content.trim() && !sending}
+          aria-disabled={sending}
+          aria-busy={sending}
+        >
           {sending ? t('sending') : t('send')}
         </button>
       </div>

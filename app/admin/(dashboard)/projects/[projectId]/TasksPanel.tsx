@@ -24,13 +24,13 @@ function MilestoneSelect({
   value,
   milestones,
   onChange,
-  disabled,
+  busy,
 }: {
   id: string;
   value: string | null;
   milestones: MilestoneOption[];
   onChange: (value: string | null) => void;
-  disabled?: boolean;
+  busy?: boolean;
 }) {
   return (
     <select
@@ -38,7 +38,7 @@ function MilestoneSelect({
       className={`${styles.select} ${projectStyles.compactSelect}`}
       value={value ?? ''}
       onChange={(e) => onChange(e.target.value || null)}
-      disabled={disabled}
+      aria-disabled={busy}
     >
       <option value="">No milestone</option>
       {milestones.map((milestone) => (
@@ -89,8 +89,8 @@ function TaskRow({
         <button
           type="button"
           className={projectStyles.iconButton}
-          onClick={() => patch('move', { move: 'up' })}
-          disabled={busy || isFirst}
+          onClick={() => !isFirst && patch('move', { move: 'up' })}
+          aria-disabled={busy || isFirst}
           aria-label={`Move “${task.title}” up`}
         >
           <ArrowUp size={15} aria-hidden="true" />
@@ -98,8 +98,8 @@ function TaskRow({
         <button
           type="button"
           className={projectStyles.iconButton}
-          onClick={() => patch('move', { move: 'down' })}
-          disabled={busy || isLast}
+          onClick={() => !isLast && patch('move', { move: 'down' })}
+          aria-disabled={busy || isLast}
           aria-label={`Move “${task.title}” down`}
         >
           <ArrowDown size={15} aria-hidden="true" />
@@ -124,7 +124,7 @@ function TaskRow({
               onChange={(e) => setDescription(e.target.value)}
             />
             <div className={projectStyles.formActions}>
-              <button type="submit" className={`${styles.button} ${styles.buttonPrimary}`} disabled={busy}>
+              <button type="submit" className={`${styles.button} ${styles.buttonPrimary}`} aria-disabled={busy}>
                 {pending === `edit-${task.id}` ? 'Saving…' : 'Save'}
               </button>
               <button type="button" className={`${styles.button} ${styles.buttonSecondary}`} onClick={() => setEditing(false)}>
@@ -147,7 +147,7 @@ function TaskRow({
                 id={`task-status-${task.id}`}
                 value={task.status}
                 onChange={(status) => patch('status', { status })}
-                disabled={busy}
+                busy={busy}
               />
               <label className="visually-hidden" htmlFor={`task-milestone-${task.id}`}>
                 Milestone of {task.title}
@@ -157,14 +157,14 @@ function TaskRow({
                 value={task.milestoneId}
                 milestones={milestones}
                 onChange={(milestoneId) => patch('milestone', { milestoneId })}
-                disabled={busy}
+                busy={busy}
               />
               <label className={projectStyles.checkboxLabel}>
                 <input
                   type="checkbox"
                   checked={task.visibleToClient}
                   onChange={(e) => patch('visibility', { visibleToClient: e.target.checked })}
-                  disabled={busy}
+                  aria-disabled={busy}
                 />
                 Visible to client
               </label>
@@ -181,7 +181,7 @@ function TaskRow({
             type="button"
             className={`${projectStyles.iconButton} ${projectStyles.iconButtonDanger}`}
             onClick={remove}
-            disabled={busy}
+            aria-disabled={busy}
             aria-label={`Delete task “${task.title}”`}
           >
             <Trash2 size={15} aria-hidden="true" />
@@ -312,7 +312,7 @@ export default function TasksPanel({
           Visible to client
         </label>
         <div>
-          <button type="submit" className={`${styles.button} ${styles.buttonPrimary}`} disabled={action.pending !== null}>
+          <button type="submit" className={`${styles.button} ${styles.buttonPrimary}`} aria-disabled={action.pending !== null}>
             {action.pending === 'add' ? 'Adding…' : 'Add task'}
           </button>
         </div>
