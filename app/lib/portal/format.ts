@@ -58,6 +58,37 @@ export function formatDateParts(date: Date, locale: string) {
   };
 }
 
+/** Time of day only, for chat bubbles (the day is shown by a separator). */
+export function formatTime(date: Date, locale: string): string {
+  return new Intl.DateTimeFormat(intlLocale(locale), {
+    hour: 'numeric',
+    minute: '2-digit',
+    timeZone: getPortalTimeZone(),
+  }).format(date);
+}
+
+/** "YYYY-MM-DD" of the calendar day in the portal time zone. */
+export function dayKey(date: Date): string {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: getPortalTimeZone() }).format(date);
+}
+
+/** "Today", "Yesterday", or a full date: the chat's day separators. */
+export function formatDayLabel(date: Date, locale: string, now = new Date()): string {
+  const key = dayKey(date);
+  const days = Math.round((Date.parse(dayKey(now)) - Date.parse(key)) / (24 * 60 * 60 * 1000));
+  if (days === 0 || days === 1) {
+    const label = new Intl.RelativeTimeFormat(intlLocale(locale), { numeric: 'auto' }).format(-days, 'day');
+    return label.charAt(0).toLocaleUpperCase(intlLocale(locale)) + label.slice(1);
+  }
+  return new Intl.DateTimeFormat(intlLocale(locale), {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+    ...(key.slice(0, 4) === dayKey(now).slice(0, 4) ? {} : { year: 'numeric' }),
+    timeZone: getPortalTimeZone(),
+  }).format(date);
+}
+
 export function formatBytes(bytes: number, locale: string): string {
   const units = ['byte', 'kilobyte', 'megabyte', 'gigabyte'] as const;
   let value = bytes;

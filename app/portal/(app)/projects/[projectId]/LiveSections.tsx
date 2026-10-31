@@ -1,8 +1,9 @@
 'use client';
 
-import { createContext, useCallback, useContext, useRef, useState, type ReactNode } from 'react';
+import { Fragment, createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import { useTranslations } from 'next-intl';
-import { Download, FileText } from 'lucide-react';
+import { Download, FileText, MessageCircle } from 'lucide-react';
+import { initials, layoutThread } from '../../../../lib/portal/chat';
 import type { ClientActivity, ClientFile, ClientMeeting, ClientMessage } from '../../../../lib/portal/present';
 import FileUploadForm from './FileUploadForm';
 import ReplyForm from './ReplyForm';
@@ -77,39 +78,81 @@ export function LiveProvider({
 export function MessagesSection({ projectId, archived }: { projectId: string; archived: boolean }) {
   const t = useTranslations('portal.project');
   const { data, refresh } = useLive();
+  const threadRef = useRef<HTMLOListElement>(null);
+  const items = layoutThread(data.messages, (m) => (m.sender.isYou ? 'you' : `${m.sender.isProjectLead}:${m.sender.name}`));
+
+  // Open at the newest message, and follow new ones.
+  useEffect(() => {
+    const thread = threadRef.current;
+    if (thread) thread.scrollTop = thread.scrollHeight;
+  }, [data.messages.length]);
 
   return (
     <section id="messages" aria-labelledby="messages-title" className={`${styles.card} ${styles.section}`}>
       <h2 id="messages-title" className={styles.sectionTitle}>
         {t('messagesTitle')}
       </h2>
-      {data.messages.length === 0 ? (
-        <p className={styles.empty}>{t('messagesEmpty')}</p>
-      ) : (
-        <ol className={styles.thread}>
-          {data.messages.map((message) => (
-            <li key={message.id} className={`${styles.message} ${message.sender.isYou ? styles.messageMine : ''}`}>
-              <div className={styles.messageHead}>
-                <span className={styles.messageAuthor} dir="auto">
-                  {message.sender.isYou ? t('you') : message.sender.name}
-                </span>
-                {message.sender.isProjectLead && <span className={styles.messageRole}>{t('projectLead')}</span>}
-                <time className={styles.messageTime} dateTime={message.createdAt}>
-                  {message.timeLabel}
-                </time>
-              </div>
-              <p className={styles.messageBody} dir="auto">
-                {message.content}
-              </p>
-            </li>
-          ))}
-        </ol>
-      )}
-      {archived ? (
-        <p className={styles.empty}>{t('replyDisabledArchived')}</p>
-      ) : (
-        <ReplyForm projectId={projectId} onSent={() => refresh(['messages', 'activity'])} />
-      )}
+      <div className={styles.chat}>
+        {data.messages.length === 0 ? (
+          <div className={styles.chatEmpty}>
+            <MessageCircle size={28} strokeWidth={1.5} aria-hidden="true" />
+            <p>{t('messagesEmpty')}</p>
+          </div>
+        ) : (
+          // Focusable so keyboard users can scroll the thread.
+          <ol ref={threadRef} className={styles.thread} tabIndex={0} aria-labelledby="messages-title">
+            {items.map(({ message, dayLabel, startsGroup, endsGroup }) => {
+              const mine = message.sender.isYou;
+              const author = mine ? t('you') : message.sender.name;
+              return (
+                <Fragment key={message.id}>
+                  {dayLabel && (
+                    <li className={styles.daySeparator}>
+                      <span>{dayLabel}</span>
+                    </li>
+                  )}
+                  <li
+                    className={`${styles.message} ${mine ? styles.messageMine : ''}`}
+                    data-group-start={startsGroup || undefined}
+                    data-group-end={endsGroup || undefined}
+                  >
+                    {!mine && (
+                      <span className={styles.avatar} data-lead={message.sender.isProjectLead || undefined} aria-hidden="true">
+                        {startsGroup ? initials(message.sender.name) : ''}
+                      </span>
+                    )}
+                    <div className={styles.bubbleStack}>
+                      {startsGroup && !mine ? (
+                        <span className={styles.messageAuthor} dir="auto">
+                          {author}
+                          {message.sender.isProjectLead && <span className={styles.messageRole}>{t('projectLead')}</span>}
+                        </span>
+                      ) : (
+                        <span className="visually-hidden">{author}: </span>
+                      )}
+                      <p className={styles.bubble} dir="auto">
+                        {message.content}
+                      </p>
+                      <time
+                        className={endsGroup ? styles.messageTime : 'visually-hidden'}
+                        dateTime={message.createdAt}
+                        title={message.timeLabel}
+                      >
+                        {message.time}
+                      </time>
+                    </div>
+                  </li>
+                </Fragment>
+              );
+            })}
+          </ol>
+        )}
+        {archived ? (
+          <p className={styles.chatClosed}>{t('replyDisabledArchived')}</p>
+        ) : (
+          <ReplyForm projectId={projectId} onSent={() => refresh(['messages', 'activity'])} />
+        )}
+      </div>
     </section>
   );
 }

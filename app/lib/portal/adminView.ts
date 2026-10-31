@@ -2,7 +2,15 @@ import { parseActivityMeta } from './activity';
 import { invitationState } from './constants';
 import { getProjectMeetings } from './meetings';
 import { presentMeetings } from './present';
-import { formatBytes, formatDate, formatDateTime, toDateInputValue } from './format';
+import {
+  dayKey,
+  formatBytes,
+  formatDate,
+  formatDateTime,
+  formatDayLabel,
+  formatTime,
+  toDateInputValue,
+} from './format';
 import {
   displayName,
   getAdminProjectDetail,
@@ -82,6 +90,10 @@ export async function buildAdminProjectView(projectId: string) {
       id: message.id,
       content: message.content,
       sentAt: formatDateTime(message.createdAt, 'en'),
+      createdAt: message.createdAt.toISOString(),
+      time: formatTime(message.createdAt, 'en'),
+      dayKey: dayKey(message.createdAt),
+      dayLabel: formatDayLabel(message.createdAt, 'en'),
       senderName: displayName(message.sender),
       fromAdmin: message.sender.role === 'admin',
       emailSent: message.emailSent,

@@ -484,7 +484,8 @@
       "meetingsUpcoming": "القادمة",
       "meetingsEarlier": "السابقة والملغاة",
       "meetingJoin": "الانضمام إلى الاجتماع",
-      "meetingYouProposed": "أنت اقترحت هذا الموعد"
+      "meetingYouProposed": "أنت اقترحت هذا الموعد",
+      "sendHint": "Ctrl + Enter للإرسال"
     },
     "activity": {
       "PROJECT_CREATED": "تم إنشاء المشروع",

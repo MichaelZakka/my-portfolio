@@ -1,6 +1,14 @@
 import { clientActivityParams } from './activity';
 import { isProjectStatus } from './constants';
-import { formatBytes, formatDate, formatDateParts, formatDateTime } from './format';
+import {
+  dayKey,
+  formatBytes,
+  formatDate,
+  formatDateParts,
+  formatDateTime,
+  formatDayLabel,
+  formatTime,
+} from './format';
 import type { getPortalTranslations } from './locale';
 import { sortMeetings, type ProjectMeeting } from './meetings';
 import { displayName, type getProjectActivity, type getProjectFiles, type getProjectMessages } from './queries';
@@ -25,6 +33,9 @@ export function presentMessages(
     content: message.content,
     createdAt: message.createdAt.toISOString(),
     timeLabel: formatDateTime(message.createdAt, locale),
+    time: formatTime(message.createdAt, locale),
+    dayKey: dayKey(message.createdAt),
+    dayLabel: formatDayLabel(message.createdAt, locale),
     sender: {
       name: displayName(message.sender),
       isProjectLead: message.sender.role === 'admin',

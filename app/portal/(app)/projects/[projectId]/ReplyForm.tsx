@@ -2,9 +2,16 @@
 
 import { FormEvent, KeyboardEvent, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
+import { SendHorizontal } from 'lucide-react';
 import { MESSAGE_MAX_LENGTH } from '../../../../lib/portal/constants';
 import { jsonRequest, readJson, useErrorMessage, type ApiErrorBody } from '../../../_components/useErrorMessage';
 import styles from '../../../portal.module.css';
+
+/** Grows the composer with its text, up to about six lines (then it scrolls). */
+function grow(textarea: HTMLTextAreaElement, reset = false) {
+  textarea.style.height = 'auto';
+  if (!reset) textarea.style.height = `${Math.min(textarea.scrollHeight, 160)}px`;
+}
 
 export default function ReplyForm({ projectId, onSent }: { projectId: string; onSent: () => Promise<void> }) {
   const t = useTranslations('portal.project');
@@ -27,6 +34,7 @@ export default function ReplyForm({ projectId, onSent }: { projectId: string; on
         return;
       }
       setContent('');
+      if (textareaRef.current) grow(textareaRef.current, true);
       await onSent();
       setNotice(t('sent'));
       // The emptied form disables Send; keep keyboard users in the composer.
@@ -52,40 +60,46 @@ export default function ReplyForm({ projectId, onSent }: { projectId: string; on
   };
 
   return (
-    <form className={styles.form} onSubmit={handleSubmit}>
-      <div className={styles.field}>
-        <label className={styles.label} htmlFor="portal-reply">
+    <form className={styles.composer} onSubmit={handleSubmit}>
+      <p className={`${styles.alert} ${styles.alertError}`} role="alert">
+        {error}
+      </p>
+      <div className={styles.composerBar}>
+        <label className="visually-hidden" htmlFor="portal-reply">
           {t('replyLabel')}
         </label>
         <textarea
           ref={textareaRef}
           id="portal-reply"
-          className={styles.textarea}
+          className={styles.composerInput}
           dir="auto"
+          rows={1}
           required
           maxLength={MESSAGE_MAX_LENGTH}
           placeholder={t('replyPlaceholder')}
+          aria-describedby="portal-reply-hint"
           value={content}
-          onChange={(e) => setContent(e.target.value)}
+          onChange={(e) => {
+            setContent(e.target.value);
+            grow(e.currentTarget);
+          }}
           onKeyDown={handleKeyDown}
         />
-      </div>
-      <p className={`${styles.alert} ${styles.alertError}`} role="alert">
-        {error}
-      </p>
-      <div className={styles.composerActions}>
-        <span className={styles.hint} role="status">
-          {notice}
-        </span>
         <button
           type="submit"
-          className="btn btn-primary"
+          className={styles.sendButton}
           disabled={!content.trim() && !sending}
           aria-disabled={sending}
           aria-busy={sending}
+          aria-label={sending ? t('sending') : t('send')}
+          title={t('send')}
         >
-          {sending ? t('sending') : t('send')}
+          <SendHorizontal size={18} strokeWidth={2} aria-hidden="true" className="flip-rtl" />
         </button>
+      </div>
+      <div className={styles.composerFoot}>
+        <span id="portal-reply-hint">{t('sendHint')}</span>
+        <span role="status">{notice}</span>
       </div>
     </form>
   );

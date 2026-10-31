@@ -343,7 +343,8 @@
       "meetingsUpcoming": "Upcoming",
       "meetingsEarlier": "Past and cancelled",
       "meetingJoin": "Join meeting",
-      "meetingYouProposed": "You proposed this time"
+      "meetingYouProposed": "You proposed this time",
+      "sendHint": "Ctrl + Enter to send"
     },
     "activity": {
       "PROJECT_CREATED": "Project created",
