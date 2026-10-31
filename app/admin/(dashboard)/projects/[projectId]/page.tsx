@@ -4,7 +4,7 @@ import { ACCEPT_ATTRIBUTE, getMaxUploadBytes } from '../../../../lib/portal/file
 import { formatBytes } from '../../../../lib/portal/format';
 import { idSchema } from '../../../../lib/portal/validation';
 import AdminProjectView from './AdminProjectView';
-import { isAdminProjectTab } from './AdminProjectTabs';
+import { isAdminProjectTab } from './tabs';
 
 export const dynamic = 'force-dynamic';
 

@@ -13,7 +13,8 @@ import {
 } from 'lucide-react';
 import type { AdminProjectView } from '../../../../lib/portal/adminView';
 import { MEETING_STATUS_LABELS, PROJECT_STATUS_LABELS, WORK_STATUS_LABELS } from '../../../../lib/portal/constants';
-import { useAdminProjectTabs, type AdminProjectTab } from './AdminProjectTabs';
+import { useAdminProjectTabs } from './AdminProjectTabs';
+import type { AdminProjectTab } from './tabs';
 import styles from '../../../admin.module.css';
 import projectStyles from '../projects.module.css';
 

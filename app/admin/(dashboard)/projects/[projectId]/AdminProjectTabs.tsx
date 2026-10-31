@@ -10,19 +10,8 @@ import {
   type KeyboardEvent,
   type ReactNode,
 } from 'react';
+import { ADMIN_PROJECT_TABS, isAdminProjectTab, type AdminProjectTab } from './tabs';
 import projectStyles from '../projects.module.css';
-
-export const ADMIN_PROJECT_TABS = [
-  'overview',
-  'milestones',
-  'meetings',
-  'messages',
-  'files',
-  'clients',
-  'activity',
-  'settings',
-] as const;
-export type AdminProjectTab = (typeof ADMIN_PROJECT_TABS)[number];
 
 export const ADMIN_TAB_LABELS: Record<AdminProjectTab, string> = {
   overview: 'Overview',
@@ -34,10 +23,6 @@ export const ADMIN_TAB_LABELS: Record<AdminProjectTab, string> = {
   activity: 'Activity',
   settings: 'Settings',
 };
-
-export function isAdminProjectTab(value: unknown): value is AdminProjectTab {
-  return typeof value === 'string' && (ADMIN_PROJECT_TABS as readonly string[]).includes(value);
-}
 
 type Tabs = { active: AdminProjectTab; select: (tab: AdminProjectTab) => void };
 const TabsContext = createContext<Tabs | null>(null);

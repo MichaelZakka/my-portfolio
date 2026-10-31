@@ -4,7 +4,8 @@ import type { ReactNode } from 'react';
 import { useTranslations } from 'next-intl';
 import { Activity, ArrowRight, CalendarClock, FileText, Flag, MessageCircle } from 'lucide-react';
 import { useLive } from './LiveSections';
-import { useProjectTabs, type ProjectTab } from './ProjectTabs';
+import { useProjectTabs } from './ProjectTabs';
+import type { ProjectTab } from './tabs';
 import styles from '../../../portal.module.css';
 
 export type MilestoneSummary = {

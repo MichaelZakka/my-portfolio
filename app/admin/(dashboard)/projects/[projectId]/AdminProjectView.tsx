@@ -12,7 +12,8 @@ import {
 } from '../../../../lib/portal/constants';
 import { ProjectViewContext } from '../projectViewContext';
 import AdminOverview from './AdminOverview';
-import AdminProjectTabs, { type AdminProjectTab } from './AdminProjectTabs';
+import AdminProjectTabs from './AdminProjectTabs';
+import type { AdminProjectTab } from './tabs';
 import ClientAccessPanel from './ClientAccessPanel';
 import FilesPanel from './FilesPanel';
 import MeetingsPanel from './MeetingsPanel';

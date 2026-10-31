@@ -12,14 +12,9 @@ import {
 } from 'react';
 import { useTranslations } from 'next-intl';
 import { useLive } from './LiveSections';
+import { isProjectTab, PROJECT_TABS, type ProjectTab } from './tabs';
 import styles from '../../../portal.module.css';
 
-export const PROJECT_TABS = ['overview', 'milestones', 'meetings', 'messages', 'files', 'activity'] as const;
-export type ProjectTab = (typeof PROJECT_TABS)[number];
-
-export function isProjectTab(value: unknown): value is ProjectTab {
-  return typeof value === 'string' && (PROJECT_TABS as readonly string[]).includes(value);
-}
 
 type Tabs = { active: ProjectTab; select: (tab: ProjectTab) => void };
 const TabsContext = createContext<Tabs | null>(null);

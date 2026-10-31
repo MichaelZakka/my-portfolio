@@ -19,7 +19,8 @@ import ProgressBar from '../../../_components/ProgressBar';
 import { ActivitySection, FilesSection, LiveProvider, MessagesSection } from './LiveSections';
 import { MeetingsSection } from './MeetingsSection';
 import OverviewPanel, { type MilestoneSummary } from './OverviewPanel';
-import ProjectTabs, { isProjectTab } from './ProjectTabs';
+import ProjectTabs from './ProjectTabs';
+import { isProjectTab } from './tabs';
 import styles from '../../../portal.module.css';
 
 type Props = { params: Promise<{ projectId: string }>; searchParams: Promise<{ tab?: string }> };
