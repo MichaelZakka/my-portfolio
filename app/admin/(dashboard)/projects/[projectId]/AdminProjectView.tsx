@@ -8,6 +8,7 @@ import { ArchivedBadge, ProjectStatusBadge } from '../../../_components/ProjectB
 import { ProjectViewContext } from '../projectViewContext';
 import ClientAccessPanel from './ClientAccessPanel';
 import FilesPanel from './FilesPanel';
+import MeetingsPanel from './MeetingsPanel';
 import MessagesPanel from './MessagesPanel';
 import MilestonesPanel from './MilestonesPanel';
 import ProjectSettingsPanel from './ProjectSettingsPanel';
@@ -91,6 +92,11 @@ export default function AdminProjectView({ initialView, upload }: Props) {
             projectId={project.id}
             milestones={view.milestones.map((m) => ({ id: m.id, title: m.title }))}
             tasks={view.tasks}
+          />
+          <MeetingsPanel
+            projectId={project.id}
+            meetings={view.meetings}
+            milestones={view.milestones.map((m) => ({ id: m.id, title: m.title }))}
           />
           <MessagesPanel projectId={project.id} messages={view.messages} />
           <FilesPanel projectId={project.id} files={view.files} {...upload} />

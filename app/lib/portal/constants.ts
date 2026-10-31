@@ -37,8 +37,23 @@ export const ACTIVITY_TYPES = [
   'MESSAGE_SENT',
   'FILE_UPLOADED',
   'STATUS_CHANGED',
+  'MEETING_PROPOSED',
+  'MEETING_RESCHEDULED',
+  'MEETING_CONFIRMED',
+  'MEETING_CANCELLED',
 ] as const;
 export type ActivityType = (typeof ACTIVITY_TYPES)[number];
+
+export const MEETING_STATUSES = ['proposed', 'confirmed', 'cancelled'] as const;
+export type MeetingStatus = (typeof MEETING_STATUSES)[number];
+
+export const MEETING_STATUS_LABELS: Record<MeetingStatus, string> = {
+  proposed: 'Awaiting reply',
+  confirmed: 'Confirmed',
+  cancelled: 'Cancelled',
+};
+
+export const MEETING_DURATIONS = [15, 30, 45, 60, 90, 120] as const;
 
 export const USER_ROLES = ['client', 'admin'] as const;
 export type UserRole = (typeof USER_ROLES)[number];

@@ -1,5 +1,7 @@
 import { parseActivityMeta } from './activity';
 import { invitationState } from './constants';
+import { getProjectMeetings } from './meetings';
+import { presentMeetings } from './present';
 import { formatBytes, formatDate, formatDateTime, toDateInputValue } from './format';
 import {
   displayName,
@@ -15,11 +17,12 @@ import {
  * returns the same shape, which the screen re-reads after every change.
  */
 export async function buildAdminProjectView(projectId: string) {
-  const [project, messages, files, activity] = await Promise.all([
+  const [project, messages, files, activity, meetings] = await Promise.all([
     getAdminProjectDetail(projectId),
     getProjectMessages(projectId),
     getProjectFiles(projectId, { clientView: false }),
     getProjectActivity(projectId, { clientView: false }),
+    getProjectMeetings(projectId),
   ]);
   if (!project) return null;
 
@@ -84,6 +87,7 @@ export async function buildAdminProjectView(projectId: string) {
       emailSent: message.emailSent,
       emailError: message.emailError,
     })),
+    meetings: presentMeetings(meetings, 'admin', { locale: 'en' }),
     files: files.map((file) => ({
       id: file.id,
       filename: file.filename,

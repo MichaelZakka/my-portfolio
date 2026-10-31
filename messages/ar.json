@@ -456,7 +456,31 @@
       "taskMilestone": "المرحلة",
       "taskUpdated": "آخر تحديث",
       "taskCompleted": "تاريخ الإنجاز",
-      "taskNoDescription": "لا توجد تفاصيل إضافية لهذه المهمة بعد."
+      "taskNoDescription": "لا توجد تفاصيل إضافية لهذه المهمة بعد.",
+      "meetingsTitle": "الاجتماعات",
+      "meetingsEmpty": "لا توجد اجتماعات بعد. يمكنك اقتراح اجتماع أدناه.",
+      "meetingAwaitingYou": "بانتظار ردّك",
+      "meetingAwaitingOther": "بانتظار رد مسؤول المشروع",
+      "meetingDuration": "{minutes} دقيقة",
+      "meetingMilestone": "المرحلة: {milestone}",
+      "meetingAccept": "قبول",
+      "meetingSuggest": "اقتراح موعد آخر",
+      "meetingCancel": "إلغاء الاجتماع",
+      "meetingCancelConfirm": "هل تريد إلغاء هذا الاجتماع؟ سيتم إبلاغ الطرف الآخر.",
+      "meetingNewTime": "التاريخ والوقت الجديدان",
+      "meetingSendTime": "إرسال الموعد الجديد",
+      "meetingNeverMind": "تراجع",
+      "meetingProposeTitle": "اقتراح اجتماع",
+      "meetingTopic": "الموضوع",
+      "meetingWhen": "التاريخ والوقت (بتوقيتك المحلي)",
+      "meetingDurationLabel": "المدة",
+      "meetingLocation": "المكان أو رابط الاجتماع (اختياري)",
+      "meetingAgenda": "جدول الأعمال (اختياري)",
+      "meetingMilestoneLabel": "المرحلة المرتبطة (اختياري)",
+      "meetingNoMilestone": "بدون",
+      "meetingPropose": "اقتراح الاجتماع",
+      "meetingSending": "جارٍ الإرسال…",
+      "meetingSent": "تم. أُبلغ الطرف الآخر."
     },
     "activity": {
       "PROJECT_CREATED": "تم إنشاء المشروع",
@@ -469,7 +493,11 @@
       "MESSAGE_SENT": "أرسل {senderName} رسالة",
       "FILE_UPLOADED": "تمت مشاركة ملف: {filename}",
       "STATUS_CHANGED": "تغيّرت الحالة إلى: {to}",
-      "fallback": "تم تحديث المشروع"
+      "fallback": "تم تحديث المشروع",
+      "MEETING_PROPOSED": "اقتراح اجتماع: {title}",
+      "MEETING_RESCHEDULED": "اقتراح موعد جديد للاجتماع: {title}",
+      "MEETING_CONFIRMED": "تأكيد الاجتماع: {title}",
+      "MEETING_CANCELLED": "إلغاء الاجتماع: {title}"
     },
     "errors": {
       "generic": "حدث خطأ ما. يرجى المحاولة مرة أخرى.",
@@ -495,7 +523,11 @@
       "unauthorized": "انتهت جلستك. يرجى تسجيل الدخول مجدداً.",
       "forbidden": "ليست لديك صلاحية الوصول إلى هذا المشروع.",
       "notFound": "غير موجود.",
-      "notConfigured": "لم يتم إعداد تسجيل الدخول إلى البوابة بعد."
+      "notConfigured": "لم يتم إعداد تسجيل الدخول إلى البوابة بعد.",
+      "meetingCancelled": "تم إلغاء هذا الاجتماع.",
+      "meetingConfirmed": "هذا الاجتماع مؤكَّد مسبقاً.",
+      "meetingAwaitingOther": "على الطرف الآخر الرد على اقتراحك.",
+      "meetingChanged": "تم تعديل هذا الاجتماع للتو. أعد تحميل الصفحة وحاول مجدداً."
     },
     "forbidden": {
       "title": "ليست لديك صلاحية الوصول إلى هذا المشروع",
@@ -506,6 +538,12 @@
       "title": "المشروع غير موجود",
       "text": "هذا المشروع غير موجود أو تمت إزالته.",
       "back": "العودة إلى مشاريعك"
+    },
+    "meetingStatus": {
+      "proposed": "بانتظار الرد",
+      "confirmed": "مؤكَّد",
+      "cancelled": "ملغى",
+      "past": "منتهٍ"
     }
   },
   "portalEmail": {
@@ -553,6 +591,33 @@
       "heading": "قبل {client} الدعوة",
       "body": "قبل {client} ({email}) الدعوة ويمكنه الآن متابعة «{project}» في بوابة العملاء.",
       "cta": "فتح المشروع"
+    },
+    "meeting": {
+      "when": "الموعد: {when} ({minutes} دقيقة)",
+      "where": "المكان: {location}",
+      "milestone": "المرحلة: {milestone}",
+      "ctaRespond": "القبول أو اقتراح موعد آخر",
+      "ctaView": "عرض الاجتماع",
+      "proposed": {
+        "subject": "اقترح {actor} اجتماعاً: {title}",
+        "heading": "اقتراح اجتماع جديد",
+        "body": "اقترح {actor} اجتماعاً بخصوص مشروع «{project}». يمكنك قبوله أو اقتراح موعد يناسبك أكثر."
+      },
+      "rescheduled": {
+        "subject": "موعد جديد مقترح لاجتماع «{title}»",
+        "heading": "تم اقتراح موعد جديد",
+        "body": "اقترح {actor} موعداً جديداً لاجتماع «{title}» في مشروع «{project}». يمكنك قبوله أو اقتراح موعد آخر."
+      },
+      "confirmed": {
+        "subject": "تم تأكيد الاجتماع: {title}",
+        "heading": "تم تأكيد الاجتماع",
+        "body": "قبل {actor} اجتماع «{title}» الخاص بمشروع «{project}»."
+      },
+      "cancelled": {
+        "subject": "تم إلغاء الاجتماع: {title}",
+        "heading": "تم إلغاء الاجتماع",
+        "body": "ألغى {actor} اجتماع «{title}» الخاص بمشروع «{project}»."
+      }
     }
   }
 }

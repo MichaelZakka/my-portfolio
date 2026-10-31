@@ -5,6 +5,8 @@ import {
   combineResults,
   portalUrl,
   sendClientJoinedEmail,
+  sendMeetingEmail,
+  type MeetingEmailEvent,
   sendNewMessageEmail,
   sendStatusChangedEmail,
 } from './email';
@@ -124,4 +126,74 @@ export async function notifyAboutClientJoined(input: {
 
   await updateActivityMeta(input.activityId, { emailSent: result.sent, emailError: result.error ?? null });
   if (!result.sent) console.error('[portal] Client-joined notification not sent:', result.error);
+}
+
+const MEETING_EMAIL_EVENTS = {
+  MEETING_PROPOSED: 'proposed',
+  MEETING_RESCHEDULED: 'rescheduled',
+  MEETING_CONFIRMED: 'confirmed',
+  MEETING_CANCELLED: 'cancelled',
+} as const satisfies Record<string, MeetingEmailEvent>;
+
+/** Tells the other side about a meeting change: the admin when a client acted, every client when the admin did. */
+export async function notifyAboutMeeting(input: {
+  activityId: string;
+  meetingId: string;
+  event: keyof typeof MEETING_EMAIL_EVENTS;
+  projectId: string;
+  projectName: string;
+  actorName: string;
+  actorEmail: string;
+  actorRole: string;
+}) {
+  const meeting = await prisma.meeting.findUnique({
+    where: { id: input.meetingId },
+    select: {
+      title: true,
+      startsAt: true,
+      durationMinutes: true,
+      location: true,
+      milestone: { select: { title: true } },
+    },
+  });
+  if (!meeting) return;
+
+  const email = {
+    event: MEETING_EMAIL_EVENTS[input.event],
+    actorName: input.actorName,
+    projectName: input.projectName,
+    meeting: { ...meeting, milestoneTitle: meeting.milestone?.title ?? null },
+  };
+
+  let outcome;
+  if (input.actorRole === 'client') {
+    const to = adminNotifyAddress();
+    const result = await sendMeetingEmail({
+      ...email,
+      to,
+      locale: 'en',
+      url: portalUrl(`/admin/projects/${input.projectId}#meetings`),
+      replyTo: input.actorEmail,
+    });
+    outcome = combineResults([{ to, result }]);
+  } else {
+    const recipients = await clientRecipients(input.projectId);
+    const results = await Promise.all(
+      recipients.map(async (user) => ({
+        to: user.email,
+        result: await sendMeetingEmail({
+          ...email,
+          to: user.email,
+          locale: user.locale,
+          url: portalUrl(`/portal/projects/${input.projectId}#meetings`),
+        }),
+      }))
+    );
+    outcome = recipients.length
+      ? combineResults(results)
+      : { sent: false, error: 'No client has access to this project yet.' };
+  }
+
+  await updateActivityMeta(input.activityId, { emailSent: outcome.sent, emailError: outcome.error ?? null });
+  if (!outcome.sent) console.error('[portal] Meeting notification not sent:', outcome.error);
 }

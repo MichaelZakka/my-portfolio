@@ -10,7 +10,7 @@ import {
   isProjectStatus,
   type PortalLocale,
 } from './constants';
-import { formatDate } from './format';
+import { formatDate, formatDateTime } from './format';
 
 /**
  * Portal emails (Resend). Each send returns { sent, error } so callers can
@@ -290,6 +290,48 @@ export async function sendClientJoinedEmail(input: {
     to: input.to,
     subject: t('joined.subject', { client, project: input.projectName }),
     replyTo: input.clientEmail,
+    ...content,
+  });
+}
+
+export type MeetingEmailEvent = 'proposed' | 'rescheduled' | 'confirmed' | 'cancelled';
+
+export async function sendMeetingEmail(input: {
+  to: string;
+  locale: string;
+  event: MeetingEmailEvent;
+  actorName: string;
+  projectName: string;
+  meeting: { title: string; startsAt: Date; durationMinutes: number; location: string; milestoneTitle: string | null };
+  url: string;
+  replyTo?: string;
+}): Promise<EmailSendResult> {
+  if (!getResendConfig().configured) {
+    console.info(`[portal] ${NOT_CONFIGURED} Meeting email to ${input.to} was not sent.`);
+    return { sent: false, error: NOT_CONFIGURED };
+  }
+  const { lang, t } = translator(input.locale);
+  const { meeting } = input;
+  const values = { actor: input.actorName, title: meeting.title, project: input.projectName };
+  const details = [
+    t('meeting.when', { when: formatDateTime(meeting.startsAt, lang), minutes: String(meeting.durationMinutes) }),
+    ...(meeting.location ? [t('meeting.where', { location: meeting.location })] : []),
+    ...(meeting.milestoneTitle ? [t('meeting.milestone', { milestone: meeting.milestoneTitle })] : []),
+  ];
+  const content = renderEmail(lang, {
+    heading: t(`meeting.${input.event}.heading`, values),
+    paragraphs: [t(`meeting.${input.event}.body`, values)],
+    quote: details.join('\n'),
+    cta: {
+      label: input.event === 'proposed' || input.event === 'rescheduled' ? t('meeting.ctaRespond') : t('meeting.ctaView'),
+      url: input.url,
+    },
+    footer: t('footer'),
+  });
+  return deliver({
+    to: input.to,
+    subject: t(`meeting.${input.event}.subject`, values),
+    replyTo: input.replyTo,
     ...content,
   });
 }

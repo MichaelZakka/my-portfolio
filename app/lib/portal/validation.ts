@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import {
+  MEETING_DURATIONS,
   MESSAGE_MAX_LENGTH,
   PORTAL_LOCALES,
   PROJECT_STATUSES,
@@ -55,6 +56,32 @@ export const localeBodySchema = z.object({ locale: localeSchema });
 export const messageSchema = z.object({
   content: z.string().trim().min(1).max(MESSAGE_MAX_LENGTH),
 });
+
+// --- Meetings (both sides) --------------------------------------------------
+
+/** An ISO instant from the browser (it converts the local time it shows). Must be in the future. */
+const meetingTimeSchema = z.iso
+  .datetime({ offset: true })
+  .transform((value) => new Date(value))
+  .refine((date) => date.getTime() > Date.now(), 'Pick a time in the future.');
+
+export const meetingCreateSchema = z.object({
+  title: z.string().trim().min(1).max(200),
+  agenda: z.string().trim().max(2000).default(''),
+  location: z.string().trim().max(500).default(''),
+  startsAt: meetingTimeSchema,
+  durationMinutes: z.union(MEETING_DURATIONS.map((d) => z.literal(d))).default(30),
+  milestoneId: idSchema.nullable().default(null),
+});
+
+export const meetingActionSchema = z.discriminatedUnion('action', [
+  z.object({ action: z.literal('accept') }),
+  z.object({ action: z.literal('reschedule'), startsAt: meetingTimeSchema }),
+  z.object({ action: z.literal('cancel') }),
+]);
+
+export type MeetingCreateInput = z.output<typeof meetingCreateSchema>;
+export type MeetingActionInput = z.output<typeof meetingActionSchema>;
 
 // --- Admin ------------------------------------------------------------------
 

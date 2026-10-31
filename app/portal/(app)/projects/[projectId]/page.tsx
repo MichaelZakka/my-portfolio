@@ -6,7 +6,8 @@ import { getClientProjectAccess } from '../../../../lib/portal/access';
 import { ACCEPT_ATTRIBUTE, getMaxUploadBytes } from '../../../../lib/portal/files';
 import { formatBytes, formatDate } from '../../../../lib/portal/format';
 import { getPortalTranslations } from '../../../../lib/portal/locale';
-import { presentActivity, presentFiles, presentMessages } from '../../../../lib/portal/present';
+import { getProjectMeetings } from '../../../../lib/portal/meetings';
+import { presentActivity, presentFiles, presentMeetings, presentMessages } from '../../../../lib/portal/present';
 import {
   getClientProjectDetail,
   getProjectActivity,
@@ -16,6 +17,7 @@ import {
 import { getPortalUser } from '../../../../lib/portal/session';
 import ProgressBar from '../../../_components/ProgressBar';
 import { ActivitySection, FilesSection, LiveProvider, MessagesSection } from './LiveSections';
+import { MeetingsSection } from './MeetingsSection';
 import styles from '../../../portal.module.css';
 
 type Props = { params: Promise<{ projectId: string }> };
@@ -39,11 +41,12 @@ export default async function PortalProjectPage({ params }: Props) {
   if (access.status === 'not_found') notFound();
   if (access.status === 'forbidden') forbidden();
 
-  const [project, messages, files, activity, labels] = await Promise.all([
+  const [project, messages, files, activity, meetings, labels] = await Promise.all([
     getClientProjectDetail(projectId),
     getProjectMessages(projectId),
     getProjectFiles(projectId, { clientView: true }),
     getProjectActivity(projectId, { clientView: true }),
+    getProjectMeetings(projectId),
     getPortalTranslations('portal'),
   ]);
   if (!project) notFound();
@@ -180,6 +183,7 @@ export default async function PortalProjectPage({ params }: Props) {
 
       <nav aria-label={t('project.sectionsNav')} className={styles.sectionNav}>
         <a href="#milestones">{t('project.milestonesTitle')}</a>
+        <a href="#meetings">{t('project.meetingsTitle')}</a>
         <a href="#messages">{t('project.messagesTitle')}</a>
         <a href="#files">{t('project.filesTitle')}</a>
         <a href="#activity">{t('project.activityTitle')}</a>
@@ -191,6 +195,7 @@ export default async function PortalProjectPage({ params }: Props) {
           messages: presentMessages(messages, user.id, { locale }),
           files: presentFiles(files, project.id, { locale }),
           activity: presentActivity(activity, labels),
+          meetings: presentMeetings(meetings, 'client', { locale }),
         }}
       >
         <div className={styles.projectLayout}>
@@ -258,6 +263,12 @@ export default async function PortalProjectPage({ params }: Props) {
                 <p className={styles.empty}>{t('project.noTasks')}</p>
               )}
             </section>
+
+            <MeetingsSection
+              projectId={project.id}
+              archived={archived}
+              milestones={project.milestones.map((m) => ({ id: m.id, title: m.title }))}
+            />
 
             <MessagesSection projectId={project.id} archived={archived} />
           </div>

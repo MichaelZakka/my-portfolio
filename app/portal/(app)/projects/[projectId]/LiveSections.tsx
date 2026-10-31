@@ -3,7 +3,7 @@
 import { createContext, useCallback, useContext, useRef, useState, type ReactNode } from 'react';
 import { useTranslations } from 'next-intl';
 import { Download, FileText } from 'lucide-react';
-import type { ClientActivity, ClientFile, ClientMessage } from '../../../../lib/portal/present';
+import type { ClientActivity, ClientFile, ClientMeeting, ClientMessage } from '../../../../lib/portal/present';
 import FileUploadForm from './FileUploadForm';
 import ReplyForm from './ReplyForm';
 import styles from '../../../portal.module.css';
@@ -17,13 +17,18 @@ import styles from '../../../portal.module.css';
  * localhost), so the new message would not appear.
  */
 
-type LiveData = { messages: ClientMessage[]; files: ClientFile[]; activity: ClientActivity[] };
+type LiveData = {
+  messages: ClientMessage[];
+  files: ClientFile[];
+  activity: ClientActivity[];
+  meetings: ClientMeeting[];
+};
 type Section = keyof LiveData;
 type Live = { data: LiveData; refresh: (sections: Section[]) => Promise<void> };
 
 const LiveContext = createContext<Live | null>(null);
 
-function useLive(): Live {
+export function useLive(): Live {
   const live = useContext(LiveContext);
   if (!live) throw new Error('Live sections must be rendered inside <LiveProvider>.');
   return live;
@@ -40,7 +45,7 @@ export function LiveProvider({
 }) {
   const [data, setData] = useState(initial);
   // Per-section request counters: a slower, older response never overwrites a newer one.
-  const latest = useRef<Record<Section, number>>({ messages: 0, files: 0, activity: 0 });
+  const latest = useRef<Record<Section, number>>({ messages: 0, files: 0, activity: 0, meetings: 0 });
 
   const refresh = useCallback(
     async (sections: Section[]) => {

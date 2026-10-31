@@ -2,6 +2,7 @@ import { clientActivityParams } from './activity';
 import { isProjectStatus } from './constants';
 import { formatBytes, formatDate, formatDateTime } from './format';
 import type { getPortalTranslations } from './locale';
+import { sortMeetings, type ProjectMeeting } from './meetings';
 import { displayName, type getProjectActivity, type getProjectFiles, type getProjectMessages } from './queries';
 
 /**
@@ -60,6 +61,10 @@ const ACTIVITY_PARAMS: Record<string, string[]> = {
   MESSAGE_SENT: ['senderName'],
   FILE_UPLOADED: ['filename'],
   STATUS_CHANGED: ['to'],
+  MEETING_PROPOSED: ['title'],
+  MEETING_RESCHEDULED: ['title'],
+  MEETING_CONFIRMED: ['title'],
+  MEETING_CANCELLED: ['title'],
 };
 
 function describeActivity(type: string, params: Record<string, string>, t: PortalTranslator): string {
@@ -87,6 +92,48 @@ export function presentActivity(
   });
 }
 
+/** Only http(s) links become clickable; anything else is shown as plain text. */
+function safeUrl(value: string): string | null {
+  try {
+    const url = new URL(value);
+    return url.protocol === 'https:' || url.protocol === 'http:' ? url.href : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Meetings as one side sees them (the admin screen uses viewerRole "admin" and English labels). */
+export function presentMeetings(
+  meetings: ProjectMeeting[],
+  viewerRole: 'client' | 'admin',
+  { locale }: { locale: string }
+) {
+  const now = new Date();
+  return sortMeetings(meetings, now).map((meeting) => {
+    const ends = meeting.startsAt.getTime() + meeting.durationMinutes * 60 * 1000;
+    const past = ends < now.getTime();
+    const open = meeting.status !== 'cancelled' && !past;
+    return {
+      id: meeting.id,
+      title: meeting.title,
+      agenda: meeting.agenda,
+      location: meeting.location,
+      locationUrl: safeUrl(meeting.location),
+      startsAt: meeting.startsAt.toISOString(),
+      whenLabel: formatDateTime(meeting.startsAt, locale),
+      durationMinutes: meeting.durationMinutes,
+      status: meeting.status,
+      past,
+      milestone: meeting.milestone,
+      proposedBy: meeting.proposedBy ? displayName(meeting.proposedBy) : null,
+      proposedByYou: meeting.proposedByRole === viewerRole,
+      canAccept: open && meeting.status === 'proposed' && meeting.proposedByRole !== viewerRole,
+      canChange: open,
+    };
+  });
+}
+
+export type ClientMeeting = ReturnType<typeof presentMeetings>[number];
 export type ClientMessage = ReturnType<typeof presentMessages>[number];
 export type ClientFile = ReturnType<typeof presentFiles>[number];
 export type ClientActivity = ReturnType<typeof presentActivity>[number];

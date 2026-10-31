@@ -20,7 +20,13 @@ export type ActivityMeta = {
   MESSAGE_SENT: { messageId: string; senderName: string };
   FILE_UPLOADED: { fileId: string; filename: string };
   STATUS_CHANGED: { from: string; to: string; emailSent?: boolean; emailError?: string | null };
+  MEETING_PROPOSED: MeetingMeta;
+  MEETING_RESCHEDULED: MeetingMeta;
+  MEETING_CONFIRMED: MeetingMeta;
+  MEETING_CANCELLED: MeetingMeta;
 };
+
+type MeetingMeta = { meetingId: string; title: string; emailSent?: boolean; emailError?: string | null };
 
 const statusLabel = (status: string) => (isProjectStatus(status) ? PROJECT_STATUS_LABELS[status] : status);
 
@@ -35,6 +41,10 @@ const SUMMARIES: { [T in ActivityType]: (meta: ActivityMeta[T]) => string } = {
   MESSAGE_SENT: (m) => `${m.senderName} sent a message`,
   FILE_UPLOADED: (m) => `File uploaded: ${m.filename}`,
   STATUS_CHANGED: (m) => `Status changed from ${statusLabel(m.from)} to ${statusLabel(m.to)}`,
+  MEETING_PROPOSED: (m) => `Meeting proposed: ${m.title}`,
+  MEETING_RESCHEDULED: (m) => `New time proposed for meeting: ${m.title}`,
+  MEETING_CONFIRMED: (m) => `Meeting confirmed: ${m.title}`,
+  MEETING_CANCELLED: (m) => `Meeting cancelled: ${m.title}`,
 };
 
 /** The one place portal events are recorded. Pass a transaction client to log atomically with the change. */

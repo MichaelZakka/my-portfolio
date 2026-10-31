@@ -136,12 +136,13 @@ model User {
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
-  memberships    ProjectMember[]
-  invitations    Invitation[]
-  passwordResets PasswordResetToken[]
-  messages       Message[]
-  uploadedFiles  ProjectFile[]
-  activities     Activity[]
+  memberships      ProjectMember[]
+  invitations      Invitation[]
+  passwordResets   PasswordResetToken[]
+  messages         Message[]
+  uploadedFiles    ProjectFile[]
+  activities       Activity[]
+  meetingsProposed Meeting[]
 
   @@index([role])
 }
@@ -168,6 +169,7 @@ model Project {
   messages    Message[]
   files       ProjectFile[]
   activities  Activity[]
+  meetings    Meeting[]
 
   @@index([createdAt])
   @@index([status])
@@ -240,8 +242,9 @@ model Milestone {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
-  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  tasks   Task[]
+  project  Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  tasks    Task[]
+  meetings Meeting[]
 
   @@index([projectId, order])
 }
@@ -299,6 +302,34 @@ model ProjectFile {
   uploadedBy User    @relation(fields: [uploadedById], references: [id], onDelete: Cascade)
 
   @@index([projectId, createdAt])
+}
+
+// A meeting either side can propose. proposedByRole is the side whose latest
+// proposal is pending: only the other side can accept it; either side can
+// propose a new time (which hands the decision back) or cancel.
+model Meeting {
+  id              String    @id @default(cuid())
+  projectId       String
+  milestoneId     String?
+  title           String
+  agenda          String    @default("")
+  location        String    @default("") // a place or a video-call link
+  startsAt        DateTime
+  durationMinutes Int       @default(30)
+  status          String    @default("proposed") // proposed | confirmed | cancelled
+  proposedById    String?
+  proposedByRole  String // client | admin
+  confirmedAt     DateTime?
+  cancelledAt     DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  project    Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  milestone  Milestone? @relation(fields: [milestoneId], references: [id], onDelete: SetNull)
+  proposedBy User?      @relation(fields: [proposedById], references: [id], onDelete: SetNull)
+
+  @@index([projectId, startsAt])
+  @@index([milestoneId])
 }
 
 model Activity {

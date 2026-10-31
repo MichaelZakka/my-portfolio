@@ -315,7 +315,31 @@
       "taskMilestone": "Milestone",
       "taskUpdated": "Last updated",
       "taskCompleted": "Completed",
-      "taskNoDescription": "No further details for this task yet."
+      "taskNoDescription": "No further details for this task yet.",
+      "meetingsTitle": "Meetings",
+      "meetingsEmpty": "No meetings yet. You can propose one below.",
+      "meetingAwaitingYou": "Waiting for your reply",
+      "meetingAwaitingOther": "Waiting for a reply from the project lead",
+      "meetingDuration": "{minutes} min",
+      "meetingMilestone": "Milestone: {milestone}",
+      "meetingAccept": "Accept",
+      "meetingSuggest": "Suggest another time",
+      "meetingCancel": "Cancel meeting",
+      "meetingCancelConfirm": "Cancel this meeting? The other side will be notified.",
+      "meetingNewTime": "New date and time",
+      "meetingSendTime": "Send new time",
+      "meetingNeverMind": "Never mind",
+      "meetingProposeTitle": "Propose a meeting",
+      "meetingTopic": "Topic",
+      "meetingWhen": "Date and time (your local time)",
+      "meetingDurationLabel": "Duration",
+      "meetingLocation": "Place or video link (optional)",
+      "meetingAgenda": "Agenda (optional)",
+      "meetingMilestoneLabel": "Related milestone (optional)",
+      "meetingNoMilestone": "None",
+      "meetingPropose": "Propose meeting",
+      "meetingSending": "Sending…",
+      "meetingSent": "Done. The other side has been notified."
     },
     "activity": {
       "PROJECT_CREATED": "Project created",
@@ -328,7 +352,11 @@
       "MESSAGE_SENT": "{senderName} sent a message",
       "FILE_UPLOADED": "File shared: {filename}",
       "STATUS_CHANGED": "Status changed to {to}",
-      "fallback": "Project updated"
+      "fallback": "Project updated",
+      "MEETING_PROPOSED": "Meeting proposed: {title}",
+      "MEETING_RESCHEDULED": "New time proposed for meeting: {title}",
+      "MEETING_CONFIRMED": "Meeting confirmed: {title}",
+      "MEETING_CANCELLED": "Meeting cancelled: {title}"
     },
     "errors": {
       "generic": "Something went wrong. Please try again.",
@@ -354,7 +382,11 @@
       "unauthorized": "Your session has ended. Please sign in again.",
       "forbidden": "You don’t have access to this project.",
       "notFound": "Not found.",
-      "notConfigured": "Portal sign-in isn’t set up on this site yet."
+      "notConfigured": "Portal sign-in isn’t set up on this site yet.",
+      "meetingCancelled": "This meeting was cancelled.",
+      "meetingConfirmed": "This meeting is already confirmed.",
+      "meetingAwaitingOther": "The other side needs to reply to your proposal.",
+      "meetingChanged": "This meeting was just changed. Reload the page and try again."
     },
     "forbidden": {
       "title": "You don’t have access to this project",
@@ -365,6 +397,12 @@
       "title": "Project not found",
       "text": "This project doesn’t exist or was removed.",
       "back": "Back to your projects"
+    },
+    "meetingStatus": {
+      "proposed": "Awaiting reply",
+      "confirmed": "Confirmed",
+      "cancelled": "Cancelled",
+      "past": "Past"
     }
   },
   "portalEmail": {
@@ -412,6 +450,33 @@
       "heading": "{client} accepted the invitation",
       "body": "{client} ({email}) accepted the invitation and can now follow “{project}” in the client portal.",
       "cta": "Open the project"
+    },
+    "meeting": {
+      "when": "When: {when} ({minutes} min)",
+      "where": "Where: {location}",
+      "milestone": "Milestone: {milestone}",
+      "ctaRespond": "Accept or suggest another time",
+      "ctaView": "View the meeting",
+      "proposed": {
+        "subject": "{actor} proposed a meeting: {title}",
+        "heading": "New meeting proposal",
+        "body": "{actor} proposed a meeting for “{project}”. Accept it, or suggest a time that suits you better."
+      },
+      "rescheduled": {
+        "subject": "New time proposed for “{title}”",
+        "heading": "A new time was proposed",
+        "body": "{actor} proposed a new time for “{title}” on “{project}”. Accept it, or suggest another time."
+      },
+      "confirmed": {
+        "subject": "Meeting confirmed: {title}",
+        "heading": "Meeting confirmed",
+        "body": "{actor} accepted the meeting “{title}” for “{project}”."
+      },
+      "cancelled": {
+        "subject": "Meeting cancelled: {title}",
+        "heading": "Meeting cancelled",
+        "body": "{actor} cancelled the meeting “{title}” for “{project}”."
+      }
     }
   }
 }
