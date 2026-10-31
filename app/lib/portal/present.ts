@@ -1,6 +1,6 @@
 import { clientActivityParams } from './activity';
 import { isProjectStatus } from './constants';
-import { formatBytes, formatDate, formatDateTime } from './format';
+import { formatBytes, formatDate, formatDateParts, formatDateTime } from './format';
 import type { getPortalTranslations } from './locale';
 import { sortMeetings, type ProjectMeeting } from './meetings';
 import { displayName, type getProjectActivity, type getProjectFiles, type getProjectMessages } from './queries';
@@ -121,6 +121,7 @@ export function presentMeetings(
       locationUrl: safeUrl(meeting.location),
       startsAt: meeting.startsAt.toISOString(),
       whenLabel: formatDateTime(meeting.startsAt, locale),
+      date: formatDateParts(meeting.startsAt, locale),
       durationMinutes: meeting.durationMinutes,
       status: meeting.status,
       past,

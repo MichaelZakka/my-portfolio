@@ -480,7 +480,11 @@
       "meetingNoMilestone": "بدون",
       "meetingPropose": "اقتراح الاجتماع",
       "meetingSending": "جارٍ الإرسال…",
-      "meetingSent": "تم. أُبلغ الطرف الآخر."
+      "meetingSent": "تم. أُبلغ الطرف الآخر.",
+      "meetingsUpcoming": "القادمة",
+      "meetingsEarlier": "السابقة والملغاة",
+      "meetingJoin": "الانضمام إلى الاجتماع",
+      "meetingYouProposed": "أنت اقترحت هذا الموعد"
     },
     "activity": {
       "PROJECT_CREATED": "تم إنشاء المشروع",

@@ -1,6 +1,7 @@
 'use client';
 
 import { FormEvent, useState } from 'react';
+import { CalendarClock, Check, Clock, Flag, MapPin, Plus, Video } from 'lucide-react';
 import { MEETING_DURATIONS, MEETING_STATUS_LABELS, type MeetingStatus } from '../../../../lib/portal/constants';
 import { isoToLocalInput, localInputToIso } from '../../../../lib/portal/datetimeInput';
 import type { AdminProjectView } from '../../../../lib/portal/adminView';
@@ -38,40 +39,57 @@ function MeetingRow({ meeting, url, action }: { meeting: Meeting; url: string; a
     await act('cancel', { action: 'cancel' });
   };
 
+  const awaitingYou = meeting.canAccept;
+
   return (
-    <li className={projectStyles.item}>
+    <li className={projectStyles.meeting} data-status={tone} data-awaiting={awaitingYou || undefined}>
+      <div className={projectStyles.meetingDate} aria-hidden="true">
+        <span className={projectStyles.meetingMonth}>{meeting.date.month}</span>
+        <span className={projectStyles.meetingDay}>{meeting.date.day}</span>
+        <span className={projectStyles.meetingWeekday}>{meeting.date.weekday}</span>
+      </div>
       <div className={projectStyles.itemMain}>
-        <div className={projectStyles.titleRow}>
+        <div className={projectStyles.meetingHead}>
           <span className={projectStyles.itemTitle}>{meeting.title}</span>
           <span className={`${styles.badge} ${BADGE[tone]}`}>{tone === 'past' ? 'Past' : MEETING_STATUS_LABELS[tone]}</span>
         </div>
-        <span className={projectStyles.itemDescription}>
-          {meeting.whenLabel} · {meeting.durationMinutes} min
-          {meeting.milestone ? ` · Milestone: ${meeting.milestone.title}` : ''}
-        </span>
-        {meeting.location && (
-          <span className={projectStyles.itemDescription}>
-            {meeting.locationUrl ? (
-              <a href={meeting.locationUrl} target="_blank" rel="noopener noreferrer" className={styles.link}>
-                {meeting.location}
-              </a>
-            ) : (
-              meeting.location
-            )}
-          </span>
-        )}
-        {meeting.agenda && <span className={projectStyles.itemDescription}>{meeting.agenda}</span>}
+        <ul className={projectStyles.meetingFacts}>
+          <li>
+            <Clock size={13} aria-hidden="true" />
+            <span className="visually-hidden">{meeting.whenLabel}</span>
+            <span aria-hidden="true">{meeting.date.time}</span> · {meeting.durationMinutes} min
+          </li>
+          {meeting.location && (
+            <li>
+              {meeting.locationUrl ? <Video size={13} aria-hidden="true" /> : <MapPin size={13} aria-hidden="true" />}
+              {meeting.locationUrl ? (
+                <a href={meeting.locationUrl} target="_blank" rel="noopener noreferrer" className={styles.link}>
+                  {meeting.location}
+                </a>
+              ) : (
+                meeting.location
+              )}
+            </li>
+          )}
+          {meeting.milestone && (
+            <li>
+              <Flag size={13} aria-hidden="true" />
+              {meeting.milestone.title}
+            </li>
+          )}
+        </ul>
+        {meeting.agenda && <p className={projectStyles.meetingAgenda}>{meeting.agenda}</p>}
         {meeting.status === 'proposed' && !meeting.past && (
-          <span className={meeting.canAccept ? projectStyles.errorText : projectStyles.muted}>
-            {meeting.canAccept
-              ? `${meeting.proposedBy ?? 'The client'} proposed this time: waiting for you`
+          <span className={projectStyles.meetingWaiting} data-you={awaitingYou || undefined}>
+            {awaitingYou
+              ? `${meeting.proposedBy ?? 'The client'} proposed this time · waiting for you`
               : 'Waiting for the client to reply'}
           </span>
         )}
 
         {meeting.canChange &&
           (rescheduling ? (
-            <form className={projectStyles.formActions} onSubmit={reschedule} style={{ marginTop: '0.5rem' }}>
+            <form className={projectStyles.formActions} onSubmit={reschedule} style={{ marginTop: '0.6rem' }}>
               <input
                 type="datetime-local"
                 className={styles.input}
@@ -92,16 +110,28 @@ function MeetingRow({ meeting, url, action }: { meeting: Meeting; url: string; a
               </button>
             </form>
           ) : (
-            <div className={projectStyles.formActions} style={{ marginTop: '0.5rem' }}>
-              {meeting.canAccept && (
+            <div className={projectStyles.formActions} style={{ marginTop: '0.6rem' }}>
+              {awaitingYou && (
                 <button
                   type="button"
                   className={`${styles.button} ${styles.buttonPrimary}`}
                   aria-disabled={busy}
                   onClick={() => act('accept', { action: 'accept' })}
                 >
+                  <Check size={15} aria-hidden="true" />
                   {pending === `accept-${meeting.id}` ? 'Accepting…' : 'Accept'}
                 </button>
+              )}
+              {meeting.status === 'confirmed' && meeting.locationUrl && (
+                <a
+                  href={meeting.locationUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`${styles.button} ${styles.buttonPrimary}`}
+                >
+                  <Video size={15} aria-hidden="true" />
+                  Join
+                </a>
               )}
               <button
                 type="button"
@@ -112,14 +142,10 @@ function MeetingRow({ meeting, url, action }: { meeting: Meeting; url: string; a
                   setRescheduling(true);
                 }}
               >
+                <CalendarClock size={15} aria-hidden="true" />
                 Suggest another time
               </button>
-              <button
-                type="button"
-                className={`${styles.button} ${styles.buttonSecondary}`}
-                aria-disabled={busy}
-                onClick={cancel}
-              >
+              <button type="button" className={projectStyles.dangerLink} aria-disabled={busy} onClick={cancel}>
                 {pending === `cancel-${meeting.id}` ? 'Cancelling…' : 'Cancel meeting'}
               </button>
             </div>
@@ -149,6 +175,9 @@ export default function MeetingsPanel({
   const [milestoneId, setMilestoneId] = useState('');
   const base = `/api/admin/projects/${projectId}/meetings`;
   const waiting = meetings.filter((m) => m.canAccept).length;
+  const isEarlier = (m: Meeting) => m.past || m.status === 'cancelled';
+  const upcoming = meetings.filter((m) => !isEarlier(m));
+  const earlier = meetings.filter(isEarlier);
 
   const propose = async (event: FormEvent) => {
     event.preventDefault();
@@ -184,14 +213,29 @@ export default function MeetingsPanel({
       {meetings.length === 0 ? (
         <p className={projectStyles.muted}>No meetings yet.</p>
       ) : (
-        <ul className={projectStyles.list}>
-          {meetings.map((meeting) => (
-            <MeetingRow key={meeting.id} meeting={meeting} url={`${base}/${meeting.id}`} action={action} />
-          ))}
-        </ul>
+        [
+          { key: 'upcoming', title: 'Upcoming', items: upcoming },
+          { key: 'earlier', title: 'Past and cancelled', items: earlier },
+        ]
+          .filter((group) => group.items.length > 0)
+          .map((group) => (
+            <div key={group.key}>
+              <h3 className={projectStyles.groupTitle}>{group.title}</h3>
+              <ul className={projectStyles.meetingList}>
+                {group.items.map((meeting) => (
+                  <MeetingRow key={meeting.id} meeting={meeting} url={`${base}/${meeting.id}`} action={action} />
+                ))}
+              </ul>
+            </div>
+          ))
       )}
 
-      <form className={projectStyles.addForm} onSubmit={propose}>
+      <details className={projectStyles.meetingPropose}>
+        <summary className={projectStyles.meetingProposeSummary}>
+          <Plus size={15} aria-hidden="true" />
+          Propose a meeting
+        </summary>
+        <form className={projectStyles.meetingProposeForm} onSubmit={propose}>
         <div className={projectStyles.formGrid}>
           <div className={`${styles.filterField} ${projectStyles.fieldWide}`}>
             <label className={styles.filterLabel} htmlFor="meeting-title">
@@ -285,7 +329,8 @@ export default function MeetingsPanel({
             {pending === 'create' ? 'Proposing…' : 'Propose meeting'}
           </button>
         </div>
-      </form>
+        </form>
+      </details>
     </section>
   );
 }

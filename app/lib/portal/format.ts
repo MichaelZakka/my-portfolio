@@ -46,6 +46,18 @@ export function formatDateTime(date: Date, locale: string): string {
   }).format(date);
 }
 
+/** Pieces for a calendar-style date tile, in the portal time zone. */
+export function formatDateParts(date: Date, locale: string) {
+  const part = (options: Intl.DateTimeFormatOptions) =>
+    new Intl.DateTimeFormat(intlLocale(locale), { ...options, timeZone: getPortalTimeZone() }).format(date);
+  return {
+    month: part({ month: 'short' }),
+    day: part({ day: 'numeric' }),
+    weekday: part({ weekday: 'short' }),
+    time: part({ hour: 'numeric', minute: '2-digit', timeZoneName: 'short' }),
+  };
+}
+
 export function formatBytes(bytes: number, locale: string): string {
   const units = ['byte', 'kilobyte', 'megabyte', 'gigabyte'] as const;
   let value = bytes;

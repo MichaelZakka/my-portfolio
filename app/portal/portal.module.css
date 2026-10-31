@@ -971,28 +971,104 @@
 }
 
 /* Meetings */
+.meetingGroupTitle {
+  margin: var(--s-4) 0 var(--s-2);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+.meetingGroupTitle:first-of-type {
+  margin-block-start: 0;
+}
+
 .meetingList {
   list-style: none;
   display: flex;
   flex-direction: column;
   gap: var(--s-3);
-  margin: 0 0 var(--s-3);
+  margin: 0;
   padding: 0;
 }
 
 .meeting {
+  display: flex;
+  gap: var(--s-3);
   padding: var(--s-3);
+  background: var(--bg-elevated);
   border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
+  border-inline-start: 3px solid var(--border-strong);
+  border-radius: var(--radius);
+}
+
+.meeting[data-status='confirmed'] {
+  border-inline-start-color: var(--success);
+}
+
+.meeting[data-status='proposed'] {
+  border-inline-start-color: var(--warning);
+}
+
+.meeting[data-awaiting] {
+  border-color: var(--accent-line);
+  border-inline-start-color: var(--accent);
+  background: var(--accent-soft);
 }
 
 .meeting[data-status='cancelled'],
 .meeting[data-status='past'] {
-  opacity: 0.7;
+  background: transparent;
 }
 
-.meeting[data-status='cancelled'] .meetingTitle {
+.meeting[data-status='cancelled'] .meetingTitle,
+.meeting[data-status='cancelled'] .meetingDay {
   text-decoration: line-through;
+  color: var(--text-dim);
+}
+
+.meetingDate {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  inline-size: 58px;
+  block-size: 64px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-elevated-2);
+  border: 1px solid var(--border);
+  line-height: 1.1;
+}
+
+.meetingMonth {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--accent-text);
+}
+
+.meetingDay {
+  font-family: var(--font-heading);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.meetingWeekday {
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+.meeting[data-status='past'] .meetingDate,
+.meeting[data-status='cancelled'] .meetingDate {
+  opacity: 0.6;
+}
+
+.meetingBody {
+  flex: 1;
+  min-inline-size: 0;
 }
 
 .meetingHead {
@@ -1008,26 +1084,75 @@
 }
 
 .meetingTitle {
+  margin: 0;
+  font-size: 16px;
   font-weight: 600;
   overflow-wrap: anywhere;
 }
 
-.meetingMeta {
-  margin: 0 0 4px;
+.meetingFacts {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px var(--s-4);
+  margin: 0;
+  padding: 0;
   font-size: 14px;
   color: var(--text-muted);
+}
+
+.meetingFacts li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-inline-size: 0;
   overflow-wrap: anywhere;
 }
 
-.meetingMeta a {
+.meetingFacts svg {
+  flex-shrink: 0;
+  color: var(--text-dim);
+}
+
+.meetingFacts a {
   color: var(--accent-text);
 }
 
+.meetingAgenda {
+  margin: var(--s-2) 0 0;
+  padding: var(--s-2) var(--s-3);
+  font-size: 14px;
+  color: var(--text-muted);
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+  background: var(--bg-elevated-2);
+  border-radius: var(--radius-sm);
+}
+
 .meetingWaiting {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   margin: var(--s-2) 0 0;
   font-size: 13px;
+  color: var(--text-dim);
+}
+
+.meetingWaiting::before {
+  content: '';
+  inline-size: 7px;
+  block-size: 7px;
+  border-radius: 50%;
+  background: var(--warning);
+}
+
+.meetingWaiting[data-you] {
   font-weight: 600;
-  color: var(--warning);
+  color: var(--accent-text);
+}
+
+.meetingWaiting[data-you]::before {
+  background: var(--accent);
 }
 
 .meetingActions {
@@ -1038,11 +1163,23 @@
   margin-block-start: var(--s-3);
 }
 
-.meetingReschedule {
-  display: flex;
-  flex-direction: column;
+.meetingActions :global(.btn) {
+  display: inline-flex;
+  align-items: center;
   gap: 6px;
+}
+
+.meetingActions .input {
+  inline-size: auto;
+  flex: 1 1 200px;
+}
+
+.meetingReschedule {
   margin-block-start: var(--s-3);
+}
+
+.meetingReschedule .meetingActions {
+  margin-block-start: 6px;
 }
 
 .meetingFields {
@@ -1052,27 +1189,68 @@
 }
 
 .meetingPropose {
-  margin-block-start: var(--s-3);
-  border-block-start: 1px solid var(--border);
-  padding-block-start: var(--s-3);
+  margin-block-start: var(--s-4);
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius);
+}
+
+.meetingPropose[open] {
+  border-style: solid;
 }
 
 .meetingProposeSummary {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  padding: var(--s-3);
   cursor: pointer;
   font-weight: 600;
   color: var(--accent-text);
-  margin-block-end: var(--s-3);
+  list-style: none;
+}
+
+.meetingProposeSummary::-webkit-details-marker {
+  display: none;
+}
+
+.meetingProposeSummary::before {
+  content: '+';
+  display: inline-grid;
+  place-items: center;
+  inline-size: 22px;
+  block-size: 22px;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  font-size: 16px;
+  line-height: 1;
+}
+
+.meetingPropose[open] .meetingProposeSummary::before {
+  content: '−';
+}
+
+.meetingProposeSummary:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.meetingPropose .form {
+  padding: 0 var(--s-3) var(--s-3);
 }
 
 .linkButton {
+  margin-inline-start: auto;
   background: none;
   border: 0;
   padding: 0;
   font: inherit;
   font-size: 14px;
   color: var(--danger-text);
-  text-decoration: underline;
   cursor: pointer;
+}
+
+.linkButton:hover {
+  text-decoration: underline;
 }
 
 .linkButton[aria-disabled='true'] {
@@ -1084,4 +1262,23 @@
 .meetingReschedule :global(.btn)[aria-disabled='true'] {
   opacity: 0.6;
   cursor: progress;
+}
+
+@media (max-width: 480px) {
+  .meeting {
+    flex-direction: column;
+  }
+
+  .meetingDate {
+    flex-direction: row;
+    gap: 6px;
+    inline-size: auto;
+    block-size: auto;
+    align-self: flex-start;
+    padding: 4px 10px;
+  }
+
+  .meetingDay {
+    font-size: 15px;
+  }
 }

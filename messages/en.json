@@ -339,7 +339,11 @@
       "meetingNoMilestone": "None",
       "meetingPropose": "Propose meeting",
       "meetingSending": "Sending…",
-      "meetingSent": "Done. The other side has been notified."
+      "meetingSent": "Done. The other side has been notified.",
+      "meetingsUpcoming": "Upcoming",
+      "meetingsEarlier": "Past and cancelled",
+      "meetingJoin": "Join meeting",
+      "meetingYouProposed": "You proposed this time"
     },
     "activity": {
       "PROJECT_CREATED": "Project created",
