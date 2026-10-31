@@ -18,9 +18,11 @@ import { getPortalUser } from '../../../../lib/portal/session';
 import ProgressBar from '../../../_components/ProgressBar';
 import { ActivitySection, FilesSection, LiveProvider, MessagesSection } from './LiveSections';
 import { MeetingsSection } from './MeetingsSection';
+import OverviewPanel, { type MilestoneSummary } from './OverviewPanel';
+import ProjectTabs, { isProjectTab } from './ProjectTabs';
 import styles from '../../../portal.module.css';
 
-type Props = { params: Promise<{ projectId: string }> };
+type Props = { params: Promise<{ projectId: string }>; searchParams: Promise<{ tab?: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { projectId } = await params;
@@ -32,8 +34,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 const TASK_ICONS = { todo: Circle, in_progress: CircleDot, done: CircleCheck } as const;
 
-export default async function PortalProjectPage({ params }: Props) {
+export default async function PortalProjectPage({ params, searchParams }: Props) {
   const { projectId } = await params;
+  const { tab } = await searchParams;
   const user = await getPortalUser();
   if (!user) redirect('/portal/login?expired=1');
 
@@ -66,6 +69,21 @@ export default async function PortalProjectPage({ params }: Props) {
       otherTasks.push(task);
     }
   }
+
+  const currentMilestone = project.milestones.find((m) => m.status !== 'done');
+  const milestoneSummary: MilestoneSummary = {
+    done: doneMilestones,
+    total: project.milestones.length,
+    current: currentMilestone
+      ? {
+          title: currentMilestone.title,
+          status: currentMilestone.status,
+          statusLabel: workStatusLabel(currentMilestone.status),
+          dueLabel: currentMilestone.dueDate ? formatDate(currentMilestone.dueDate, locale) : null,
+          tasksLeft: (tasksByMilestone.get(currentMilestone.id) ?? []).filter((task) => task.status !== 'done').length,
+        }
+      : null,
+  };
 
   const milestoneTitles = new Map(project.milestones.map((m) => [m.id, m.title]));
 
@@ -146,49 +164,6 @@ export default async function PortalProjectPage({ params }: Props) {
         )}
       </div>
 
-      <section className={`${styles.card} ${styles.overview}`} aria-label={t('project.progressAria')}>
-        <div className={styles.stat}>
-          <span className={styles.statLabel}>{t('project.statusLabel')}</span>
-          <span className={styles.statValue}>{statusLabel(project.status)}</span>
-        </div>
-        <div className={styles.stat}>
-          <span className={styles.statLabel}>{t('project.phaseLabel')}</span>
-          <span className={styles.statValue} dir="auto">
-            {project.currentPhase || t('common.notSet')}
-          </span>
-        </div>
-        <div className={styles.stat}>
-          <span className={styles.statLabel}>{t('project.etaLabel')}</span>
-          <span className={styles.statValue}>
-            {project.estimatedCompletion ? formatDate(project.estimatedCompletion, locale) : t('common.notSet')}
-          </span>
-        </div>
-        <div className={styles.stat}>
-          <span className={styles.statLabel}>{t('project.progressLabel')}</span>
-          <ProgressBar
-            percent={project.progress}
-            label={t('project.progressAria')}
-            caption={
-              project.milestones.length
-                ? t('project.progressCaption', {
-                    percent: project.progress,
-                    done: doneMilestones,
-                    total: project.milestones.length,
-                  })
-                : t('project.progressEmpty')
-            }
-          />
-        </div>
-      </section>
-
-      <nav aria-label={t('project.sectionsNav')} className={styles.sectionNav}>
-        <a href="#milestones">{t('project.milestonesTitle')}</a>
-        <a href="#meetings">{t('project.meetingsTitle')}</a>
-        <a href="#messages">{t('project.messagesTitle')}</a>
-        <a href="#files">{t('project.filesTitle')}</a>
-        <a href="#activity">{t('project.activityTitle')}</a>
-      </nav>
-
       <LiveProvider
         projectId={project.id}
         initial={{
@@ -198,94 +173,137 @@ export default async function PortalProjectPage({ params }: Props) {
           meetings: presentMeetings(meetings, 'client', { locale }),
         }}
       >
-        <div className={styles.projectLayout}>
-          <div className={styles.stack}>
-            <section id="milestones" aria-labelledby="milestones-title" className={`${styles.card} ${styles.section}`}>
-              <h2 id="milestones-title" className={styles.sectionTitle}>
-                {t('project.milestonesTitle')}
-              </h2>
-              {project.milestones.length === 0 ? (
-                <p className={styles.empty}>{t('project.milestonesEmpty')}</p>
-              ) : (
-                <ol className={styles.timeline}>
-                  {project.milestones.map((milestone) => {
-                    const Icon = TASK_ICONS[milestone.status as keyof typeof TASK_ICONS] ?? Circle;
-                    const tasks = tasksByMilestone.get(milestone.id) ?? [];
-                    return (
-                      <li key={milestone.id} className={styles.milestone}>
-                        <span className={styles.milestoneDot} data-status={milestone.status} aria-hidden="true">
-                          <Icon size={14} strokeWidth={2.5} />
-                        </span>
-                        <div className={styles.milestoneHead}>
-                          <h3 className={styles.milestoneTitle} dir="auto">
-                            {milestone.title}
-                          </h3>
-                          <span className={styles.badge} data-tone={milestone.status}>
-                            {workStatusLabel(milestone.status)}
+        <ProjectTabs
+          initialTab={isProjectTab(tab) ? tab : 'overview'}
+          panels={{
+            overview: (
+              <OverviewPanel
+                milestones={milestoneSummary}
+                stats={
+              <section className={`${styles.card} ${styles.overview}`} aria-label={t('project.progressAria')}>
+                <div className={styles.stat}>
+                  <span className={styles.statLabel}>{t('project.statusLabel')}</span>
+                  <span className={styles.statValue}>{statusLabel(project.status)}</span>
+                </div>
+                <div className={styles.stat}>
+                  <span className={styles.statLabel}>{t('project.phaseLabel')}</span>
+                  <span className={styles.statValue} dir="auto">
+                    {project.currentPhase || t('common.notSet')}
+                  </span>
+                </div>
+                <div className={styles.stat}>
+                  <span className={styles.statLabel}>{t('project.etaLabel')}</span>
+                  <span className={styles.statValue}>
+                    {project.estimatedCompletion ? formatDate(project.estimatedCompletion, locale) : t('common.notSet')}
+                  </span>
+                </div>
+                <div className={styles.stat}>
+                  <span className={styles.statLabel}>{t('project.progressLabel')}</span>
+                  <ProgressBar
+                    percent={project.progress}
+                    label={t('project.progressAria')}
+                    caption={
+                      project.milestones.length
+                        ? t('project.progressCaption', {
+                            percent: project.progress,
+                            done: doneMilestones,
+                            total: project.milestones.length,
+                          })
+                        : t('project.progressEmpty')
+                    }
+                  />
+                </div>
+              </section>
+                }
+              />
+            ),
+            milestones: (
+              <section id="milestones" aria-labelledby="milestones-title" className={`${styles.card} ${styles.section}`}>
+                <h2 id="milestones-title" className={styles.sectionTitle}>
+                  {t('project.milestonesTitle')}
+                </h2>
+                {project.milestones.length === 0 ? (
+                  <p className={styles.empty}>{t('project.milestonesEmpty')}</p>
+                ) : (
+                  <ol className={styles.timeline}>
+                    {project.milestones.map((milestone) => {
+                      const Icon = TASK_ICONS[milestone.status as keyof typeof TASK_ICONS] ?? Circle;
+                      const tasks = tasksByMilestone.get(milestone.id) ?? [];
+                      return (
+                        <li key={milestone.id} className={styles.milestone}>
+                          <span className={styles.milestoneDot} data-status={milestone.status} aria-hidden="true">
+                            <Icon size={14} strokeWidth={2.5} />
                           </span>
-                        </div>
-                        {milestone.status === 'done' && milestone.completedAt ? (
-                          <p className={styles.milestoneMeta}>
-                            {t('project.completedOn', { date: formatDate(milestone.completedAt, locale) })}
-                          </p>
-                        ) : (
-                          milestone.dueDate && (
+                          <div className={styles.milestoneHead}>
+                            <h3 className={styles.milestoneTitle} dir="auto">
+                              {milestone.title}
+                            </h3>
+                            <span className={styles.badge} data-tone={milestone.status}>
+                              {workStatusLabel(milestone.status)}
+                            </span>
+                          </div>
+                          {milestone.status === 'done' && milestone.completedAt ? (
                             <p className={styles.milestoneMeta}>
-                              {t('project.due', { date: formatDate(milestone.dueDate, locale) })}
+                              {t('project.completedOn', { date: formatDate(milestone.completedAt, locale) })}
                             </p>
-                          )
-                        )}
-                        {milestone.description && (
-                          <p className={styles.milestoneDescription} dir="auto">
-                            {milestone.description}
-                          </p>
-                        )}
-                        {tasks.length > 0 && (
-                          <ul
-                            className={styles.taskList}
-                            aria-label={t('project.tasksForMilestone', { milestone: milestone.title })}
-                          >
-                            {tasks.map(renderTask)}
-                          </ul>
-                        )}
-                      </li>
-                    );
-                  })}
-                </ol>
-              )}
-              {otherTasks.length > 0 && (
-                <>
-                  <h3 className={styles.subheading}>{t('project.otherTasks')}</h3>
-                  <ul className={styles.taskList}>{otherTasks.map(renderTask)}</ul>
-                </>
-              )}
-              {project.milestones.length > 0 && project.tasks.length === 0 && (
-                <p className={styles.empty}>{t('project.noTasks')}</p>
-              )}
-            </section>
-
-            <MeetingsSection
-              projectId={project.id}
-              archived={archived}
-              milestones={project.milestones.map((m) => ({ id: m.id, title: m.title }))}
-            />
-
-            <MessagesSection projectId={project.id} archived={archived} />
-          </div>
-
-          <div className={styles.stack}>
-            <FilesSection
-              projectId={project.id}
-              archived={archived}
-              upload={{
-                maxBytes: getMaxUploadBytes(),
-                maxSizeLabel: formatBytes(getMaxUploadBytes(), locale),
-                accept: ACCEPT_ATTRIBUTE,
-              }}
-            />
-            <ActivitySection />
-          </div>
-        </div>
+                          ) : (
+                            milestone.dueDate && (
+                              <p className={styles.milestoneMeta}>
+                                {t('project.due', { date: formatDate(milestone.dueDate, locale) })}
+                              </p>
+                            )
+                          )}
+                          {milestone.description && (
+                            <p className={styles.milestoneDescription} dir="auto">
+                              {milestone.description}
+                            </p>
+                          )}
+                          {tasks.length > 0 && (
+                            <ul
+                              className={styles.taskList}
+                              aria-label={t('project.tasksForMilestone', { milestone: milestone.title })}
+                            >
+                              {tasks.map(renderTask)}
+                            </ul>
+                          )}
+                        </li>
+                      );
+                    })}
+                  </ol>
+                )}
+                {otherTasks.length > 0 && (
+                  <>
+                    <h3 className={styles.subheading}>{t('project.otherTasks')}</h3>
+                    <ul className={styles.taskList}>{otherTasks.map(renderTask)}</ul>
+                  </>
+                )}
+                {project.milestones.length > 0 && project.tasks.length === 0 && (
+                  <p className={styles.empty}>{t('project.noTasks')}</p>
+                )}
+              </section>
+            ),
+            meetings: (
+              <MeetingsSection
+                projectId={project.id}
+                archived={archived}
+                milestones={project.milestones.map((m) => ({ id: m.id, title: m.title }))}
+              />
+            ),
+            messages: <MessagesSection projectId={project.id} archived={archived} />,
+            files: (
+              <FilesSection
+                projectId={project.id}
+                archived={archived}
+                upload={{
+                  maxBytes: getMaxUploadBytes(),
+                  maxSizeLabel: formatBytes(getMaxUploadBytes(), locale),
+                  accept: ACCEPT_ATTRIBUTE,
+                }}
+              />
+            ),
+            activity: <ActivitySection />,
+          }}
+        />
       </LiveProvider>
     </>
   );

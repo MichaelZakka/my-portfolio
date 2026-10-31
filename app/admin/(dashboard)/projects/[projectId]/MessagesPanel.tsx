@@ -3,6 +3,7 @@
 import { FormEvent, Fragment, KeyboardEvent, useEffect, useRef, useState } from 'react';
 import { AlertTriangle, CheckCheck, MessageCircle, SendHorizontal } from 'lucide-react';
 import { initials, layoutThread } from '../../../../lib/portal/chat';
+import { useAdminProjectTabs } from './AdminProjectTabs';
 import { MESSAGE_MAX_LENGTH } from '../../../../lib/portal/constants';
 import { jsonInit, useAdminAction } from '../useAdminAction';
 import styles from '../../../admin.module.css';
@@ -33,13 +34,15 @@ export default function MessagesPanel({ projectId, messages }: { projectId: stri
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [content, setContent] = useState('');
   const threadRef = useRef<HTMLOListElement>(null);
+  const tabs = useAdminProjectTabs();
+  const visible = !tabs || tabs.active === 'messages';
   const items = layoutThread(messages, (m) => `${m.fromAdmin}:${m.senderName}`);
 
   // Open at the newest message, and follow new ones.
   useEffect(() => {
     const thread = threadRef.current;
-    if (thread) thread.scrollTop = thread.scrollHeight;
-  }, [messages.length]);
+    if (thread && visible) thread.scrollTop = thread.scrollHeight;
+  }, [messages.length, visible]);
 
   const send = async () => {
     if (!content.trim() || pending) return;

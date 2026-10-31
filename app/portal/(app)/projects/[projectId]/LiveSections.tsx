@@ -4,6 +4,8 @@ import { Fragment, createContext, useCallback, useContext, useEffect, useRef, us
 import { useTranslations } from 'next-intl';
 import { Download, FileText, MessageCircle } from 'lucide-react';
 import { initials, layoutThread } from '../../../../lib/portal/chat';
+import { ACTIVITY_CATEGORIES, activityCategory } from '../../../../lib/portal/constants';
+import { useProjectTabs } from './ProjectTabs';
 import type { ClientActivity, ClientFile, ClientMeeting, ClientMessage } from '../../../../lib/portal/present';
 import FileUploadForm from './FileUploadForm';
 import ReplyForm from './ReplyForm';
@@ -79,13 +81,15 @@ export function MessagesSection({ projectId, archived }: { projectId: string; ar
   const t = useTranslations('portal.project');
   const { data, refresh } = useLive();
   const threadRef = useRef<HTMLOListElement>(null);
+  const tabs = useProjectTabs();
+  const visible = !tabs || tabs.active === 'messages';
   const items = layoutThread(data.messages, (m) => (m.sender.isYou ? 'you' : `${m.sender.isProjectLead}:${m.sender.name}`));
 
   // Open at the newest message, and follow new ones.
   useEffect(() => {
     const thread = threadRef.current;
-    if (thread) thread.scrollTop = thread.scrollHeight;
-  }, [data.messages.length]);
+    if (thread && visible) thread.scrollTop = thread.scrollHeight;
+  }, [data.messages.length, visible]);
 
   return (
     <section id="messages" aria-labelledby="messages-title" className={`${styles.card} ${styles.section}`}>
@@ -210,6 +214,7 @@ export function FilesSection({
 
 export function ActivitySection() {
   const t = useTranslations('portal.project');
+  const categories = useTranslations('portal.activityCategories');
   const { data } = useLive();
 
   return (
@@ -221,19 +226,36 @@ export function ActivitySection() {
         <p className={styles.empty}>{t('activityEmpty')}</p>
       ) : (
         <ol className={styles.activityList}>
-          {data.activity.map((entry) => (
-            <li key={entry.id} className={styles.activityItem}>
-              <span className={styles.activityDot} aria-hidden="true" />
-              <div>
-                <span dir="auto">{entry.text}</span>
-                <time className={styles.activityTime} dateTime={entry.createdAt}>
-                  {entry.timeLabel}
-                </time>
-              </div>
-            </li>
-          ))}
+          {data.activity.map((entry) => {
+            const category = activityCategory(entry.type);
+            return (
+              <li key={entry.id} className={styles.activityItem} data-category={category}>
+                <span className={styles.activityDot} aria-hidden="true" />
+                <div>
+                  <span dir="auto">{entry.text}</span>
+                  <span className={styles.activityMeta}>
+                    <span className={styles.activityTag}>{categories(category)}</span>
+                    <time className={styles.activityTime} dateTime={entry.createdAt}>
+                      {entry.timeLabel}
+                    </time>
+                  </span>
+                </div>
+              </li>
+            );
+          })}
         </ol>
       )}
+      <div className={styles.activityLegend}>
+        <h3 className={styles.activityLegendTitle}>{t('activityLegend')}</h3>
+        <ul>
+          {ACTIVITY_CATEGORIES.map((category) => (
+            <li key={category} data-category={category}>
+              <span className={styles.activityDot} aria-hidden="true" />
+              {categories(category)}
+            </li>
+          ))}
+        </ul>
+      </div>
     </section>
   );
 }

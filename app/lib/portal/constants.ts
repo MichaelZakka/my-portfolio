@@ -55,6 +55,44 @@ export const MEETING_STATUS_LABELS: Record<MeetingStatus, string> = {
 
 export const MEETING_DURATIONS = [15, 30, 45, 60, 90, 120] as const;
 
+/**
+ * Activity types grouped into colour-coded categories (the activity feeds
+ * colour each entry and show a legend). Colours live in the CSS modules
+ * under [data-category].
+ */
+export const ACTIVITY_CATEGORIES = ['project', 'clients', 'progress', 'meetings', 'messages', 'files'] as const;
+export type ActivityCategory = (typeof ACTIVITY_CATEGORIES)[number];
+
+const ACTIVITY_CATEGORY_OF: Record<ActivityType, ActivityCategory> = {
+  PROJECT_CREATED: 'project',
+  STATUS_CHANGED: 'project',
+  CLIENT_INVITED: 'clients',
+  INVITE_ACCEPTED: 'clients',
+  MILESTONE_CREATED: 'progress',
+  MILESTONE_COMPLETED: 'progress',
+  TASK_CREATED: 'progress',
+  TASK_COMPLETED: 'progress',
+  MEETING_PROPOSED: 'meetings',
+  MEETING_RESCHEDULED: 'meetings',
+  MEETING_CONFIRMED: 'meetings',
+  MEETING_CANCELLED: 'meetings',
+  MESSAGE_SENT: 'messages',
+  FILE_UPLOADED: 'files',
+};
+
+export const ACTIVITY_CATEGORY_LABELS: Record<ActivityCategory, string> = {
+  project: 'Project',
+  clients: 'Clients',
+  progress: 'Milestones & tasks',
+  meetings: 'Meetings',
+  messages: 'Messages',
+  files: 'Files',
+};
+
+export function activityCategory(type: string): ActivityCategory {
+  return ACTIVITY_CATEGORY_OF[type as ActivityType] ?? 'project';
+}
+
 export const USER_ROLES = ['client', 'admin'] as const;
 export type UserRole = (typeof USER_ROLES)[number];
 

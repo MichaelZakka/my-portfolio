@@ -344,7 +344,19 @@
       "meetingsEarlier": "Past and cancelled",
       "meetingJoin": "Join meeting",
       "meetingYouProposed": "You proposed this time",
-      "sendHint": "Ctrl + Enter to send"
+      "sendHint": "Ctrl + Enter to send",
+      "tabOverview": "Overview",
+      "overviewCurrentMilestone": "Current milestone",
+      "overviewAllDone": "All milestones are complete.",
+      "overviewMilestonesDone": "{done} of {total} milestones complete",
+      "overviewNextMeeting": "Next meeting",
+      "overviewNoMeetings": "No upcoming meetings.",
+      "overviewMeetingsAwaiting": "{count, plural, one {# meeting is waiting for your reply} other {# meetings are waiting for your reply}}",
+      "overviewLatestMessage": "Latest message",
+      "overviewNoMessages": "No messages yet.",
+      "overviewFilesCount": "{count, plural, one {# file shared} other {# files shared}}",
+      "overviewViewAll": "View all {section}",
+      "activityLegend": "Colour key"
     },
     "activity": {
       "PROJECT_CREATED": "Project created",
@@ -408,6 +420,14 @@
       "confirmed": "Confirmed",
       "cancelled": "Cancelled",
       "past": "Past"
+    },
+    "activityCategories": {
+      "project": "Project",
+      "clients": "Clients",
+      "progress": "Milestones & tasks",
+      "meetings": "Meetings",
+      "messages": "Messages",
+      "files": "Files"
     }
   },
   "portalEmail": {

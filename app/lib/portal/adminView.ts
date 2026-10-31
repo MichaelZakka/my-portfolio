@@ -112,6 +112,7 @@ export async function buildAdminProjectView(projectId: string) {
       const meta = parseActivityMeta(entry.meta);
       return {
         id: entry.id,
+        type: entry.type,
         summary: entry.summary,
         internal: !entry.visibleToClient,
         actor: entry.actor ? displayName(entry.actor) : 'System',

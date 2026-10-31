@@ -5,7 +5,14 @@ import Link from 'next/link';
 import { ArrowLeft, ExternalLink } from 'lucide-react';
 import type { AdminProjectView as View } from '../../../../lib/portal/adminView';
 import { ArchivedBadge, ProjectStatusBadge } from '../../../_components/ProjectBadges';
+import {
+  ACTIVITY_CATEGORIES,
+  ACTIVITY_CATEGORY_LABELS,
+  activityCategory,
+} from '../../../../lib/portal/constants';
 import { ProjectViewContext } from '../projectViewContext';
+import AdminOverview from './AdminOverview';
+import AdminProjectTabs, { type AdminProjectTab } from './AdminProjectTabs';
 import ClientAccessPanel from './ClientAccessPanel';
 import FilesPanel from './FilesPanel';
 import MeetingsPanel from './MeetingsPanel';
@@ -18,11 +25,12 @@ import projectStyles from '../projects.module.css';
 
 type Props = {
   initialView: View;
+  initialTab: AdminProjectTab;
   upload: { maxBytes: number; maxSizeLabel: string; accept: string };
 };
 
 /** The admin project screen. Panels call reload() after a change; the newest response wins. */
-export default function AdminProjectView({ initialView, upload }: Props) {
+export default function AdminProjectView({ initialView, initialTab, upload }: Props) {
   const [view, setView] = useState(initialView);
   const latest = useRef(0);
   const projectId = initialView.project.id;
@@ -85,60 +93,93 @@ export default function AdminProjectView({ initialView, upload }: Props) {
         </a>
       </div>
 
-      <div className={styles.grid2}>
-        <div>
-          <MilestonesPanel projectId={project.id} milestones={view.milestones} />
-          <TasksPanel
-            projectId={project.id}
-            milestones={view.milestones.map((m) => ({ id: m.id, title: m.title }))}
-            tasks={view.tasks}
-          />
-          <MeetingsPanel
-            projectId={project.id}
-            meetings={view.meetings}
-            milestones={view.milestones.map((m) => ({ id: m.id, title: m.title }))}
-          />
-          <MessagesPanel projectId={project.id} messages={view.messages} />
-          <FilesPanel projectId={project.id} files={view.files} {...upload} />
-        </div>
-
-        <div>
-          <ProjectSettingsPanel project={project} />
-          <ClientAccessPanel projectId={project.id} members={view.members} invitations={view.invitations} />
-
-          <section className={styles.card} aria-labelledby="activity-title">
-            <div className={styles.cardHeader}>
-              <h2 id="activity-title" className={styles.cardTitle}>
-                Activity
-              </h2>
-              <span className={styles.cardMeta}>Internal entries are hidden from the client</span>
+      <AdminProjectTabs
+        initialTab={initialTab}
+        badges={{
+          meetings: { value: view.meetings.filter((m) => m.canAccept).length, tone: 'alert' },
+          messages: { value: view.messages.length },
+          files: { value: view.files.length },
+          clients: { value: view.members.length },
+          activity: { value: view.activity.filter((a) => a.emailError).length, tone: 'danger' },
+        }}
+        panels={{
+          overview: <AdminOverview view={view} />,
+          milestones: (
+            <div className={projectStyles.tabColumns}>
+              <MilestonesPanel projectId={project.id} milestones={view.milestones} />
+              <TasksPanel
+                projectId={project.id}
+                milestones={view.milestones.map((m) => ({ id: m.id, title: m.title }))}
+                tasks={view.tasks}
+              />
             </div>
-            {view.activity.length === 0 ? (
-              <p className={projectStyles.muted}>No activity yet.</p>
-            ) : (
-              <ol className={styles.timeline}>
-                {view.activity.map((entry) => (
-                  <li key={entry.id} className={styles.timelineItem}>
-                    <span className={styles.timelineDot} aria-hidden="true" />
-                    <span>
-                      {entry.summary}{' '}
-                      {entry.internal && <span className={projectStyles.internalTag}>Internal</span>}
-                      <span className={projectStyles.muted} style={{ display: 'block' }}>
-                        {entry.actor} · {entry.timeLabel}
-                      </span>
-                      {entry.emailError && (
-                        <span className={projectStyles.errorText} style={{ display: 'block' }}>
-                          Email not sent: {entry.emailError}
+          ),
+          meetings: (
+            <MeetingsPanel
+              projectId={project.id}
+              meetings={view.meetings}
+              milestones={view.milestones.map((m) => ({ id: m.id, title: m.title }))}
+            />
+          ),
+          messages: <MessagesPanel projectId={project.id} messages={view.messages} />,
+          files: <FilesPanel projectId={project.id} files={view.files} {...upload} />,
+          clients: (
+            <ClientAccessPanel projectId={project.id} members={view.members} invitations={view.invitations} />
+          ),
+          activity: (
+            <section className={styles.card} aria-labelledby="activity-title">
+              <div className={styles.cardHeader}>
+                <h2 id="activity-title" className={styles.cardTitle}>
+                  Activity
+                </h2>
+                <span className={styles.cardMeta}>Internal entries are hidden from the client</span>
+              </div>
+              {view.activity.length === 0 ? (
+                <p className={projectStyles.muted}>No activity yet.</p>
+              ) : (
+                <ol className={styles.timeline}>
+                  {view.activity.map((entry) => (
+                    <li
+                      key={entry.id}
+                      className={`${styles.timelineItem} ${projectStyles.activityItem}`}
+                      data-category={activityCategory(entry.type)}
+                    >
+                      <span className={projectStyles.activityDot} aria-hidden="true" />
+                      <span>
+                        <span className={projectStyles.activityTag}>
+                          {ACTIVITY_CATEGORY_LABELS[activityCategory(entry.type)]}
                         </span>
-                      )}
-                    </span>
-                  </li>
-                ))}
-              </ol>
-            )}
-          </section>
-        </div>
-      </div>
+                        {entry.summary}{' '}
+                        {entry.internal && <span className={projectStyles.internalTag}>Internal</span>}
+                        <span className={projectStyles.muted} style={{ display: 'block' }}>
+                          {entry.actor} · {entry.timeLabel}
+                        </span>
+                        {entry.emailError && (
+                          <span className={projectStyles.errorText} style={{ display: 'block' }}>
+                            Email not sent: {entry.emailError}
+                          </span>
+                        )}
+                      </span>
+                    </li>
+                  ))}
+                </ol>
+              )}
+              <div className={projectStyles.activityLegend}>
+                <h3 className={projectStyles.activityLegendTitle}>Colour key</h3>
+                <ul>
+                  {ACTIVITY_CATEGORIES.map((category) => (
+                    <li key={category} data-category={category}>
+                      <span className={projectStyles.activityDot} aria-hidden="true" />
+                      {ACTIVITY_CATEGORY_LABELS[category]}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </section>
+          ),
+          settings: <ProjectSettingsPanel project={project} />,
+        }}
+      />
     </ProjectViewContext.Provider>
   );
 }

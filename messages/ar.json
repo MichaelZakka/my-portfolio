@@ -485,7 +485,19 @@
       "meetingsEarlier": "السابقة والملغاة",
       "meetingJoin": "الانضمام إلى الاجتماع",
       "meetingYouProposed": "أنت اقترحت هذا الموعد",
-      "sendHint": "Ctrl + Enter للإرسال"
+      "sendHint": "Ctrl + Enter للإرسال",
+      "tabOverview": "نظرة عامة",
+      "overviewCurrentMilestone": "المرحلة الحالية",
+      "overviewAllDone": "اكتملت جميع المراحل.",
+      "overviewMilestonesDone": "اكتمل {done} من {total} مراحل",
+      "overviewNextMeeting": "الاجتماع القادم",
+      "overviewNoMeetings": "لا توجد اجتماعات قادمة.",
+      "overviewMeetingsAwaiting": "{count, plural, one {اجتماع واحد بانتظار ردّك} two {اجتماعان بانتظار ردّك} few {# اجتماعات بانتظار ردّك} other {# اجتماعاً بانتظار ردّك}}",
+      "overviewLatestMessage": "آخر رسالة",
+      "overviewNoMessages": "لا توجد رسائل بعد.",
+      "overviewFilesCount": "{count, plural, one {ملف واحد مشترك} two {ملفان مشتركان} few {# ملفات مشتركة} other {# ملفاً مشتركاً}}",
+      "overviewViewAll": "عرض كل {section}",
+      "activityLegend": "دليل الألوان"
     },
     "activity": {
       "PROJECT_CREATED": "تم إنشاء المشروع",
@@ -549,6 +561,14 @@
       "confirmed": "مؤكَّد",
       "cancelled": "ملغى",
       "past": "منتهٍ"
+    },
+    "activityCategories": {
+      "project": "المشروع",
+      "clients": "العملاء",
+      "progress": "المراحل والمهام",
+      "meetings": "الاجتماعات",
+      "messages": "الرسائل",
+      "files": "الملفات"
     }
   },
   "portalEmail": {
