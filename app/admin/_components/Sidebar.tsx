@@ -2,12 +2,13 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, Inbox, LineChart, Globe, LogOut } from 'lucide-react';
+import { LayoutDashboard, Inbox, FolderKanban, LineChart, Globe, LogOut } from 'lucide-react';
 import styles from '../admin.module.css';
 
 const NAV_ITEMS = [
   { href: '/admin', label: 'Overview', icon: LayoutDashboard, exact: true },
   { href: '/admin/requests', label: 'Requests', icon: Inbox },
+  { href: '/admin/projects', label: 'Projects', icon: FolderKanban },
   { href: '/admin/visitors', label: 'Analytics', icon: LineChart },
   { href: '/admin/site', label: 'Site', icon: Globe },
 ] as const;

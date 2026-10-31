@@ -20,6 +20,13 @@
   --accent-soft: rgba(26, 115, 255, 0.12);
   --accent-line: rgba(26, 115, 255, 0.4);
 
+  /* Status colors (client portal badges, alerts, progress) — AA on --bg-elevated */
+  --success: #4fe08c;
+  --warning: #e0c04a;
+  --danger: #f07a7a;
+  --danger-text: #f5a3a3;
+  --violet: #c79bf0;
+
   --radius-sm: 6px;
   --radius: 10px;
   --radius-lg: 14px;

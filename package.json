@@ -11,13 +11,16 @@
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",
     "db:studio": "prisma studio",
+    "db:seed": "node prisma/seed.mjs",
     "hash-password": "node scripts/hash-password.mjs"
   },
   "dependencies": {
     "@mdx-js/mdx": "^3.1.1",
     "@prisma/client": "^6.19.3",
     "@vercel/analytics": "^2.0.1",
+    "@vercel/blob": "^2.8.2",
     "@vercel/speed-insights": "^2.0.0",
+    "bcryptjs": "^3.0.3",
     "gray-matter": "^4.0.3",
     "lucide-react": "^0.562.0",
     "next": "16.1.1",
@@ -25,7 +28,8 @@
     "prisma": "^6.19.3",
     "react": "19.2.3",
     "react-dom": "19.2.3",
-    "resend": "^6.18.1"
+    "resend": "^6.18.1",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@types/node": "^20",
@@ -34,5 +38,8 @@
     "eslint": "^9",
     "eslint-config-next": "16.1.1",
     "typescript": "^5"
+  },
+  "overrides": {
+    "zod": "$zod"
   }
 }

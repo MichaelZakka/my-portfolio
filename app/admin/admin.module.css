@@ -96,6 +96,12 @@
   min-width: 0;
 }
 
+/* globals.css lazily renders <section> (content-visibility: auto) for the long
+   marketing page; dashboard cards must always render. */
+.main section {
+  content-visibility: visible;
+}
+
 .pageHeader {
   margin-bottom: 1.75rem;
 }
@@ -274,9 +280,15 @@
   background: #1b2f52;
 }
 
-.button:disabled {
+.button:disabled,
+.button[aria-disabled='true'] {
   opacity: 0.55;
   cursor: not-allowed;
+}
+
+/* Busy controls keep focus (aria-disabled) but look unavailable */
+.select[aria-disabled='true'] {
+  opacity: 0.6;
 }
 
 .filtersBar {
@@ -426,6 +438,7 @@
 }
 
 .timeline {
+  list-style: none;
   display: flex;
   flex-direction: column;
   gap: 0.75rem;

@@ -1,19 +1,21 @@
-// Prisma schema for the portfolio admin dashboard.
+// Prisma schema for the portfolio admin dashboard and client portal.
 //
 // Local dev uses SQLite (zero setup, file-based). For production on Vercel,
 // switch the datasource below to `postgresql` and point DATABASE_URL at a
-// managed Postgres instance (Neon / Supabase / Vercel Postgres), then run
-// `npx prisma migrate deploy`. Array-like fields (projectTypes, personalities,
-// etc.) are intentionally stored as JSON-text strings so the schema and
-// application code work unchanged on both providers.
+// managed Postgres instance (Neon / Supabase / Vercel Postgres) — see
+// "Client portal in production" in DEPLOYMENT.md. Array-like fields
+// (projectTypes, personalities, etc.) are intentionally stored as JSON-text
+// strings, and enum-like fields as plain strings validated in app code, so
+// the schema and application code work unchanged on both providers.
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model Lead {
@@ -22,10 +24,10 @@ model Lead {
   updatedAt DateTime @updatedAt
 
   // Pipeline
-  status           String    @default("new")
-  source           String    @default("work-with-me")
-  notes            String    @default("")
-  lastContactedAt  DateTime?
+  status          String    @default("new")
+  source          String    @default("work-with-me")
+  notes           String    @default("")
+  lastContactedAt DateTime?
 
   // Request metadata
   userAgent   String?
@@ -46,18 +48,18 @@ model Lead {
   company            String
   phone              String
 
-  projectTypes      String // JSON string[]
-  projectTypeOther  String
+  projectTypes     String // JSON string[]
+  projectTypeOther String
 
-  businessDomains      String // JSON string[]
-  businessDomainOther  String
+  businessDomains     String // JSON string[]
+  businessDomainOther String
 
-  hasBrand     String
-  brandName    String
-  tagline      String
+  hasBrand      String
+  brandName     String
+  tagline       String
   personalities String // JSON string[]
-  references   String
-  logoUrl      String
+  references    String
+  logoUrl       String
 
   primaryColor   String
   secondaryColor String
@@ -67,6 +69,7 @@ model Lead {
   visualNotes    String
 
   statusEvents LeadStatusEvent[]
+  project      Project? // set once the request is converted into a client project
 
   @@index([createdAt])
   @@index([status])
@@ -87,11 +90,11 @@ model LeadStatusEvent {
 
 // Unified analytics event table covering page views + funnel/CTA events.
 model AnalyticsEvent {
-  id        String   @id @default(cuid())
-  type      String // page_view | cta_click | survey_started | survey_step_completed | survey_submitted | survey_abandoned
-  path      String?
-  label     String? // e.g. whatsapp | work-with-me | mailto | tel | project-live
-  referrer  String?
+  id       String  @id @default(cuid())
+  type     String // page_view | cta_click | survey_started | survey_step_completed | survey_submitted | survey_abandoned
+  path     String?
+  label    String? // e.g. whatsapp | work-with-me | mailto | tel | project-live
+  referrer String?
 
   utmSource   String?
   utmMedium   String?
@@ -110,4 +113,206 @@ model AnalyticsEvent {
   @@index([type, createdAt])
   @@index([path])
   @@index([sessionId])
+}
+
+// ---------------------------------------------------------------------------
+// Client portal (/portal for clients, /admin/projects for the admin)
+// Allowed values for the String "enums" live in app/lib/portal/constants.ts.
+// ---------------------------------------------------------------------------
+
+// Anyone attached to a project. Clients sign in at /portal with a bcrypt
+// password. The admin keeps signing in with the env credentials; their row
+// (role "admin", no password) only authors messages, uploads and activity.
+model User {
+  id              String    @id @default(cuid())
+  email           String    @unique // always stored lower-cased
+  name            String    @default("")
+  role            String    @default("client") // client | admin
+  passwordHash    String? // null until an invitation is accepted
+  locale          String    @default("en") // en | ar: portal UI and email language
+  sessionVersion  Int       @default(0) // bumped to sign out every session (e.g. password reset)
+  emailVerifiedAt DateTime?
+  lastLoginAt     DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  memberships    ProjectMember[]
+  invitations    Invitation[]
+  passwordResets PasswordResetToken[]
+  messages       Message[]
+  uploadedFiles  ProjectFile[]
+  activities     Activity[]
+
+  @@index([role])
+}
+
+model Project {
+  id                  String    @id @default(cuid())
+  requestId           String?   @unique // the Lead this project was converted from
+  name                String
+  summary             String    @default("")
+  status              String    @default("planning")
+  currentPhase        String    @default("")
+  estimatedCompletion DateTime?
+  startedAt           DateTime?
+  completedAt         DateTime?
+  archivedAt          DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  request     Lead?           @relation(fields: [requestId], references: [id], onDelete: SetNull)
+  members     ProjectMember[]
+  invitations Invitation[]
+  milestones  Milestone[]
+  tasks       Task[]
+  messages    Message[]
+  files       ProjectFile[]
+  activities  Activity[]
+
+  @@index([createdAt])
+  @@index([status])
+}
+
+// Membership is the only thing that grants a client access to a project.
+model ProjectMember {
+  id        String   @id @default(cuid())
+  projectId String
+  userId    String
+  role      String   @default("client")
+  createdAt DateTime @default(now())
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, userId])
+  @@index([userId])
+}
+
+model Invitation {
+  id         String    @id @default(cuid())
+  projectId  String
+  email      String
+  tokenHash  String    @unique // SHA-256 of the emailed token; the raw token is never stored
+  role       String    @default("client")
+  userId     String?
+  expiresAt  DateTime
+  acceptedAt DateTime?
+  revokedAt  DateTime?
+  lastSentAt DateTime?
+  emailSent  Boolean   @default(false)
+  emailError String?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user    User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([expiresAt])
+  @@index([email])
+  @@index([projectId])
+}
+
+model PasswordResetToken {
+  id         String    @id @default(cuid())
+  userId     String
+  tokenHash  String    @unique // SHA-256 of the emailed token
+  expiresAt  DateTime
+  usedAt     DateTime?
+  emailSent  Boolean   @default(false)
+  emailError String?
+  createdAt  DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model Milestone {
+  id          String    @id @default(cuid())
+  projectId   String
+  title       String
+  description String    @default("")
+  status      String    @default("todo")
+  order       Int       @default(0)
+  dueDate     DateTime?
+  completedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  tasks   Task[]
+
+  @@index([projectId, order])
+}
+
+model Task {
+  id              String    @id @default(cuid())
+  projectId       String
+  milestoneId     String?
+  title           String
+  description     String    @default("")
+  status          String    @default("todo")
+  visibleToClient Boolean   @default(false)
+  order           Int       @default(0)
+  completedAt     DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  project   Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  milestone Milestone? @relation(fields: [milestoneId], references: [id], onDelete: SetNull)
+
+  @@index([milestoneId])
+  @@index([projectId, status])
+}
+
+model Message {
+  id         String   @id @default(cuid())
+  projectId  String
+  senderId   String
+  content    String
+  // Notification to the other party (Resend), recorded like Lead.emailSent
+  emailSent  Boolean  @default(false)
+  emailError String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  sender  User    @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([projectId, createdAt])
+}
+
+model ProjectFile {
+  id              String   @id @default(cuid())
+  projectId       String
+  uploadedById    String
+  filename        String
+  storageKey      String
+  storageDriver   String   @default("local") // driver that holds the bytes: local | vercel-blob
+  fileSize        Int
+  mimeType        String
+  visibleToClient Boolean  @default(true)
+  createdAt       DateTime @default(now())
+
+  project    Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  uploadedBy User    @relation(fields: [uploadedById], references: [id], onDelete: Cascade)
+
+  @@index([projectId, createdAt])
+}
+
+model Activity {
+  id              String   @id @default(cuid())
+  projectId       String
+  actorId         String?
+  type            String
+  summary         String
+  meta            String? // JSON; event details plus email bookkeeping where an event sends mail
+  visibleToClient Boolean  @default(true)
+  createdAt       DateTime @default(now())
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  actor   User?   @relation(fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([projectId, createdAt])
 }

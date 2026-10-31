@@ -44,3 +44,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# local DB backups taken before migrations
+/prisma/backups/
+
+# client portal uploads (local storage driver)
+/.uploads/
