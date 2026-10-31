@@ -53,7 +53,15 @@ export async function getClientProjectDetail(projectId: string) {
       tasks: {
         where: { visibleToClient: true },
         orderBy: byOrder,
-        select: { id: true, title: true, description: true, status: true, milestoneId: true, completedAt: true },
+        select: {
+          id: true,
+          title: true,
+          description: true,
+          status: true,
+          milestoneId: true,
+          completedAt: true,
+          updatedAt: true,
+        },
       },
     },
   });

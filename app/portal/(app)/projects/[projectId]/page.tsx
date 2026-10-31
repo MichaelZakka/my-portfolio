@@ -64,22 +64,50 @@ export default async function PortalProjectPage({ params }: Props) {
     }
   }
 
+  const milestoneTitles = new Map(project.milestones.map((m) => [m.id, m.title]));
+
+  // Each task opens in place (native <details>: keyboard and screen-reader friendly, no JS).
   const renderTask = (task: (typeof project.tasks)[number]) => {
     const Icon = TASK_ICONS[task.status as keyof typeof TASK_ICONS] ?? Circle;
+    const milestoneTitle = task.milestoneId ? milestoneTitles.get(task.milestoneId) : undefined;
     return (
       <li key={task.id} className={styles.task} data-status={task.status}>
-        <Icon size={18} strokeWidth={2} aria-hidden="true" className={styles.taskIcon} />
-        <span>
-          <span className={styles.taskTitle} dir="auto">
-            {task.title}
-          </span>
-          <span className="visually-hidden"> ({workStatusLabel(task.status)})</span>
-          {task.description && (
-            <span className={styles.taskDescription} dir="auto">
-              {task.description}
+        <details className={styles.taskDetails}>
+          <summary className={styles.taskSummary}>
+            <Icon size={18} strokeWidth={2} aria-hidden="true" className={styles.taskIcon} />
+            <span className={styles.taskTitle} dir="auto">
+              {task.title}
             </span>
-          )}
-        </span>
+            <span className={styles.badge} data-tone={task.status}>
+              {workStatusLabel(task.status)}
+            </span>
+          </summary>
+          <div className={styles.taskBody}>
+            {task.description ? (
+              <p className={styles.taskDescription} dir="auto">
+                {task.description}
+              </p>
+            ) : (
+              <p className={styles.taskDescription}>{t('project.taskNoDescription')}</p>
+            )}
+            <dl className={styles.taskMeta}>
+              {milestoneTitle && (
+                <div>
+                  <dt>{t('project.taskMilestone')}</dt>
+                  <dd dir="auto">{milestoneTitle}</dd>
+                </div>
+              )}
+              <div>
+                <dt>{t('project.statusLabel')}</dt>
+                <dd>{workStatusLabel(task.status)}</dd>
+              </div>
+              <div>
+                <dt>{task.status === 'done' && task.completedAt ? t('project.taskCompleted') : t('project.taskUpdated')}</dt>
+                <dd>{formatDate(task.status === 'done' && task.completedAt ? task.completedAt : task.updatedAt, locale)}</dd>
+              </div>
+            </dl>
+          </div>
+        </details>
       </li>
     );
   };

@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, after } from 'next/server';
 import { prisma } from '../../../../lib/db';
 import { getClientIp, rateLimit } from '../../../../lib/rateLimit';
 import { logActivity } from '../../../../lib/portal/activity';
@@ -7,6 +7,7 @@ import { checkPasswordPolicy, hashPassword, verifyPassword } from '../../../../l
 import { apiError, parseJsonBody, rateLimited, rejectCrossOrigin } from '../../../../lib/portal/http';
 import { findInvitationByToken } from '../../../../lib/portal/invitations';
 import { getPortalLocale } from '../../../../lib/portal/locale';
+import { notifyAboutClientJoined } from '../../../../lib/portal/notify';
 import { isPortalAuthConfigured, setPortalSessionCookie } from '../../../../lib/portal/session';
 import { acceptInvitationSchema } from '../../../../lib/portal/validation';
 
@@ -69,7 +70,7 @@ export async function POST(request: Request) {
   const locale = await getPortalLocale();
   const { projectId } = invitation;
 
-  const account = await prisma.$transaction(async (tx) => {
+  const joined = await prisma.$transaction(async (tx) => {
     // Claim the invitation atomically: a second submit (or a revoke racing this) loses.
     const claimed = await tx.invitation.updateMany({
       where: { id: invitation.id, acceptedAt: null, revokedAt: null, expiresAt: { gt: now } },
@@ -112,7 +113,7 @@ export async function POST(request: Request) {
       where: { projectId, email: invitation.email, acceptedAt: null, revokedAt: null },
       data: { revokedAt: now },
     });
-    await logActivity(
+    const activity = await logActivity(
       {
         projectId,
         actorId: user.id,
@@ -122,10 +123,21 @@ export async function POST(request: Request) {
       },
       tx
     );
-    return user;
+    return { user, activityId: activity.id };
   });
 
-  if (!account) return apiError(409, 'invitationAccepted', 'This invitation was already accepted.');
+  if (!joined) return apiError(409, 'invitationAccepted', 'This invitation was already accepted.');
+  const { user: account, activityId } = joined;
+
+  after(() =>
+    notifyAboutClientJoined({
+      activityId,
+      projectId,
+      projectName: invitation.project.name,
+      clientName: account.name,
+      clientEmail: account.email,
+    })
+  );
 
   const response = NextResponse.json({ success: true, redirectTo: `/portal/projects/${projectId}` });
   await setPortalSessionCookie(response, account);

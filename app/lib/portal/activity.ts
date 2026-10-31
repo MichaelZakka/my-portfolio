@@ -12,7 +12,7 @@ type Db = PrismaClient | Prisma.TransactionClient;
 export type ActivityMeta = {
   PROJECT_CREATED: { name: string };
   CLIENT_INVITED: { email: string; invitationId: string; emailSent?: boolean; emailError?: string | null };
-  INVITE_ACCEPTED: { name: string };
+  INVITE_ACCEPTED: { name: string; emailSent?: boolean; emailError?: string | null };
   MILESTONE_CREATED: { milestoneId: string; title: string };
   MILESTONE_COMPLETED: { milestoneId: string; title: string };
   TASK_CREATED: { taskId: string; title: string };

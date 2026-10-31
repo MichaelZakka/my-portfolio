@@ -452,7 +452,11 @@
       "downloadFile": "تنزيل {name}",
       "fileMeta": "{size} · {name} · {date}",
       "activityTitle": "النشاط",
-      "activityEmpty": "لا يوجد نشاط بعد."
+      "activityEmpty": "لا يوجد نشاط بعد.",
+      "taskMilestone": "المرحلة",
+      "taskUpdated": "آخر تحديث",
+      "taskCompleted": "تاريخ الإنجاز",
+      "taskNoDescription": "لا توجد تفاصيل إضافية لهذه المهمة بعد."
     },
     "activity": {
       "PROJECT_CREATED": "تم إنشاء المشروع",
@@ -543,6 +547,12 @@
       "body": "تغيّرت حالة مشروع «{project}» من «{from}» إلى «{to}».",
       "phase": "المرحلة الحالية: {phase}",
       "cta": "عرض المشروع"
+    },
+    "joined": {
+      "subject": "انضم {client} إلى «{project}»",
+      "heading": "قبل {client} الدعوة",
+      "body": "قبل {client} ({email}) الدعوة ويمكنه الآن متابعة «{project}» في بوابة العملاء.",
+      "cta": "فتح المشروع"
     }
   }
 }

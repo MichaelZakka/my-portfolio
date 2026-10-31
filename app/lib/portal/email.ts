@@ -266,6 +266,34 @@ export async function sendStatusChangedEmail(input: {
   });
 }
 
+export async function sendClientJoinedEmail(input: {
+  to: string;
+  clientName: string;
+  clientEmail: string;
+  projectName: string;
+  url: string;
+}): Promise<EmailSendResult> {
+  if (!getResendConfig().configured) {
+    console.info(`[portal] ${NOT_CONFIGURED} Client-joined email to ${input.to} was not sent.`);
+    return { sent: false, error: NOT_CONFIGURED };
+  }
+  // Goes to the admin, whose dashboard is English.
+  const { lang, t } = translator('en');
+  const client = input.clientName || input.clientEmail;
+  const content = renderEmail(lang, {
+    heading: t('joined.heading', { client }),
+    paragraphs: [t('joined.body', { client, email: input.clientEmail, project: input.projectName })],
+    cta: { label: t('joined.cta'), url: input.url },
+    footer: t('footer'),
+  });
+  return deliver({
+    to: input.to,
+    subject: t('joined.subject', { client, project: input.projectName }),
+    replyTo: input.clientEmail,
+    ...content,
+  });
+}
+
 /** Folds per-recipient results into one { sent, error } for the record (recipients named only when several). */
 export function combineResults(results: { to: string; result: EmailSendResult }[]): EmailSendResult {
   if (results.length === 0) return { sent: false, error: 'No recipients.' };

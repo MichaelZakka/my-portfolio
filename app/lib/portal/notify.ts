@@ -4,6 +4,7 @@ import {
   adminNotifyAddress,
   combineResults,
   portalUrl,
+  sendClientJoinedEmail,
   sendNewMessageEmail,
   sendStatusChangedEmail,
 } from './email';
@@ -104,4 +105,23 @@ export async function notifyAboutStatusChange(input: {
     emailError: outcome.error ?? null,
   });
   if (!outcome.sent) console.error('[portal] Status notification not sent:', outcome.error);
+}
+
+export async function notifyAboutClientJoined(input: {
+  activityId: string;
+  projectId: string;
+  projectName: string;
+  clientName: string;
+  clientEmail: string;
+}) {
+  const result = await sendClientJoinedEmail({
+    to: adminNotifyAddress(),
+    clientName: input.clientName,
+    clientEmail: input.clientEmail,
+    projectName: input.projectName,
+    url: portalUrl(`/admin/projects/${input.projectId}`),
+  });
+
+  await updateActivityMeta(input.activityId, { emailSent: result.sent, emailError: result.error ?? null });
+  if (!result.sent) console.error('[portal] Client-joined notification not sent:', result.error);
 }

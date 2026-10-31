@@ -311,7 +311,11 @@
       "downloadFile": "Download {name}",
       "fileMeta": "{size} · {name} · {date}",
       "activityTitle": "Activity",
-      "activityEmpty": "Nothing has happened yet."
+      "activityEmpty": "Nothing has happened yet.",
+      "taskMilestone": "Milestone",
+      "taskUpdated": "Last updated",
+      "taskCompleted": "Completed",
+      "taskNoDescription": "No further details for this task yet."
     },
     "activity": {
       "PROJECT_CREATED": "Project created",
@@ -402,6 +406,12 @@
       "body": "The status of “{project}” changed from {from} to {to}.",
       "phase": "Current phase: {phase}",
       "cta": "View project"
+    },
+    "joined": {
+      "subject": "{client} joined “{project}”",
+      "heading": "{client} accepted the invitation",
+      "body": "{client} ({email}) accepted the invitation and can now follow “{project}” in the client portal.",
+      "cta": "Open the project"
     }
   }
 }
