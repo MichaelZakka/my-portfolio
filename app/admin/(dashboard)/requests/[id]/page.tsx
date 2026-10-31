@@ -1,11 +1,12 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { ArrowLeft, FolderKanban } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { prisma } from '../../../../lib/db';
-import { fromJsonArray } from '../../../../lib/leads';
+import { fromJsonArray, guessLeadLocale } from '../../../../lib/leads';
 import { PROJECT_TYPE_LABELS, buildWhatsAppMessage } from '../../../../lib/projectBrief';
 import { leadToBriefPayload } from '../../../../lib/leads';
 import StatusBadge from '../../../_components/StatusBadge';
+import AcceptRequestPanel from './AcceptRequestPanel';
 import RequestActionsPanel from './RequestActionsPanel';
 import styles from '../../../admin.module.css';
 import detailStyles from './page.module.css';
@@ -278,40 +279,12 @@ export default async function AdminRequestDetailPage({ params }: Params) {
         </div>
 
         <div>
-          <div className={styles.card}>
-            <div className={styles.cardHeader}>
-              <span className={styles.cardTitle}>Client project</span>
-            </div>
-            {lead.project ? (
-              <>
-                <p className={styles.pageSubtitle} style={{ marginBottom: '0.75rem' }}>
-                  Converted to “{lead.project.name}”.
-                </p>
-                <Link
-                  href={`/admin/projects/${lead.project.id}`}
-                  className={`${styles.button} ${styles.buttonSecondary}`}
-                  style={{ width: '100%' }}
-                >
-                  <FolderKanban size={16} strokeWidth={2} aria-hidden="true" />
-                  Open project
-                </Link>
-              </>
-            ) : (
-              <>
-                <p className={styles.pageSubtitle} style={{ marginBottom: '0.75rem' }}>
-                  Turn this request into a project the client can follow in the portal.
-                </p>
-                <Link
-                  href={`/admin/projects/new?requestId=${lead.id}`}
-                  className={`${styles.button} ${styles.buttonPrimary}`}
-                  style={{ width: '100%' }}
-                >
-                  <FolderKanban size={16} strokeWidth={2} aria-hidden="true" />
-                  Convert to project
-                </Link>
-              </>
-            )}
-          </div>
+          <AcceptRequestPanel
+            leadId={lead.id}
+            clientEmail={lead.clientEmail}
+            defaultLocale={guessLeadLocale(lead)}
+            project={lead.project}
+          />
           <RequestActionsPanel
             leadId={lead.id}
             currentStatus={lead.status}

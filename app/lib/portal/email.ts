@@ -134,6 +134,9 @@ function logLinkFallback(kind: string, to: string, url: string) {
   }
 }
 
+/** "requestAccepted" tells the person who sent a project request that it was accepted. */
+export type InvitationEmailKind = 'invite' | 'requestAccepted';
+
 export async function sendInvitationEmail(input: {
   to: string;
   name: string;
@@ -141,23 +144,30 @@ export async function sendInvitationEmail(input: {
   inviteUrl: string;
   expiresAt: Date;
   locale: string;
+  kind?: InvitationEmailKind;
 }): Promise<EmailSendResult> {
   if (!getResendConfig().configured) {
     logLinkFallback('Invitation', input.to, input.inviteUrl);
     return { sent: false, error: NOT_CONFIGURED };
   }
   const { lang, t } = translator(input.locale);
+  const project = input.projectName;
+  const accepted = input.kind === 'requestAccepted';
   const content = renderEmail(lang, {
-    heading: t('invite.heading'),
+    heading: accepted ? t('accepted.heading') : t('invite.heading'),
     paragraphs: [
       input.name ? t('greeting', { name: input.name }) : t('greetingNoName'),
-      t('invite.body', { project: input.projectName }),
+      ...(accepted ? [t('accepted.body', { project }), t('accepted.portal')] : [t('invite.body', { project })]),
     ],
-    cta: { label: t('invite.cta'), url: input.inviteUrl },
-    notes: [t('invite.expiry', { date: formatDate(input.expiresAt, lang) }), t('invite.ignore')],
+    cta: { label: accepted ? t('accepted.cta') : t('invite.cta'), url: input.inviteUrl },
+    notes: [
+      t('invite.expiry', { date: formatDate(input.expiresAt, lang) }),
+      ...(accepted ? [] : [t('invite.ignore')]),
+    ],
     footer: t('footer'),
   });
-  return deliver({ to: input.to, subject: t('invite.subject', { project: input.projectName }), ...content });
+  const subject = accepted ? t('accepted.subject', { project }) : t('invite.subject', { project });
+  return deliver({ to: input.to, subject, ...content });
 }
 
 export async function sendPasswordResetEmail(input: {

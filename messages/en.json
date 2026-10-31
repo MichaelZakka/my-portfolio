@@ -375,6 +375,13 @@
       "expiry": "This link expires on {date}. If it has expired, reply to this email and I’ll send a new one.",
       "ignore": "If you weren’t expecting this invitation, you can ignore this email."
     },
+    "accepted": {
+      "subject": "Your project request “{project}” was accepted",
+      "heading": "Your project request was accepted",
+      "body": "Thanks for sending me the brief for “{project}”. I’ve reviewed it and I’m happy to take it on.",
+      "portal": "I’ve set up a private project space for us in the client portal, where you can follow progress, message me and share files. Use the button below to join it.",
+      "cta": "Join the project"
+    },
     "reset": {
       "subject": "Reset your client portal password",
       "heading": "Reset your password",

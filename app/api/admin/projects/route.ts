@@ -1,11 +1,10 @@
 import { NextResponse } from 'next/server';
-import { Prisma } from '@prisma/client';
 import { prisma } from '../../../lib/db';
 import { authorizeAdmin, getAdminActor } from '../../../lib/portal/access';
-import { logActivity } from '../../../lib/portal/activity';
 import { progressPercent } from '../../../lib/portal/constants';
 import { apiError, parseJsonBody } from '../../../lib/portal/http';
 import { createInvitation } from '../../../lib/portal/invitations';
+import { createProject } from '../../../lib/portal/projects';
 import { projectCreateSchema } from '../../../lib/portal/validation';
 
 export async function GET(request: Request) {
@@ -40,7 +39,7 @@ export async function POST(request: Request) {
   const lead = input.requestId
     ? await prisma.lead.findUnique({
         where: { id: input.requestId },
-        select: { id: true, status: true, project: { select: { id: true } } },
+        select: { id: true, status: true, clientEmail: true, project: { select: { id: true } } },
       })
     : null;
   if (input.requestId && !lead) return apiError(404, 'notFound', 'Request not found.');
@@ -51,49 +50,18 @@ export async function POST(request: Request) {
   }
 
   const actor = await getAdminActor();
-  const now = new Date();
-
-  let project;
-  try {
-    project = await prisma.$transaction(async (tx) => {
-      const created = await tx.project.create({
-        data: {
-          name: input.name,
-          summary: input.summary,
-          status: input.status,
-          currentPhase: input.currentPhase,
-          estimatedCompletion: input.estimatedCompletion ?? null,
-          requestId: lead?.id ?? null,
-          startedAt: input.status === 'planning' ? null : now,
-          completedAt: input.status === 'completed' ? now : null,
-        },
-        select: { id: true, name: true },
-      });
-      await logActivity(
-        {
-          projectId: created.id,
-          actorId: actor.id,
-          type: 'PROJECT_CREATED',
-          meta: { name: created.name },
-          visibleToClient: true,
-        },
-        tx
-      );
-      if (lead && input.markRequestWon && lead.status !== 'won') {
-        await tx.lead.update({ where: { id: lead.id }, data: { status: 'won' } });
-        await tx.leadStatusEvent.create({
-          data: { leadId: lead.id, fromStatus: lead.status, toStatus: 'won', note: 'Converted to a client project' },
-        });
-      }
-      return created;
-    });
-  } catch (err) {
-    // Two conversions racing on the unique requestId.
-    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
-      return apiError(409, 'alreadyConverted', 'This request was already converted.');
-    }
-    throw err;
-  }
+  const created = await createProject({
+    name: input.name,
+    summary: input.summary,
+    status: input.status,
+    currentPhase: input.currentPhase,
+    estimatedCompletion: input.estimatedCompletion ?? null,
+    request: lead,
+    markRequestWon: input.markRequestWon,
+    actorId: actor.id,
+  });
+  if (!created.ok) return apiError(created.status, created.code, created.error);
+  const { project } = created;
 
   // The project exists either way; an invitation problem is reported, not fatal.
   const invite = input.invite
@@ -104,6 +72,8 @@ export async function POST(request: Request) {
         name: input.invite.name,
         locale: input.invite.locale,
         actorId: actor.id,
+        // Whoever sent the request is told it was accepted; anyone else gets a plain invitation.
+        kind: lead && input.invite.email === lead.clientEmail.trim().toLowerCase() ? 'requestAccepted' : 'invite',
       })
     : null;
 

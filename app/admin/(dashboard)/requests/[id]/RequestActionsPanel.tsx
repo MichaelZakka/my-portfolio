@@ -30,6 +30,13 @@ export default function RequestActionsPanel({
   );
   const [copied, setCopied] = useState(false);
 
+  // Accepting the request changes its status from another panel; follow the server's value.
+  const [syncedStatus, setSyncedStatus] = useState(currentStatus);
+  if (syncedStatus !== currentStatus) {
+    setSyncedStatus(currentStatus);
+    setStatus(currentStatus);
+  }
+
   const hasChanges = status !== currentStatus || notes !== currentNotes;
 
   const handleSave = async () => {

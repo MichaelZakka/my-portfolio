@@ -4,7 +4,7 @@ import { isAdminEmail } from './access';
 import { logActivity, updateActivityMeta } from './activity';
 import { INVITATION_TTL_DAYS, invitationState, type PortalLocale } from './constants';
 import { generateToken, hashToken, TOKEN_PATTERN } from './credentials';
-import { portalUrl, sendInvitationEmail } from './email';
+import { portalUrl, sendInvitationEmail, type InvitationEmailKind } from './email';
 
 /**
  * Invitation lifecycle for the admin side. Only the token's hash is stored, so
@@ -32,6 +32,7 @@ async function sendAndRecord(input: {
   token: string;
   expiresAt: Date;
   locale: string;
+  kind?: InvitationEmailKind;
 }): Promise<InvitationSuccess> {
   const inviteUrl = portalUrl(`/portal/invite/${input.token}`);
   const result = await sendInvitationEmail({
@@ -41,6 +42,7 @@ async function sendAndRecord(input: {
     inviteUrl,
     expiresAt: input.expiresAt,
     locale: input.locale,
+    kind: input.kind,
   });
 
   await prisma.invitation.update({
@@ -62,6 +64,7 @@ export async function createInvitation(input: {
   name: string;
   locale: PortalLocale;
   actorId: string;
+  kind?: InvitationEmailKind;
 }): Promise<InvitationSuccess | InvitationFailure> {
   const { projectId, email } = input;
 
@@ -132,6 +135,7 @@ export async function createInvitation(input: {
     token,
     expiresAt,
     locale: input.locale,
+    kind: input.kind,
   });
 }
 

@@ -1,5 +1,6 @@
 import type { Lead, LeadStatusEvent } from '@prisma/client';
 import type { ProjectBriefPayload } from './projectBrief';
+import type { PortalLocale } from './portal/constants';
 
 export const LEAD_STATUSES = [
   'new',
@@ -25,6 +26,17 @@ export const LEAD_STATUS_LABELS: Record<LeadStatus, string> = {
 
 export function isLeadStatus(value: string): value is LeadStatus {
   return (LEAD_STATUSES as readonly string[]).includes(value);
+}
+
+const ARABIC_SCRIPT = /[؀-ۿ]/;
+
+/** Default language for emails to the client: Arabic if they arrived on /ar or wrote the brief in Arabic. */
+export function guessLeadLocale(
+  lead: Pick<Lead, 'landingPath' | 'projectTitle' | 'projectDescription'>
+): PortalLocale {
+  const path = lead.landingPath ?? '';
+  if (path === '/ar' || path.startsWith('/ar/')) return 'ar';
+  return ARABIC_SCRIPT.test(`${lead.projectTitle} ${lead.projectDescription}`) ? 'ar' : 'en';
 }
 
 /** Array-like brief fields are stored as JSON text so the schema stays portable across SQLite/Postgres. */
