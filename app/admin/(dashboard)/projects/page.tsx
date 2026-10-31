@@ -69,7 +69,7 @@ export default async function AdminProjectsPage({
             description="Create one here, or open a request and choose “Convert to project”."
           />
         ) : (
-          <div style={{ overflowX: 'auto' }}>
+          <div className={styles.tableScroll}>
             <table className={styles.table}>
               <thead>
                 <tr>
@@ -87,7 +87,7 @@ export default async function AdminProjectsPage({
                   const progress = progressPercent(project.milestones);
                   return (
                     <tr key={project.id}>
-                      <td>
+                      <td data-label="Project">
                         <Link href={`/admin/projects/${project.id}`} className={projectStyles.itemTitle}>
                           {project.name}
                         </Link>
@@ -97,7 +97,7 @@ export default async function AdminProjectsPage({
                           </div>
                         )}
                       </td>
-                      <td>
+                      <td data-label="Clients">
                         {project.members.length === 0 && project.invitations.length === 0 && '—'}
                         {project.members.map(({ user }) => (
                           <div key={user.email}>{user.name || user.email}</div>
@@ -108,11 +108,11 @@ export default async function AdminProjectsPage({
                           </div>
                         ))}
                       </td>
-                      <td>
+                      <td data-label="Status">
                         <ProjectStatusBadge status={project.status} />
                       </td>
-                      <td>{project.currentPhase || '—'}</td>
-                      <td>
+                      <td data-label="Phase">{project.currentPhase || '—'}</td>
+                      <td data-label="Progress">
                         <div className={projectStyles.progress}>
                           <div className={projectStyles.progressTrack}>
                             <div className={projectStyles.progressFill} style={{ width: `${progress}%` }} />
@@ -120,12 +120,12 @@ export default async function AdminProjectsPage({
                           <span>{project.milestones.length ? `${progress}%` : '—'}</span>
                         </div>
                       </td>
-                      <td>
+                      <td data-label="Est. completion">
                         {project.estimatedCompletion
                           ? project.estimatedCompletion.toLocaleDateString(undefined, { timeZone: 'UTC' })
                           : '—'}
                       </td>
-                      <td>{project.updatedAt.toLocaleDateString()}</td>
+                      <td data-label="Updated">{project.updatedAt.toLocaleDateString()}</td>
                     </tr>
                   );
                 })}

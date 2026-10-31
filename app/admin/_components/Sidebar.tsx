@@ -50,9 +50,9 @@ export default function Sidebar() {
         })}
       </ul>
       <div className={styles.sidebarFooter}>
-        <button type="button" className={styles.logoutButton} onClick={handleLogout}>
+        <button type="button" className={styles.logoutButton} onClick={handleLogout} title="Log out">
           <LogOut size={16} strokeWidth={2} aria-hidden="true" />
-          Log out
+          <span className={styles.logoutLabel}>Log out</span>
         </button>
       </div>
     </aside>

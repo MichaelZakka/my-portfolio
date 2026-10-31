@@ -4,7 +4,7 @@
 
 .shell {
   display: grid;
-  grid-template-columns: 240px 1fr;
+  grid-template-columns: 240px minmax(0, 1fr);
   min-height: 100vh;
   background: #07122a;
   color: #e6edf7;
@@ -154,7 +154,7 @@
 
 .grid2 {
   display: grid;
-  grid-template-columns: 2fr 1fr;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
   gap: 1.25rem;
   margin-bottom: 1.25rem;
 }
@@ -487,29 +487,213 @@
 .dotWarn { background: #e0c04a; }
 .dotBad { background: #f07a7a; }
 
+/* Wide tables scroll inside their card instead of widening the page */
+.tableScroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ---------- Tablet and phone ---------- */
+
 @media (max-width: 900px) {
   .shell {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
+
+  /* The sidebar becomes a sticky top bar with a swipeable nav */
   .sidebar {
-    position: relative;
+    position: sticky;
+    top: 0;
+    z-index: 30;
     height: auto;
     flex-direction: row;
     align-items: center;
-    overflow-x: auto;
+    gap: 0.75rem;
+    padding: 0.6rem 1rem;
+    border-right: none;
+    border-bottom: 1px solid #1b2f52;
   }
+
+  .brand {
+    margin-bottom: 0;
+    white-space: nowrap;
+  }
+
+  .brandSub {
+    display: none;
+  }
+
   .navList {
     flex-direction: row;
+    flex: 1;
+    min-width: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
   }
+
+  .navList::-webkit-scrollbar {
+    display: none;
+  }
+
+  .navLink {
+    white-space: nowrap;
+    padding: 0.5rem 0.65rem;
+  }
+
   .sidebarFooter {
     border-top: none;
     margin-top: 0;
     padding-top: 0;
   }
+
+  .logoutButton {
+    width: auto;
+    padding: 0.5rem 0.6rem;
+  }
+
   .main {
     padding: 1.5rem 1.25rem 3rem;
   }
+
   .grid2 {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .logoutLabel {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  .brand {
+    display: none;
+  }
+
+  .main {
+    padding: 1.1rem 0.85rem 2.5rem;
+  }
+
+  .pageHeader {
+    margin-bottom: 1.25rem;
+  }
+
+  .pageTitle {
+    font-size: 1.25rem;
+  }
+
+  .card {
+    padding: 1rem;
+    border-radius: 10px;
+  }
+
+  .kpiGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.6rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .kpiCard {
+    padding: 0.85rem;
+  }
+
+  .kpiValue {
+    font-size: 1.35rem;
+  }
+
+  .detailGrid,
+  .healthGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* Filters: two per row, buttons share the last row */
+  .filtersBar {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .filtersBar > .filterField:first-child {
+    grid-column: 1 / -1;
+  }
+
+  .filtersBar .input,
+  .filtersBar .select {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .filtersBar > .button {
+    justify-content: center;
+  }
+
+  /* Tables become one card per row; each cell shows its column name */
+  .tableScroll {
+    overflow: visible;
+  }
+
+  .table thead {
+    display: none;
+  }
+
+  .table,
+  .table tbody,
+  .table tr,
+  .table td {
+    display: block;
+    width: 100%;
+  }
+
+  .table tbody tr {
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #1b2f52;
+  }
+
+  .table tbody tr:last-child {
+    border-bottom: none;
+  }
+
+  .table tbody tr:hover {
+    background: transparent;
+  }
+
+  .table td {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.25rem 0;
+    border-bottom: none;
+    text-align: right;
+  }
+
+  .table td::before {
+    content: attr(data-label);
+    flex-shrink: 0;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: #7d8ba3;
+    text-align: left;
+  }
+
+  /* The first cell is the row's title: full width, no label */
+  .table td:first-child {
+    display: block;
+    text-align: left;
+    padding-bottom: 0.4rem;
+    font-size: 0.95rem;
+  }
+
+  .table td:first-child::before {
+    display: none;
+  }
+
+  .timelineItem {
+    flex-wrap: wrap;
   }
 }

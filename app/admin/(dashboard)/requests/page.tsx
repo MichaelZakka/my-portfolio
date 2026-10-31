@@ -185,6 +185,7 @@ export default async function AdminRequestsPage({
           />
         ) : (
           <>
+            <div className={styles.tableScroll}>
             <table className={styles.table}>
               <thead>
                 <tr>
@@ -199,25 +200,26 @@ export default async function AdminRequestsPage({
               <tbody>
                 {leads.map((lead) => (
                   <tr key={lead.id}>
-                    <td>
+                    <td data-label="Project">
                       <Link href={`/admin/requests/${lead.id}`} className={pageStyles.titleLink}>
                         {lead.projectTitle || '(untitled)'}
                       </Link>
                     </td>
-                    <td>
+                    <td data-label="Client">
                       {lead.clientName}
                       <div className={pageStyles.emailCell}>{lead.clientEmail}</div>
                     </td>
-                    <td>{formatProjectTypes(lead.projectTypes)}</td>
-                    <td>{lead.budget || '—'}</td>
-                    <td>
+                    <td data-label="Type">{formatProjectTypes(lead.projectTypes)}</td>
+                    <td data-label="Budget">{lead.budget || '—'}</td>
+                    <td data-label="Status">
                       <StatusBadge status={lead.status} />
                     </td>
-                    <td>{new Date(lead.createdAt).toLocaleDateString()}</td>
+                    <td data-label="Received">{new Date(lead.createdAt).toLocaleDateString()}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
+            </div>
 
             {totalPages > 1 && (
               <div className={pageStyles.pagination}>

@@ -128,6 +128,26 @@
   .userEmail {
     display: none;
   }
+
+  .headerInner {
+    padding-block: var(--s-2);
+    gap: var(--s-2);
+  }
+
+  .main {
+    padding-block: var(--s-5) var(--s-7);
+  }
+}
+
+@media (max-width: 400px) {
+  .brandSub {
+    display: none;
+  }
+
+  .navLink,
+  .ghostButton {
+    padding-inline: var(--s-2);
+  }
 }
 
 /* ---------- Auth pages (sign in, reset, invitation) ---------- */
@@ -1495,5 +1515,63 @@
 
   .meetingDay {
     font-size: 15px;
+  }
+}
+
+/* ---------- Phone ---------- */
+
+@media (max-width: 640px) {
+  .card {
+    padding: var(--s-4);
+    border-radius: var(--radius);
+  }
+
+  .stack,
+  .projectLayout {
+    gap: var(--s-4);
+  }
+
+  .authCard {
+    padding: var(--s-5) var(--s-4);
+  }
+
+  /* Section links scroll sideways instead of wrapping into several rows */
+  .sectionNav {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    margin-inline: calc(var(--gutter) * -1);
+    padding-inline: var(--gutter);
+  }
+
+  .sectionNav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .sectionNav a {
+    flex-shrink: 0;
+  }
+
+  .milestone {
+    padding-inline-start: 36px;
+  }
+
+  .taskBody {
+    padding-inline-start: 10px;
+  }
+
+  .meetingActions :global(.btn) {
+    flex: 1 1 auto;
+    justify-content: center;
+  }
+
+  .linkButton {
+    flex-basis: 100%;
+    margin-inline-start: 0;
+    text-align: center;
+  }
+
+  .composerFoot span:first-child {
+    display: none;
   }
 }

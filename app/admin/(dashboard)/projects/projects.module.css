@@ -225,12 +225,13 @@
 /* Invite link shown when the email could not be sent */
 .linkBox {
   display: flex;
+  flex-wrap: wrap;
   gap: 0.5rem;
   margin-top: 0.6rem;
 }
 
 .linkBox input {
-  flex: 1;
+  flex: 1 1 220px;
   min-width: 0;
   font-family: var(--font-code);
   font-size: 0.75rem;
@@ -680,4 +681,61 @@
     padding: 0.2rem 0.6rem;
   }
   .meetingDay { font-size: 0.95rem; }
+}
+
+/* ---------- Phone ---------- */
+
+@media (max-width: 640px) {
+  .headerRow > a,
+  .headerRow > button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Rows: controls drop under the title instead of squeezing it */
+  .item {
+    flex-wrap: wrap;
+  }
+
+  .item > .itemControls {
+    flex-basis: 100%;
+    padding-inline-start: calc(32px + 0.75rem);
+  }
+
+  .itemMain .itemControls > * {
+    flex: 1 1 auto;
+  }
+
+  .formGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .formActions > button,
+  .formActions > a {
+    flex: 1 1 auto;
+    justify-content: center;
+  }
+
+  .formActions > input {
+    flex: 1 1 100%;
+    min-width: 0;
+  }
+
+  .progress {
+    min-width: 0;
+  }
+
+  .message {
+    max-width: 92%;
+  }
+
+  .thread {
+    max-height: 420px;
+  }
+
+  .dangerLink {
+    flex-basis: 100%;
+    margin-inline-start: 0;
+    text-align: center;
+  }
 }
