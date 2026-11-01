@@ -20,6 +20,7 @@ export default async function PortalProjectsPage() {
   if (!user) redirect('/portal/login?expired=1');
 
   const { t, locale } = await getPortalTranslations('portal');
+  const { timeZone } = user;
   const projects = await listClientProjects(user.id);
   const active = projects.filter((p) => !p.archivedAt);
   const archived = projects.filter((p) => p.archivedAt);
@@ -30,6 +31,11 @@ export default async function PortalProjectsPage() {
         <span className={styles.badge} data-tone={project.archivedAt ? 'archived' : project.status}>
           {project.archivedAt ? t('projects.archivedBadge') : t(`status.${project.status}`)}
         </span>
+        {!project.archivedAt && project.awaitingApproval > 0 && (
+          <span className={styles.badge} data-tone="review">
+            {t('projects.needsApproval')}
+          </span>
+        )}
       </div>
       <h2 className={styles.projectCardTitle}>
         <Link href={`/portal/projects/${project.id}`} className={styles.projectCardLink}>
@@ -51,7 +57,7 @@ export default async function PortalProjectsPage() {
         {project.estimatedCompletion && (
           <span>{t('projects.eta', { date: formatDate(project.estimatedCompletion, locale) })}</span>
         )}
-        <span>{t('projects.updated', { date: formatDateTime(project.updatedAt, locale) })}</span>
+        <span>{t('projects.updated', { date: formatDateTime(project.updatedAt, locale, timeZone) })}</span>
       </div>
     </li>
   );

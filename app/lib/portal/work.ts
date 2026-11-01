@@ -39,6 +39,7 @@ export async function createMilestone(input: {
   description: string;
   status: WorkStatus;
   dueDate?: Date | null;
+  estimatedDays?: number | null;
 }) {
   const now = new Date();
   return prisma.$transaction(async (tx) => {
@@ -54,6 +55,7 @@ export async function createMilestone(input: {
         description: input.description,
         status: input.status,
         dueDate: input.dueDate ?? null,
+        estimatedDays: input.estimatedDays ?? null,
         order: (last?.order ?? -1) + 1,
         completedAt: completedAtFor(input.status, null, now),
       },
@@ -81,6 +83,7 @@ export async function updateMilestone(input: {
     description?: string;
     status?: WorkStatus;
     dueDate?: Date | null;
+    estimatedDays?: number | null;
     move?: 'up' | 'down';
   };
 }) {
@@ -104,6 +107,7 @@ export async function updateMilestone(input: {
         title: changes.title,
         description: changes.description,
         dueDate: changes.dueDate,
+        estimatedDays: changes.estimatedDays,
         status: changes.status,
         completedAt: changes.status ? completedAtFor(status, current.completedAt, now) : undefined,
       },

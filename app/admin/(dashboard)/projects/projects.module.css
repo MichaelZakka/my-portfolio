@@ -1134,3 +1134,21 @@
 .activityLegend .activityDot {
   margin-top: 0;
 }
+
+/* Milestone sign-off */
+.reviewBox {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-top: 0.4rem;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--accent-line);
+  border-radius: 8px;
+  background: var(--accent-soft);
+  font-size: 0.82rem;
+}
+
+.reviewTitle {
+  font-weight: 600;
+  color: var(--text);
+}

@@ -2,7 +2,7 @@
 
 import { FormEvent, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { CalendarClock, Check, Clock, Flag, MapPin, Video } from 'lucide-react';
+import { CalendarClock, CalendarPlus, Check, Clock, Flag, MapPin, Video } from 'lucide-react';
 import { MEETING_DURATIONS } from '../../../../lib/portal/constants';
 import { isoToLocalInput, localInputToIso } from '../../../../lib/portal/datetimeInput';
 import type { ClientMeeting } from '../../../../lib/portal/present';
@@ -19,12 +19,19 @@ type Milestone = { id: string; title: string };
 export function MeetingsSection({
   projectId,
   archived,
+  preview = false,
+  timeZone,
   milestones,
 }: {
   projectId: string;
   archived: boolean;
+  /** The admin's read-only "view as client": nothing can be proposed or answered. */
+  preview?: boolean;
+  /** The zone the labels are formatted in (the viewer's), named next to the time inputs. */
+  timeZone: string;
   milestones: Milestone[];
 }) {
+  const readOnly = archived || preview;
   const t = useTranslations('portal.project');
   const { data, refresh } = useLive();
   const errorMessage = useErrorMessage();
@@ -83,7 +90,7 @@ export function MeetingsSection({
                     meeting={meeting}
                     busy={pending !== null}
                     pendingKey={pending}
-                    readOnly={archived}
+                    readOnly={readOnly}
                     onAction={(key, body) => send(`${key}-${meeting.id}`, `${base}/${meeting.id}`, 'PATCH', body)}
                   />
                 ))}
@@ -99,8 +106,9 @@ export function MeetingsSection({
         {notice}
       </p>
 
-      {!archived && (
+      {!readOnly && (
         <ProposeForm
+          timeZone={timeZone}
           milestones={milestones}
           busy={pending === 'create'}
           onSubmit={(body) => send('create', base, 'POST', body)}
@@ -259,11 +267,25 @@ function MeetingItem({
                 <CalendarClock size={16} strokeWidth={2} aria-hidden="true" />
                 {t('meetingSuggest')}
               </button>
+              {meeting.calendarUrl && (
+                <a href={meeting.calendarUrl} className="btn btn-outline">
+                  <CalendarPlus size={16} strokeWidth={2} aria-hidden="true" />
+                  {t('meetingAddToCalendar')}
+                </a>
+              )}
               <button type="button" className={styles.linkButton} aria-disabled={busy} onClick={cancel}>
                 {t('meetingCancel')}
               </button>
             </div>
           )
+        )}
+        {readOnly && meeting.calendarUrl && (
+          <div className={styles.meetingActions}>
+            <a href={meeting.calendarUrl} className="btn btn-outline">
+              <CalendarPlus size={16} strokeWidth={2} aria-hidden="true" />
+              {t('meetingAddToCalendar')}
+            </a>
+          </div>
         )}
       </div>
     </li>
@@ -271,10 +293,12 @@ function MeetingItem({
 }
 
 function ProposeForm({
+  timeZone,
   milestones,
   busy,
   onSubmit,
 }: {
+  timeZone: string;
   milestones: Milestone[];
   busy: boolean;
   onSubmit: (body: unknown) => Promise<boolean>;
@@ -335,9 +359,13 @@ function ProposeForm({
               type="datetime-local"
               className={styles.input}
               required
+              aria-describedby="meeting-when-zone"
               value={when}
               onChange={(e) => setWhen(e.target.value)}
             />
+            <span id="meeting-when-zone" className={styles.hint}>
+              {t('meetingTimeZoneHint', { zone: timeZone })}
+            </span>
           </div>
           <div className={styles.field}>
             <label className={styles.label} htmlFor="meeting-duration">

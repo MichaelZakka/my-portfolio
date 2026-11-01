@@ -4,6 +4,7 @@ import { Plus } from 'lucide-react';
 import { prisma } from '../../../lib/db';
 import { requireAdminSession } from '../../../lib/session';
 import { progressPercent } from '../../../lib/portal/constants';
+import { PROGRESS_MILESTONE_SELECT } from '../../../lib/portal/queries';
 import { ArchivedBadge, ProjectStatusBadge } from '../../_components/ProjectBadges';
 import EmptyState from '../../_components/EmptyState';
 import styles from '../../admin.module.css';
@@ -29,7 +30,7 @@ export default async function AdminProjectsPage({
     where,
     orderBy: { updatedAt: 'desc' },
     include: {
-      milestones: { select: { status: true } },
+      milestones: { select: PROGRESS_MILESTONE_SELECT },
       members: { select: { user: { select: { name: true, email: true } } } },
       invitations: {
         where: { acceptedAt: null, revokedAt: null, expiresAt: { gt: new Date() } },

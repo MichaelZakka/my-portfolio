@@ -1,7 +1,7 @@
 'use client';
 
 import { FormEvent, useState } from 'react';
-import { CalendarClock, Check, Clock, Flag, MapPin, Plus, Video } from 'lucide-react';
+import { CalendarClock, CalendarPlus, Check, Clock, Flag, Globe, MapPin, Plus, Video } from 'lucide-react';
 import { MEETING_DURATIONS, MEETING_STATUS_LABELS, type MeetingStatus } from '../../../../lib/portal/constants';
 import { isoToLocalInput, localInputToIso } from '../../../../lib/portal/datetimeInput';
 import type { AdminProjectView } from '../../../../lib/portal/adminView';
@@ -59,6 +59,12 @@ function MeetingRow({ meeting, url, action }: { meeting: Meeting; url: string; a
             <span className="visually-hidden">{meeting.whenLabel}</span>
             <span aria-hidden="true">{meeting.date.time}</span> · {meeting.durationMinutes} min
           </li>
+          {meeting.localTimes.map((local) => (
+            <li key={local.name}>
+              <Globe size={13} aria-hidden="true" />
+              {local.name}: {local.label}
+            </li>
+          ))}
           {meeting.location && (
             <li>
               {meeting.locationUrl ? <Video size={13} aria-hidden="true" /> : <MapPin size={13} aria-hidden="true" />}
@@ -131,6 +137,12 @@ function MeetingRow({ meeting, url, action }: { meeting: Meeting; url: string; a
                 >
                   <Video size={15} aria-hidden="true" />
                   Join
+                </a>
+              )}
+              {meeting.calendarUrl && (
+                <a href={meeting.calendarUrl} className={`${styles.button} ${styles.buttonSecondary}`}>
+                  <CalendarPlus size={15} aria-hidden="true" />
+                  Add to calendar
                 </a>
               )}
               <button

@@ -26,6 +26,9 @@ const PUBLIC_PORTAL_PATHS = new Set([
 ]);
 const PUBLIC_PORTAL_PREFIXES = ['/portal/invite/', '/portal/reset-password/', '/portal/proposal/'];
 
+// The admin's "view as client" renders inside the portal but needs the admin session, not a client one.
+const PORTAL_PREVIEW_PREFIX = '/portal/preview/';
+
 const isWithin = (pathname: string, base: string) =>
   pathname === base || pathname.startsWith(`${base}/`);
 
@@ -86,6 +89,16 @@ async function portalGuard(request: NextRequest, pathname: string) {
     PUBLIC_PORTAL_PREFIXES.some((prefix) => pathname.startsWith(prefix))
   ) {
     return NextResponse.next();
+  }
+
+  if (pathname.startsWith(PORTAL_PREVIEW_PREFIX)) {
+    const admin = process.env.AUTH_SECRET
+      ? await verifySessionToken(request.cookies.get(ADMIN_SESSION_COOKIE)?.value)
+      : null;
+    if (admin) return NextResponse.next();
+    const loginUrl = new URL('/admin/login', request.url);
+    loginUrl.searchParams.set('from', pathname);
+    return NextResponse.redirect(loginUrl);
   }
 
   // Fail closed: without AUTH_SECRET no session can be verified.

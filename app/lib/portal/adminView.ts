@@ -9,6 +9,7 @@ import {
   formatDateTime,
   formatDayLabel,
   formatTime,
+  getPortalTimeZone,
   toDateInputValue,
 } from './format';
 import {
@@ -69,15 +70,40 @@ export async function buildAdminProjectView(projectId: string) {
       emailSent: invitation.emailSent,
       emailError: invitation.emailError,
     })),
-    milestones: project.milestones.map((m) => ({
-      id: m.id,
-      title: m.title,
-      description: m.description,
-      status: m.status,
-      dueDate: toDateInputValue(m.dueDate),
-      dueLabel: m.dueDate ? formatDate(m.dueDate, 'en') : null,
-      completedLabel: m.status === 'done' && m.completedAt ? formatDate(m.completedAt, 'en') : null,
-    })),
+    milestones: project.milestones.map((m) => {
+      const pending = m.reviews.find((r) => r.status === 'pending');
+      const answered = m.reviews.filter((r) => r.status === 'approved' || r.status === 'changes_requested');
+      return {
+        id: m.id,
+        title: m.title,
+        description: m.description,
+        status: m.status,
+        dueDate: toDateInputValue(m.dueDate),
+        dueLabel: m.dueDate ? formatDate(m.dueDate, 'en') : null,
+        completedLabel: m.status === 'done' && m.completedAt ? formatDate(m.completedAt, 'en') : null,
+        estimatedDays: m.estimatedDays ? String(m.estimatedDays) : '',
+        review: {
+          pending: pending
+            ? {
+                requested: formatDateTime(pending.requestedAt, 'en'),
+                note: pending.note,
+                link: pending.link,
+                emailSent: pending.emailSent,
+                emailError: pending.emailError,
+              }
+            : null,
+          // Newest first: approvals and change requests, with who answered.
+          history: answered.map((r) => ({
+            id: r.id,
+            approved: r.status === 'approved',
+            by: r.respondedBy ? displayName(r.respondedBy) : 'A client',
+            when: at(r.respondedAt),
+            response: r.response,
+          })),
+          changesRounds: answered.filter((r) => r.status === 'changes_requested').length,
+        },
+      };
+    }),
     tasks: project.tasks.map((task) => ({
       id: task.id,
       title: task.title,
@@ -99,7 +125,15 @@ export async function buildAdminProjectView(projectId: string) {
       emailSent: message.emailSent,
       emailError: message.emailError,
     })),
-    meetings: presentMeetings(meetings, 'admin', { locale: 'en' }),
+    meetings: presentMeetings(meetings, 'admin', {
+      locale: 'en',
+      timeZone: getPortalTimeZone(),
+      projectId: project.id,
+      // Each client's own clock, for scheduling across time zones (known once they have opened the portal).
+      otherZones: project.members.flatMap(({ user }) =>
+        user.timeZone ? [{ name: displayName(user), timeZone: user.timeZone }] : []
+      ),
+    }),
     files: files.map((file) => ({
       id: file.id,
       filename: file.filename,

@@ -4,6 +4,7 @@ import { getPortalTranslations } from '../../lib/portal/locale';
 import { getPortalUser } from '../../lib/portal/session';
 import LanguageSwitch from '../_components/LanguageSwitch';
 import SignOutButton from '../_components/SignOutButton';
+import TimeZoneSync from '../_components/TimeZoneSync';
 import styles from '../portal.module.css';
 
 /** Signed-in shell. Pages repeat the session check: layouts and pages render in parallel. */
@@ -41,6 +42,7 @@ export default async function PortalAppLayout({ children }: { children: React.Re
       <main id="portal-main" tabIndex={-1} className={styles.main}>
         {children}
       </main>
+      <TimeZoneSync current={user.timeZone} />
     </div>
   );
 }

@@ -18,7 +18,9 @@ export async function GET(request: Request, { params }: RouteParams) {
   if (!auth.ok) return auth.response;
 
   const [messages, locale] = await Promise.all([getProjectMessages(auth.project.id), getPortalLocale()]);
-  return NextResponse.json({ messages: presentMessages(messages, auth.user.id, { locale }) });
+  return NextResponse.json({
+    messages: presentMessages(messages, auth.user.id, { locale, timeZone: auth.user.timeZone }),
+  });
 }
 
 export async function POST(request: Request, { params }: RouteParams) {

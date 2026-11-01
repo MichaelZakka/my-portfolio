@@ -23,19 +23,26 @@ import { displayName, type getProjectActivity, type getProjectFiles, type getPro
 
 type PortalTranslator = Awaited<ReturnType<typeof getPortalTranslations>>['t'];
 
+/**
+ * Which API the links point at: the client portal's, or the admin's for the
+ * "view as client" preview (the admin has no portal session).
+ */
+type LinkApi = 'portal' | 'admin';
+
+/** viewerId is null in the admin preview of a project without clients. */
 export function presentMessages(
   messages: Awaited<ReturnType<typeof getProjectMessages>>,
-  viewerId: string,
-  { locale }: { locale: string }
+  viewerId: string | null,
+  { locale, timeZone }: { locale: string; timeZone: string }
 ) {
   return messages.map((message) => ({
     id: message.id,
     content: message.content,
     createdAt: message.createdAt.toISOString(),
-    timeLabel: formatDateTime(message.createdAt, locale),
-    time: formatTime(message.createdAt, locale),
-    dayKey: dayKey(message.createdAt),
-    dayLabel: formatDayLabel(message.createdAt, locale),
+    timeLabel: formatDateTime(message.createdAt, locale, timeZone),
+    time: formatTime(message.createdAt, locale, timeZone),
+    dayKey: dayKey(message.createdAt, timeZone),
+    dayLabel: formatDayLabel(message.createdAt, locale, timeZone),
     sender: {
       name: displayName(message.sender),
       isProjectLead: message.sender.role === 'admin',
@@ -47,7 +54,7 @@ export function presentMessages(
 export function presentFiles(
   files: Awaited<ReturnType<typeof getProjectFiles>>,
   projectId: string,
-  { locale }: { locale: string }
+  { locale, api = 'portal' }: { locale: string; api?: LinkApi }
 ) {
   return files.map((file) => ({
     id: file.id,
@@ -58,7 +65,7 @@ export function presentFiles(
     sizeLabel: formatBytes(file.fileSize, locale),
     dateLabel: formatDate(file.createdAt, locale),
     uploadedBy: { name: displayName(file.uploadedBy), isProjectLead: file.uploadedBy.role === 'admin' },
-    downloadUrl: `/api/portal/projects/${projectId}/files/${file.id}`,
+    downloadUrl: `/api/${api}/projects/${projectId}/files/${file.id}`,
   }));
 }
 
@@ -67,6 +74,10 @@ const ACTIVITY_PARAMS: Record<string, string[]> = {
   INVITE_ACCEPTED: ['name'],
   MILESTONE_CREATED: ['title'],
   MILESTONE_COMPLETED: ['title'],
+  MILESTONE_REVIEW_REQUESTED: ['title'],
+  MILESTONE_APPROVED: ['name', 'title'],
+  MILESTONE_CHANGES_REQUESTED: ['name', 'title'],
+  PROPOSAL_ACCEPTED: ['name'],
   TASK_CREATED: ['title'],
   TASK_COMPLETED: ['title'],
   MESSAGE_SENT: ['senderName'],
@@ -88,7 +99,7 @@ function describeActivity(type: string, params: Record<string, string>, t: Porta
 
 export function presentActivity(
   activity: Awaited<ReturnType<typeof getProjectActivity>>,
-  { locale, t }: { locale: string; t: PortalTranslator }
+  { locale, t, timeZone }: { locale: string; t: PortalTranslator; timeZone: string }
 ) {
   return activity.map((entry) => {
     const params = clientActivityParams(entry.meta);
@@ -97,7 +108,7 @@ export function presentActivity(
       type: entry.type,
       params,
       createdAt: entry.createdAt.toISOString(),
-      timeLabel: formatDateTime(entry.createdAt, locale),
+      timeLabel: formatDateTime(entry.createdAt, locale, timeZone),
       text: describeActivity(entry.type, params, t),
     };
   });
@@ -117,9 +128,23 @@ function safeUrl(value: string): string | null {
 export function presentMeetings(
   meetings: ProjectMeeting[],
   viewerRole: 'client' | 'admin',
-  { locale }: { locale: string }
+  {
+    locale,
+    timeZone,
+    projectId,
+    api = viewerRole === 'admin' ? 'admin' : 'portal',
+    otherZones = [],
+  }: {
+    locale: string;
+    timeZone: string;
+    projectId: string;
+    api?: LinkApi;
+    /** The admin screen also shows each client's local time when it differs from the admin's. */
+    otherZones?: { name: string; timeZone: string }[];
+  }
 ) {
   const now = new Date();
+  const zones = otherZones.filter((zone) => zone.timeZone !== timeZone);
   return sortMeetings(meetings, now).map((meeting) => {
     const ends = meeting.startsAt.getTime() + meeting.durationMinutes * 60 * 1000;
     const past = ends < now.getTime();
@@ -131,8 +156,12 @@ export function presentMeetings(
       location: meeting.location,
       locationUrl: safeUrl(meeting.location),
       startsAt: meeting.startsAt.toISOString(),
-      whenLabel: formatDateTime(meeting.startsAt, locale),
-      date: formatDateParts(meeting.startsAt, locale),
+      whenLabel: formatDateTime(meeting.startsAt, locale, timeZone),
+      date: formatDateParts(meeting.startsAt, locale, timeZone),
+      localTimes: zones.map((zone) => ({ name: zone.name, label: formatDateTime(meeting.startsAt, locale, zone.timeZone) })),
+      // An .ics for the viewer's calendar, once the time is agreed.
+      calendarUrl:
+        meeting.status === 'confirmed' && !past ? `/api/${api}/projects/${projectId}/meetings/${meeting.id}/ics` : null,
       durationMinutes: meeting.durationMinutes,
       status: meeting.status,
       past,

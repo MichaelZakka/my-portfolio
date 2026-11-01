@@ -696,6 +696,33 @@
   white-space: pre-line;
 }
 
+/* Linked from approval emails (#milestone-<id>): clear the sticky header. */
+.milestone[id] {
+  scroll-margin-block-start: 96px;
+}
+
+/* Milestone sign-off: what to check, the preview link, approve / request changes */
+.reviewBox {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+  margin-block-start: var(--s-3);
+  padding: var(--s-3) var(--s-4);
+  border: 1px solid var(--accent-line);
+  border-radius: var(--radius);
+  background: var(--accent-soft);
+}
+
+.reviewTitle {
+  font-weight: 700;
+}
+
+.reviewActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+}
+
 .taskList {
   list-style: none;
   display: flex;
@@ -1895,4 +1922,26 @@
   .summaryListSide {
     display: none;
   }
+}
+
+/* ---------- Admin "view as client" preview ---------- */
+
+.previewBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--s-2) var(--s-4);
+  padding: var(--s-2) var(--gutter);
+  background: color-mix(in srgb, var(--violet) 18%, var(--bg));
+  border-block-end: 1px solid color-mix(in srgb, var(--violet) 45%, transparent);
+  font-size: 14px;
+}
+
+.previewLabel {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+  font-weight: 600;
 }

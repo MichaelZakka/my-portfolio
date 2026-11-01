@@ -32,6 +32,9 @@ export const ACTIVITY_TYPES = [
   'INVITE_ACCEPTED',
   'MILESTONE_CREATED',
   'MILESTONE_COMPLETED',
+  'MILESTONE_REVIEW_REQUESTED',
+  'MILESTONE_APPROVED',
+  'MILESTONE_CHANGES_REQUESTED',
   'TASK_CREATED',
   'TASK_COMPLETED',
   'MESSAGE_SENT',
@@ -72,6 +75,9 @@ const ACTIVITY_CATEGORY_OF: Record<ActivityType, ActivityCategory> = {
   INVITE_ACCEPTED: 'clients',
   MILESTONE_CREATED: 'progress',
   MILESTONE_COMPLETED: 'progress',
+  MILESTONE_REVIEW_REQUESTED: 'progress',
+  MILESTONE_APPROVED: 'progress',
+  MILESTONE_CHANGES_REQUESTED: 'progress',
   TASK_CREATED: 'progress',
   TASK_COMPLETED: 'progress',
   MEETING_PROPOSED: 'meetings',
@@ -168,9 +174,52 @@ export function invitationState(
   return 'pending';
 }
 
-/** Share of milestones marked done, 0–100. */
-export function progressPercent(milestones: { status: string }[]): number {
+/** An in-progress milestone never counts as more than this share of its weight: only Done (or approval) completes it. */
+const IN_PROGRESS_CAP = 0.9;
+
+export type ProgressMilestone = {
+  status: string;
+  estimatedDays?: number | null;
+  /** All of its tasks, internal ones included (only their statuses are read). */
+  tasks?: { status: string }[];
+};
+
+/**
+ * Share of the work done, 0–100. Each milestone weighs its estimated days, so
+ * a 3-week milestone moves the bar further than a 2-day one; milestones
+ * without an estimate weigh the average of those with one (all equal when
+ * none has one). Done counts fully; in progress counts the share of its tasks
+ * that are done, capped below full. 100 only when every milestone is done.
+ */
+export function progressPercent(milestones: ProgressMilestone[]): number {
   if (milestones.length === 0) return 0;
-  const done = milestones.filter((m) => m.status === 'done').length;
-  return Math.round((done / milestones.length) * 100);
+  const estimates = milestones.map((m) => m.estimatedDays).filter((d): d is number => typeof d === 'number' && d > 0);
+  const fallback = estimates.length ? estimates.reduce((sum, d) => sum + d, 0) / estimates.length : 1;
+
+  let total = 0;
+  let done = 0;
+  for (const milestone of milestones) {
+    const weight = milestone.estimatedDays && milestone.estimatedDays > 0 ? milestone.estimatedDays : fallback;
+    total += weight;
+    if (milestone.status === 'done') {
+      done += weight;
+    } else if (milestone.status === 'in_progress' && milestone.tasks?.length) {
+      const share = milestone.tasks.filter((t) => t.status === 'done').length / milestone.tasks.length;
+      done += weight * Math.min(share, IN_PROGRESS_CAP);
+    }
+  }
+
+  const percent = Math.round((done / total) * 100);
+  const allDone = milestones.every((m) => m.status === 'done');
+  return allDone ? 100 : Math.min(percent, 99);
 }
+
+export const REVIEW_STATUSES = ['pending', 'approved', 'changes_requested', 'withdrawn'] as const;
+export type ReviewStatus = (typeof REVIEW_STATUSES)[number];
+
+export const REVIEW_STATUS_LABELS: Record<ReviewStatus, string> = {
+  pending: 'Awaiting client approval',
+  approved: 'Approved',
+  changes_requested: 'Changes requested',
+  withdrawn: 'Withdrawn',
+};

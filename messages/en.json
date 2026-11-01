@@ -261,7 +261,8 @@
       "noMilestones": "No milestones yet",
       "phase": "Phase: {phase}",
       "eta": "Estimated completion: {date}",
-      "updated": "Updated {date}"
+      "updated": "Updated {date}",
+      "needsApproval": "Needs your approval"
     },
     "status": {
       "planning": "Planning",
@@ -357,7 +358,26 @@
       "overviewNoMessages": "No messages yet.",
       "overviewFilesCount": "{count, plural, one {# file shared} other {# files shared}}",
       "overviewViewAll": "View all {section}",
-      "activityLegend": "Colour key"
+      "activityLegend": "Colour key",
+      "reviewAwaiting": "Awaiting your approval",
+      "reviewReadyTitle": "Ready for your approval",
+      "reviewSentOn": "Sent for approval on {date}",
+      "reviewOpenLink": "Open the preview",
+      "reviewApproveHint": "Approving confirms the work in this milestone is complete. If something should change, tell me what and I’ll revise it.",
+      "reviewApprove": "Approve",
+      "reviewApproving": "Approving…",
+      "reviewRequestChanges": "Request changes",
+      "reviewChangesLabel": "What should change?",
+      "reviewSendChanges": "Send",
+      "reviewSending": "Sending…",
+      "reviewCancel": "Cancel",
+      "reviewApprovedBy": "Approved by {name} on {date}",
+      "reviewChangesBy": "Changes requested by {name} on {date}",
+      "reviewThanksApproved": "Thanks, this milestone is approved.",
+      "reviewThanksChanges": "Thanks, your feedback was sent. I’ll let you know when the changes are ready.",
+      "overviewAwaitingApproval": "{count, plural, one {# milestone awaits your approval} other {# milestones await your approval}}",
+      "meetingAddToCalendar": "Add to calendar",
+      "meetingTimeZoneHint": "Times are in your time zone ({zone})."
     },
     "activity": {
       "PROJECT_CREATED": "Project created",
@@ -375,7 +395,10 @@
       "MEETING_RESCHEDULED": "New time proposed for meeting: {title}",
       "MEETING_CONFIRMED": "Meeting confirmed: {title}",
       "MEETING_CANCELLED": "Meeting cancelled: {title}",
-      "PROPOSAL_ACCEPTED": "{name} accepted the proposal"
+      "PROPOSAL_ACCEPTED": "{name} accepted the proposal",
+      "MILESTONE_REVIEW_REQUESTED": "Ready for your approval: {title}",
+      "MILESTONE_APPROVED": "{name} approved: {title}",
+      "MILESTONE_CHANGES_REQUESTED": "{name} asked for changes: {title}"
     },
     "errors": {
       "generic": "Something went wrong. Please try again.",
@@ -408,7 +431,8 @@
       "meetingChanged": "This meeting was just changed. Reload the page and try again.",
       "proposalInvalid": "This proposal link isn’t valid.",
       "proposalExpired": "This proposal has expired. You can still ask for changes.",
-      "proposalClosed": "This proposal was already answered or replaced. Reload the page."
+      "proposalClosed": "This proposal was already answered or replaced. Reload the page.",
+      "reviewNotPending": "This milestone is no longer awaiting approval. Reload the page."
     },
     "forbidden": {
       "title": "You don’t have access to this project",
@@ -565,6 +589,12 @@
         "subject": "Meeting cancelled: {title}",
         "heading": "Meeting cancelled",
         "body": "{actor} cancelled the meeting “{title}” for “{project}”."
+      },
+      "calendarAttached": "Open the attached meeting.ics to add it to your calendar or update it there.",
+      "reminder": {
+        "subject": "Reminder: “{title}” is coming up",
+        "heading": "Reminder: “{title}”",
+        "body": "Your meeting for “{project}” is coming up:"
       }
     },
     "proposal": {
@@ -595,6 +625,25 @@
         "body": "{client} declined version {version} of the proposal. The request is now marked Lost.",
         "cta": "Open the proposal"
       }
+    },
+    "review": {
+      "subject": "Please review “{milestone}” ({project})",
+      "heading": "“{milestone}” is ready for your approval",
+      "body": "I’ve finished “{milestone}” for “{project}”. Please take a look, then approve it or tell me what should change.",
+      "cta": "Review and approve"
+    },
+    "reviewResponse": {
+      "approved": {
+        "subject": "{client} approved “{milestone}” ({project})",
+        "heading": "Milestone approved",
+        "body": "{client} approved “{milestone}” for “{project}”. It is now marked done."
+      },
+      "changes": {
+        "subject": "{client} asked for changes to “{milestone}” ({project})",
+        "heading": "Changes requested",
+        "body": "{client} asked for changes to “{milestone}” for “{project}”:"
+      },
+      "cta": "Open the project"
     }
   }
 }

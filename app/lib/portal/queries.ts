@@ -9,6 +9,35 @@ import { progressPercent } from './constants';
 
 const byOrder = [{ order: 'asc' as const }, { createdAt: 'asc' as const }];
 
+/**
+ * What progressPercent() reads per milestone. Task statuses include internal
+ * tasks, so callers that return milestones to a client strip `tasks` first.
+ */
+export const PROGRESS_MILESTONE_SELECT = {
+  status: true,
+  estimatedDays: true,
+  tasks: { select: { status: true } },
+} as const;
+
+const reviewerSelect = { select: { name: true, email: true } } as const;
+
+/** A milestone's sign-off rounds, newest first. */
+const reviewsSelect = {
+  orderBy: { requestedAt: 'desc' as const },
+  select: {
+    id: true,
+    status: true,
+    note: true,
+    link: true,
+    requestedAt: true,
+    respondedAt: true,
+    response: true,
+    emailSent: true,
+    emailError: true,
+    respondedBy: reviewerSelect,
+  },
+};
+
 export async function listClientProjects(userId: string) {
   const projects = await prisma.project.findMany({
     where: { members: { some: { userId } } },
@@ -22,13 +51,15 @@ export async function listClientProjects(userId: string) {
       estimatedCompletion: true,
       archivedAt: true,
       updatedAt: true,
-      milestones: { select: { status: true } },
+      milestones: { select: PROGRESS_MILESTONE_SELECT },
+      reviews: { where: { status: 'pending' }, select: { id: true } },
     },
   });
-  return projects.map(({ milestones, ...project }) => ({
+  return projects.map(({ milestones, reviews, ...project }) => ({
     ...project,
     milestoneCount: milestones.length,
     progress: progressPercent(milestones),
+    awaitingApproval: reviews.length,
   }));
 }
 
@@ -48,7 +79,15 @@ export async function getClientProjectDetail(projectId: string) {
       updatedAt: true,
       milestones: {
         orderBy: byOrder,
-        select: { id: true, title: true, description: true, status: true, dueDate: true, completedAt: true },
+        select: {
+          id: true,
+          title: true,
+          description: true,
+          dueDate: true,
+          completedAt: true,
+          ...PROGRESS_MILESTONE_SELECT,
+          reviews: { ...reviewsSelect, where: { status: { not: 'withdrawn' } } },
+        },
       },
       tasks: {
         where: { visibleToClient: true },
@@ -66,7 +105,30 @@ export async function getClientProjectDetail(projectId: string) {
     },
   });
   if (!project) return null;
-  return { ...project, progress: progressPercent(project.milestones) };
+  return {
+    ...project,
+    progress: progressPercent(project.milestones),
+    // An allow-list: internal task statuses only feed the progress figure, and
+    // email delivery bookkeeping is the admin's business.
+    milestones: project.milestones.map((m) => ({
+      id: m.id,
+      title: m.title,
+      description: m.description,
+      status: m.status,
+      dueDate: m.dueDate,
+      completedAt: m.completedAt,
+      reviews: m.reviews.map((r) => ({
+        id: r.id,
+        status: r.status,
+        note: r.note,
+        link: r.link,
+        requestedAt: r.requestedAt,
+        respondedAt: r.respondedAt,
+        response: r.response,
+        respondedBy: r.respondedBy,
+      })),
+    })),
+  };
 }
 
 export const MESSAGE_PAGE_SIZE = 100;
@@ -130,11 +192,14 @@ export async function getAdminProjectDetail(projectId: string) {
       members: {
         orderBy: { createdAt: 'asc' },
         include: {
-          user: { select: { id: true, email: true, name: true, lastLoginAt: true, passwordHash: true } },
+          user: { select: { id: true, email: true, name: true, timeZone: true, lastLoginAt: true, passwordHash: true } },
         },
       },
       invitations: { orderBy: { createdAt: 'desc' } },
-      milestones: { orderBy: byOrder },
+      milestones: {
+        orderBy: byOrder,
+        include: { tasks: { select: { status: true } }, reviews: reviewsSelect },
+      },
       tasks: { orderBy: byOrder },
     },
   });

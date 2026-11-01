@@ -402,7 +402,8 @@
       "noMilestones": "لا توجد مراحل بعد",
       "phase": "المرحلة: {phase}",
       "eta": "الإنجاز المتوقع: {date}",
-      "updated": "آخر تحديث: {date}"
+      "updated": "آخر تحديث: {date}",
+      "needsApproval": "بانتظار موافقتك"
     },
     "status": {
       "planning": "التخطيط",
@@ -498,7 +499,26 @@
       "overviewNoMessages": "لا توجد رسائل بعد.",
       "overviewFilesCount": "{count, plural, one {ملف واحد مشترك} two {ملفان مشتركان} few {# ملفات مشتركة} other {# ملفاً مشتركاً}}",
       "overviewViewAll": "عرض كل {section}",
-      "activityLegend": "دليل الألوان"
+      "activityLegend": "دليل الألوان",
+      "reviewAwaiting": "بانتظار موافقتك",
+      "reviewReadyTitle": "جاهزة لموافقتك",
+      "reviewSentOn": "أُرسلت للموافقة في {date}",
+      "reviewOpenLink": "فتح المعاينة",
+      "reviewApproveHint": "الموافقة تؤكد اكتمال العمل في هذه المرحلة. إذا كان هناك ما يجب تغييره، فأخبرني به وسأعدّله.",
+      "reviewApprove": "موافقة",
+      "reviewApproving": "جارٍ تأكيد الموافقة…",
+      "reviewRequestChanges": "طلب تعديلات",
+      "reviewChangesLabel": "ما الذي يجب تغييره؟",
+      "reviewSendChanges": "إرسال",
+      "reviewSending": "جارٍ الإرسال…",
+      "reviewCancel": "إلغاء",
+      "reviewApprovedBy": "تمت الموافقة من قِبل {name} في {date}",
+      "reviewChangesBy": "طلب تعديلات من {name} في {date}",
+      "reviewThanksApproved": "شكراً، تمت الموافقة على هذه المرحلة.",
+      "reviewThanksChanges": "شكراً، تم إرسال ملاحظاتك. سأخبرك عندما تصبح التعديلات جاهزة.",
+      "overviewAwaitingApproval": "{count, plural, one {مرحلة واحدة بانتظار موافقتك} two {مرحلتان بانتظار موافقتك} few {# مراحل بانتظار موافقتك} many {# مرحلة بانتظار موافقتك} other {# مرحلة بانتظار موافقتك}}",
+      "meetingAddToCalendar": "إضافة إلى التقويم",
+      "meetingTimeZoneHint": "الأوقات بحسب منطقتك الزمنية ({zone})."
     },
     "activity": {
       "PROJECT_CREATED": "تم إنشاء المشروع",
@@ -516,7 +536,10 @@
       "MEETING_RESCHEDULED": "اقتراح موعد جديد للاجتماع: {title}",
       "MEETING_CONFIRMED": "تأكيد الاجتماع: {title}",
       "MEETING_CANCELLED": "إلغاء الاجتماع: {title}",
-      "PROPOSAL_ACCEPTED": "تمت الموافقة على العرض من قِبل {name}"
+      "PROPOSAL_ACCEPTED": "تمت الموافقة على العرض من قِبل {name}",
+      "MILESTONE_REVIEW_REQUESTED": "بانتظار موافقتك: {title}",
+      "MILESTONE_APPROVED": "تمت الموافقة على «{title}» من قِبل {name}",
+      "MILESTONE_CHANGES_REQUESTED": "طلب تعديلات على «{title}» من {name}"
     },
     "errors": {
       "generic": "حدث خطأ ما. يرجى المحاولة مرة أخرى.",
@@ -549,7 +572,8 @@
       "meetingChanged": "تم تعديل هذا الاجتماع للتو. أعد تحميل الصفحة وحاول مجدداً.",
       "proposalInvalid": "رابط العرض هذا غير صالح.",
       "proposalExpired": "انتهت صلاحية هذا العرض. لا يزال بإمكانك طلب تعديلات.",
-      "proposalClosed": "سبق الرد على هذا العرض أو تم استبداله. أعد تحميل الصفحة."
+      "proposalClosed": "سبق الرد على هذا العرض أو تم استبداله. أعد تحميل الصفحة.",
+      "reviewNotPending": "لم تعد هذه المرحلة بانتظار الموافقة. أعد تحميل الصفحة."
     },
     "forbidden": {
       "title": "ليست لديك صلاحية الوصول إلى هذا المشروع",
@@ -706,6 +730,12 @@
         "subject": "تم إلغاء الاجتماع: {title}",
         "heading": "تم إلغاء الاجتماع",
         "body": "ألغى {actor} اجتماع «{title}» الخاص بمشروع «{project}»."
+      },
+      "calendarAttached": "افتح الملف المرفق meeting.ics لإضافة الاجتماع إلى تقويمك أو تحديثه فيه.",
+      "reminder": {
+        "subject": "تذكير: موعد «{title}» يقترب",
+        "heading": "تذكير: «{title}»",
+        "body": "موعد اجتماعك في مشروع «{project}» يقترب:"
       }
     },
     "proposal": {
@@ -736,6 +766,25 @@
         "body": "تم رفض الإصدار {version} من العرض من قِبل {client}. أصبحت حالة الطلب «خاسر».",
         "cta": "فتح العرض"
       }
+    },
+    "review": {
+      "subject": "يرجى مراجعة «{milestone}» ({project})",
+      "heading": "«{milestone}» جاهزة لموافقتك",
+      "body": "أنهيتُ «{milestone}» في مشروع «{project}». يرجى الاطلاع عليها، ثم الموافقة أو إخباري بما يجب تغييره.",
+      "cta": "المراجعة والموافقة"
+    },
+    "reviewResponse": {
+      "approved": {
+        "subject": "تمت الموافقة على «{milestone}» من قِبل {client} ({project})",
+        "heading": "تمت الموافقة على المرحلة",
+        "body": "تمت موافقة {client} على «{milestone}» في مشروع «{project}». أصبحت مكتملة."
+      },
+      "changes": {
+        "subject": "طلب تعديلات على «{milestone}» من {client} ({project})",
+        "heading": "طلب تعديلات",
+        "body": "طلب تعديلات من {client} على «{milestone}» في مشروع «{project}»:"
+      },
+      "cta": "فتح المشروع"
     }
   }
 }

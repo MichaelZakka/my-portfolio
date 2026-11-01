@@ -8,12 +8,15 @@ import {
   verifyPortalSessionToken,
 } from '../auth';
 import { prisma } from '../db';
+import { resolveTimeZone } from './format';
 
 export type PortalUser = {
   id: string;
   email: string;
   name: string;
   locale: string;
+  /** Resolved IANA zone for formatting: the browser's (saved by TimeZoneSync) or the portal default. */
+  timeZone: string;
 };
 
 /**
@@ -34,6 +37,7 @@ export const getPortalUser = cache(async (): Promise<PortalUser | null> => {
       email: true,
       name: true,
       locale: true,
+      timeZone: true,
       role: true,
       passwordHash: true,
       sessionVersion: true,
@@ -49,7 +53,13 @@ export const getPortalUser = cache(async (): Promise<PortalUser | null> => {
     return null;
   }
 
-  return { id: user.id, email: user.email, name: user.name, locale: user.locale };
+  return {
+    id: user.id,
+    email: user.email,
+    name: user.name,
+    locale: user.locale,
+    timeZone: resolveTimeZone(user.timeZone),
+  };
 });
 
 function sessionCookieOptions(maxAge: number) {

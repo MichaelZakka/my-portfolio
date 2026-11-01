@@ -77,7 +77,16 @@ export function LiveProvider({
   return <LiveContext.Provider value={{ data, refresh }}>{children}</LiveContext.Provider>;
 }
 
-export function MessagesSection({ projectId, archived }: { projectId: string; archived: boolean }) {
+/** preview: the admin's read-only "view as client" (no composer, no archived notice). */
+export function MessagesSection({
+  projectId,
+  archived,
+  preview = false,
+}: {
+  projectId: string;
+  archived: boolean;
+  preview?: boolean;
+}) {
   const t = useTranslations('portal.project');
   const { data, refresh } = useLive();
   const threadRef = useRef<HTMLOListElement>(null);
@@ -154,7 +163,7 @@ export function MessagesSection({ projectId, archived }: { projectId: string; ar
         {archived ? (
           <p className={styles.chatClosed}>{t('replyDisabledArchived')}</p>
         ) : (
-          <ReplyForm projectId={projectId} onSent={() => refresh(['messages', 'activity'])} />
+          !preview && <ReplyForm projectId={projectId} onSent={() => refresh(['messages', 'activity'])} />
         )}
       </div>
     </section>
@@ -164,10 +173,12 @@ export function MessagesSection({ projectId, archived }: { projectId: string; ar
 export function FilesSection({
   projectId,
   archived,
+  preview = false,
   upload,
 }: {
   projectId: string;
   archived: boolean;
+  preview?: boolean;
   upload: { maxBytes: number; maxSizeLabel: string; accept: string };
 }) {
   const t = useTranslations('portal.project');
@@ -205,7 +216,7 @@ export function FilesSection({
           ))}
         </ul>
       )}
-      {!archived && (
+      {!archived && !preview && (
         <FileUploadForm projectId={projectId} {...upload} onUploaded={() => refresh(['files', 'activity'])} />
       )}
     </section>

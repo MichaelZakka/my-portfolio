@@ -446,6 +446,7 @@ export async function acceptProposal(input: {
           title: phase.title,
           description: phase.description,
           order,
+          estimatedDays: phase.durationDays,
           dueDate: schedule.ends[order],
         })),
       });

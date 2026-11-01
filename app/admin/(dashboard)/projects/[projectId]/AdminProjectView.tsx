@@ -84,13 +84,13 @@ export default function AdminProjectView({ initialView, initialTab, upload }: Pr
           )}
         </div>
         <a
-          href={`/portal/projects/${project.id}`}
+          href={`/portal/preview/${project.id}`}
           className={`${styles.button} ${styles.buttonSecondary}`}
           target="_blank"
-          rel="noopener noreferrer"
+          rel="noopener"
         >
           <ExternalLink size={15} aria-hidden="true" />
-          Client view (needs a client login)
+          View as client
         </a>
       </div>
 

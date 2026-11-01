@@ -17,7 +17,13 @@ export async function GET(request: Request, { params }: RouteParams) {
   if (!auth.ok) return auth.response;
 
   const [meetings, locale] = await Promise.all([getProjectMeetings(auth.project.id), getPortalLocale()]);
-  return NextResponse.json({ meetings: presentMeetings(meetings, 'client', { locale }) });
+  return NextResponse.json({
+    meetings: presentMeetings(meetings, 'client', {
+      locale,
+      timeZone: auth.user.timeZone,
+      projectId: auth.project.id,
+    }),
+  });
 }
 
 /** A client proposes a meeting; the admin is emailed to accept it or suggest another time. */

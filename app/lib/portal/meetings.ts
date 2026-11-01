@@ -126,6 +126,8 @@ export async function actOnMeeting(
       proposedById: actor.id,
       proposedByRole: actor.role,
       confirmedAt: null,
+      // The new time gets its own reminder once it is confirmed.
+      reminderSentAt: null,
     };
   } else {
     event = 'MEETING_CANCELLED';

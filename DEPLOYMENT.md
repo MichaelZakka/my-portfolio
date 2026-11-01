@@ -110,10 +110,21 @@ uploads in Blob automatically (or set `STORAGE_DRIVER=vercel-blob`).
 | `NEXT_PUBLIC_SITE_URL` | portal emails | canonical URL used in invite/reset links |
 | `RESEND_API_KEY`, `RESEND_FROM_EMAIL` | portal emails | verified domain sender |
 | `PORTAL_NOTIFY_EMAIL` | optional | where clients' messages are emailed |
-| `PORTAL_TIME_ZONE` | optional | IANA zone for timestamps, default `UTC` |
+| `PORTAL_TIME_ZONE` | recommended | your IANA zone (e.g. `Asia/Damascus`): admin screens and your emails. Clients see their own browser's zone; this is only their fallback. Default `UTC` |
+| `CRON_SECRET` | meeting reminders | random string; the reminder job refuses to run without it (see below) |
 | `PORTAL_MAX_UPLOAD_MB` | optional | default 4 (Vercel body limit 4.5 MB) |
 | `BLOB_READ_WRITE_TOKEN` | portal files | added by connecting a Vercel Blob store |
 | `STORAGE_DRIVER`, `STORAGE_LOCAL_DIR` | optional | `local` / `vercel-blob`; local folder (dev) |
+
+**Meeting reminders.** `GET /api/cron/meeting-reminders` emails everyone on the
+project about confirmed meetings starting within the next 36 hours, once per
+meeting (rescheduling resets it). It must be called with
+`Authorization: Bearer $CRON_SECRET`. On Vercel, `vercel.json` schedules it daily
+at 06:00 UTC and Vercel sends the header itself once `CRON_SECRET` is set. On
+your own server, use a crontab entry instead, for example hourly:
+`0 * * * * curl -fsS -H "Authorization: Bearer $CRON_SECRET" https://your-domain/api/cron/meeting-reminders`.
+Calendar files (`.ics`, attached to confirmation emails and downloadable from
+each meeting) also carry their own reminders, a day and an hour before.
 
 ### 6. Demo data
 

@@ -11,6 +11,8 @@ import styles from '../../../portal.module.css';
 export type MilestoneSummary = {
   done: number;
   total: number;
+  /** Milestones with an open approval request. */
+  awaitingApproval: number;
   current: { title: string; status: string; statusLabel: string; dueLabel: string | null; tasksLeft: number } | null;
 };
 
@@ -33,6 +35,9 @@ export default function OverviewPanel({ stats, milestones }: { stats: ReactNode;
 
       <div className={styles.overviewGrid}>
         <SummaryCard tab="milestones" icon={<Flag size={18} aria-hidden="true" />} title={t('milestonesTitle')}>
+          {milestones.awaitingApproval > 0 && (
+            <p className={styles.summaryAlert}>{t('overviewAwaitingApproval', { count: milestones.awaitingApproval })}</p>
+          )}
           {milestones.total === 0 ? (
             <p className={styles.empty}>{t('milestonesEmpty')}</p>
           ) : milestones.current ? (

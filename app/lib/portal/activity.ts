@@ -15,6 +15,9 @@ export type ActivityMeta = {
   INVITE_ACCEPTED: { name: string; emailSent?: boolean; emailError?: string | null };
   MILESTONE_CREATED: { milestoneId: string; title: string };
   MILESTONE_COMPLETED: { milestoneId: string; title: string };
+  MILESTONE_REVIEW_REQUESTED: ReviewMeta;
+  MILESTONE_APPROVED: ReviewMeta & { name: string };
+  MILESTONE_CHANGES_REQUESTED: ReviewMeta & { name: string };
   TASK_CREATED: { taskId: string; title: string };
   TASK_COMPLETED: { taskId: string; title: string };
   MESSAGE_SENT: { messageId: string; senderName: string };
@@ -28,6 +31,7 @@ export type ActivityMeta = {
 };
 
 type MeetingMeta = { meetingId: string; title: string; emailSent?: boolean; emailError?: string | null };
+type ReviewMeta = { milestoneId: string; reviewId: string; title: string };
 
 const statusLabel = (status: string) => (isProjectStatus(status) ? PROJECT_STATUS_LABELS[status] : status);
 
@@ -37,6 +41,9 @@ const SUMMARIES: { [T in ActivityType]: (meta: ActivityMeta[T]) => string } = {
   INVITE_ACCEPTED: (m) => `${m.name || 'A client'} accepted the invitation`,
   MILESTONE_CREATED: (m) => `Milestone added: ${m.title}`,
   MILESTONE_COMPLETED: (m) => `Milestone completed: ${m.title}`,
+  MILESTONE_REVIEW_REQUESTED: (m) => `Approval requested: ${m.title}`,
+  MILESTONE_APPROVED: (m) => `${m.name} approved: ${m.title}`,
+  MILESTONE_CHANGES_REQUESTED: (m) => `${m.name} asked for changes: ${m.title}`,
   TASK_CREATED: (m) => `Task added: ${m.title}`,
   TASK_COMPLETED: (m) => `Task completed: ${m.title}`,
   MESSAGE_SENT: (m) => `${m.senderName} sent a message`,

@@ -166,11 +166,15 @@ export const projectUpdateSchema = z
   })
   .refine((value) => Object.values(value).some((v) => v !== undefined), 'Nothing to update.');
 
+/** A milestone's weight in the progress bar; null means "no estimate" (it weighs the average). */
+const estimatedDaysSchema = z.number().int().min(1).max(365).nullable();
+
 export const milestoneCreateSchema = z.object({
   title: z.string().trim().min(1).max(200),
   description: z.string().trim().max(2000).default(''),
   status: z.enum(WORK_STATUSES).default('todo'),
   dueDate: dateOnlySchema.optional(),
+  estimatedDays: estimatedDaysSchema.default(null),
 });
 
 export const milestoneUpdateSchema = z
@@ -179,6 +183,7 @@ export const milestoneUpdateSchema = z
     description: z.string().trim().max(2000).optional(),
     status: z.enum(WORK_STATUSES).optional(),
     dueDate: dateOnlySchema.optional(),
+    estimatedDays: estimatedDaysSchema.optional(),
     move: moveSchema.optional(),
   })
   .refine((value) => Object.values(value).some((v) => v !== undefined), 'Nothing to update.');
@@ -203,3 +208,22 @@ export const taskUpdateSchema = z
   .refine((value) => Object.values(value).some((v) => v !== undefined), 'Nothing to update.');
 
 export const fileUpdateSchema = z.object({ visibleToClient: z.boolean() });
+
+// --- Milestone sign-off -----------------------------------------------------
+
+/** Only absolute http(s) links: the client page renders it as a link. */
+const reviewLinkSchema = z
+  .string()
+  .trim()
+  .max(500)
+  .refine((value) => value === '' || (/^https?:\/\//i.test(value) && URL.canParse(value)), 'Use a full http(s) link.');
+
+export const reviewRequestSchema = z.object({
+  note: z.string().trim().max(2000).default(''),
+  link: reviewLinkSchema.default(''),
+});
+
+export const reviewResponseSchema = z.discriminatedUnion('action', [
+  z.object({ action: z.literal('approve'), comment: z.string().trim().max(2000).default('') }),
+  z.object({ action: z.literal('changes'), comment: z.string().trim().min(1).max(2000) }),
+]);

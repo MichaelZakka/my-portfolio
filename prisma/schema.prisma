@@ -183,6 +183,7 @@ model User {
   role            String    @default("client") // client | admin
   passwordHash    String? // null until an invitation is accepted
   locale          String    @default("en") // en | ar: portal UI and email language
+  timeZone        String? // IANA zone from the client's browser (portal times and emails); null: PORTAL_TIME_ZONE
   sessionVersion  Int       @default(0) // bumped to sign out every session (e.g. password reset)
   emailVerifiedAt DateTime?
   lastLoginAt     DateTime?
@@ -196,6 +197,8 @@ model User {
   uploadedFiles    ProjectFile[]
   activities       Activity[]
   meetingsProposed Meeting[]
+  reviewsRequested MilestoneReview[]    @relation("ReviewRequestedBy")
+  reviewsAnswered  MilestoneReview[]    @relation("ReviewRespondedBy")
 
   @@index([role])
 }
@@ -214,7 +217,7 @@ model Project {
   createdAt           DateTime  @default(now())
   updatedAt           DateTime  @updatedAt
 
-  request     Lead?           @relation(fields: [requestId], references: [id], onDelete: SetNull)
+  request     Lead?             @relation(fields: [requestId], references: [id], onDelete: SetNull)
   members     ProjectMember[]
   invitations Invitation[]
   milestones  Milestone[]
@@ -223,6 +226,7 @@ model Project {
   files       ProjectFile[]
   activities  Activity[]
   meetings    Meeting[]
+  reviews     MilestoneReview[]
 
   @@index([createdAt])
   @@index([status])
@@ -284,22 +288,53 @@ model PasswordResetToken {
 }
 
 model Milestone {
-  id          String    @id @default(cuid())
-  projectId   String
-  title       String
-  description String    @default("")
-  status      String    @default("todo")
-  order       Int       @default(0)
-  dueDate     DateTime?
-  completedAt DateTime?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id            String    @id @default(cuid())
+  projectId     String
+  title         String
+  description   String    @default("")
+  status        String    @default("todo")
+  order         Int       @default(0)
+  estimatedDays Int? // its weight in the progress bar; set from the proposal's phase durations
+  dueDate       DateTime?
+  completedAt   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
-  project  Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  project  Project           @relation(fields: [projectId], references: [id], onDelete: Cascade)
   tasks    Task[]
   meetings Meeting[]
+  reviews  MilestoneReview[]
 
   @@index([projectId, order])
+}
+
+// One sign-off round: the admin asks the client to approve a milestone; any
+// client member approves it (marking it done) or asks for changes (reopening
+// it). Rounds are never deleted, so the history shows who approved what, when,
+// and how many revision rounds a milestone took.
+model MilestoneReview {
+  id            String    @id @default(cuid())
+  projectId     String
+  milestoneId   String
+  status        String    @default("pending") // pending | approved | changes_requested | withdrawn
+  note          String    @default("") // what the client should check
+  link          String    @default("") // optional http(s) preview link
+  requestedById String?
+  requestedAt   DateTime  @default(now())
+  respondedById String?
+  respondedAt   DateTime?
+  response      String? // the requested changes, or an optional comment with the approval
+  // Notification to the clients (Resend), recorded like Message.emailSent
+  emailSent     Boolean   @default(false)
+  emailError    String?
+
+  project     Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  milestone   Milestone @relation(fields: [milestoneId], references: [id], onDelete: Cascade)
+  requestedBy User?     @relation("ReviewRequestedBy", fields: [requestedById], references: [id], onDelete: SetNull)
+  respondedBy User?     @relation("ReviewRespondedBy", fields: [respondedById], references: [id], onDelete: SetNull)
+
+  @@index([milestoneId, requestedAt])
+  @@index([projectId, status])
 }
 
 model Task {
@@ -374,6 +409,7 @@ model Meeting {
   proposedByRole  String // client | admin
   confirmedAt     DateTime?
   cancelledAt     DateTime?
+  reminderSentAt  DateTime? // the day-before reminder; cleared when the time changes
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 

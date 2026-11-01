@@ -1,7 +1,7 @@
 'use client';
 
 import { FormEvent, useState } from 'react';
-import { ArrowDown, ArrowUp, Trash2 } from 'lucide-react';
+import { ArrowDown, ArrowUp, BadgeCheck, Trash2 } from 'lucide-react';
 import { WORK_STATUSES, WORK_STATUS_LABELS } from '../../../../lib/portal/constants';
 import { jsonInit, useAdminAction } from '../useAdminAction';
 import styles from '../../../admin.module.css';
@@ -16,9 +16,133 @@ export type AdminMilestone = {
   dueDate: string;
   dueLabel: string | null;
   completedLabel: string | null;
+  /** Whole days as a string ("" = no estimate): the milestone's weight in the progress bar. */
+  estimatedDays: string;
+  review: {
+    pending: { requested: string; note: string; link: string; emailSent: boolean; emailError: string | null } | null;
+    history: { id: string; approved: boolean; by: string; when: string | null; response: string | null }[];
+    changesRounds: number;
+  };
 };
 
 type Action = ReturnType<typeof useAdminAction>;
+
+const daysValue = (value: string) => (value ? Number(value) : null);
+
+/** Sign-off: ask the client to approve, see the pending request, and the latest answer. */
+function ReviewSection({ milestone, url, action }: { milestone: AdminMilestone; url: string; action: Action }) {
+  const { run, pending } = action;
+  const { review } = milestone;
+  const [open, setOpen] = useState(false);
+  const [note, setNote] = useState('');
+  const [link, setLink] = useState('');
+  const busy = pending !== null;
+  const latest = review.history[0];
+  const signedOff = milestone.status === 'done' && latest?.approved;
+
+  const send = async (event: FormEvent) => {
+    event.preventDefault();
+    if (await run(`review-${milestone.id}`, `${url}/review`, jsonInit('POST', { note, link }))) {
+      setOpen(false);
+      setNote('');
+      setLink('');
+    }
+  };
+
+  const withdraw = async () => {
+    if (!window.confirm(`Withdraw the approval request for “${milestone.title}”?`)) return;
+    await run(`withdraw-${milestone.id}`, `${url}/review`, jsonInit('DELETE'));
+  };
+
+  if (review.pending) {
+    return (
+      <div className={projectStyles.reviewBox}>
+        <span className={projectStyles.reviewTitle}>Awaiting client approval · requested {review.pending.requested}</span>
+        {review.pending.note && (
+          <span className={projectStyles.itemDescription} dir="auto">
+            {review.pending.note}
+          </span>
+        )}
+        {review.pending.link && (
+          <a href={review.pending.link} target="_blank" rel="noopener noreferrer" className={styles.link}>
+            {review.pending.link}
+          </a>
+        )}
+        {!review.pending.emailSent && review.pending.emailError && (
+          <span className={projectStyles.errorText}>Email not sent: {review.pending.emailError}</span>
+        )}
+        <div>
+          <button type="button" className={`${styles.button} ${styles.buttonSecondary}`} onClick={withdraw} aria-disabled={busy}>
+            {pending === `withdraw-${milestone.id}` ? 'Withdrawing…' : 'Withdraw request'}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      {latest && (
+        <span className={latest.approved ? projectStyles.successText : projectStyles.muted}>
+          {latest.approved ? `Approved by ${latest.by}` : `Changes requested by ${latest.by}`}
+          {latest.when ? ` on ${latest.when}` : ''}
+          {review.changesRounds > 0 &&
+            ` · ${review.changesRounds} revision round${review.changesRounds === 1 ? '' : 's'}`}
+        </span>
+      )}
+      {latest && !latest.approved && latest.response && (
+        <span className={projectStyles.itemDescription} dir="auto">
+          “{latest.response}”
+        </span>
+      )}
+      {open ? (
+        <form className={`${projectStyles.stackForm} ${projectStyles.reviewBox}`} onSubmit={send}>
+          <label className={styles.filterLabel} htmlFor={`review-note-${milestone.id}`}>
+            What should the client check? (optional)
+          </label>
+          <textarea
+            id={`review-note-${milestone.id}`}
+            className={styles.textarea}
+            dir="auto"
+            maxLength={2000}
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+          />
+          <label className={styles.filterLabel} htmlFor={`review-link-${milestone.id}`}>
+            Preview link (optional)
+          </label>
+          <input
+            id={`review-link-${milestone.id}`}
+            className={styles.input}
+            type="url"
+            dir="ltr"
+            placeholder="https://staging.example.com"
+            maxLength={500}
+            value={link}
+            onChange={(e) => setLink(e.target.value)}
+          />
+          <div className={projectStyles.formActions}>
+            <button type="submit" className={`${styles.button} ${styles.buttonPrimary}`} aria-disabled={busy}>
+              {pending === `review-${milestone.id}` ? 'Sending…' : 'Email approval request'}
+            </button>
+            <button type="button" className={`${styles.button} ${styles.buttonSecondary}`} onClick={() => setOpen(false)}>
+              Cancel
+            </button>
+          </div>
+        </form>
+      ) : (
+        !signedOff && (
+          <div>
+            <button type="button" className={`${styles.button} ${styles.buttonSecondary}`} onClick={() => setOpen(true)}>
+              <BadgeCheck size={15} aria-hidden="true" />
+              Request approval
+            </button>
+          </div>
+        )
+      )}
+    </>
+  );
+}
 
 function StatusSelect({ id, value, onChange, busy }: { id: string; value: string; onChange: (value: string) => void; busy?: boolean }) {
   return (
@@ -56,13 +180,15 @@ function MilestoneRow({
   const [title, setTitle] = useState(milestone.title);
   const [description, setDescription] = useState(milestone.description);
   const [dueDate, setDueDate] = useState(milestone.dueDate);
+  const [estimatedDays, setEstimatedDays] = useState(milestone.estimatedDays);
   const busy = pending !== null;
 
   const patch = (key: string, body: Record<string, unknown>) => run(`${key}-${milestone.id}`, url, jsonInit('PATCH', body));
 
   const save = async (event: FormEvent) => {
     event.preventDefault();
-    if (await patch('edit', { title, description, dueDate: dueDate || null })) setEditing(false);
+    const body = { title, description, dueDate: dueDate || null, estimatedDays: daysValue(estimatedDays) };
+    if (await patch('edit', body)) setEditing(false);
   };
 
   const remove = async () => {
@@ -118,6 +244,17 @@ function MilestoneRow({
                 value={dueDate}
                 onChange={(e) => setDueDate(e.target.value)}
               />
+              <input
+                type="number"
+                className={styles.input}
+                aria-label="Estimated days"
+                placeholder="Days"
+                min={1}
+                max={365}
+                style={{ width: '6.5rem' }}
+                value={estimatedDays}
+                onChange={(e) => setEstimatedDays(e.target.value)}
+              />
               <button type="submit" className={`${styles.button} ${styles.buttonPrimary}`} aria-disabled={busy}>
                 {pending === `edit-${milestone.id}` ? 'Saving…' : 'Save'}
               </button>
@@ -136,7 +273,11 @@ function MilestoneRow({
                 : milestone.dueLabel
                   ? `Due ${milestone.dueLabel}`
                   : 'No due date'}
+              {milestone.estimatedDays
+                ? ` · about ${milestone.estimatedDays} days`
+                : ' · no estimate (weighs the average)'}
             </span>
+            <ReviewSection milestone={milestone} url={url} action={action} />
           </>
         )}
       </div>
@@ -174,6 +315,7 @@ export default function MilestonesPanel({ projectId, milestones }: { projectId: 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [dueDate, setDueDate] = useState('');
+  const [estimatedDays, setEstimatedDays] = useState('');
   const [status, setStatus] = useState('todo');
   const base = `/api/admin/projects/${projectId}/milestones`;
 
@@ -182,12 +324,13 @@ export default function MilestonesPanel({ projectId, milestones }: { projectId: 
     const created = await action.run(
       'add',
       base,
-      jsonInit('POST', { title, description, status, dueDate: dueDate || null })
+      jsonInit('POST', { title, description, status, dueDate: dueDate || null, estimatedDays: daysValue(estimatedDays) })
     );
     if (created) {
       setTitle('');
       setDescription('');
       setDueDate('');
+      setEstimatedDays('');
       setStatus('todo');
     }
   };
@@ -198,7 +341,9 @@ export default function MilestonesPanel({ projectId, milestones }: { projectId: 
         <h2 id="milestones-title" className={styles.cardTitle}>
           Milestones
         </h2>
-        <span className={styles.cardMeta}>Always visible to the client · progress = share marked Done</span>
+        <span className={styles.cardMeta}>
+          Always visible to the client · progress weighs each milestone by its estimated days
+        </span>
       </div>
       {action.error && (
         <div className={styles.bannerError} role="alert">
@@ -259,6 +404,20 @@ export default function MilestonesPanel({ projectId, milestones }: { projectId: 
             className={styles.input}
             value={dueDate}
             onChange={(e) => setDueDate(e.target.value)}
+          />
+        </div>
+        <div className={styles.filterField}>
+          <label className={styles.filterLabel} htmlFor="milestone-days">
+            Estimated days
+          </label>
+          <input
+            id="milestone-days"
+            type="number"
+            className={styles.input}
+            min={1}
+            max={365}
+            value={estimatedDays}
+            onChange={(e) => setEstimatedDays(e.target.value)}
           />
         </div>
         <div className={styles.filterField}>

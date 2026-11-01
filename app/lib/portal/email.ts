@@ -104,12 +104,15 @@ ${p(content.footer, 'margin:0;font-size:12px;line-height:1.6;color:#7d8ba3')}
   return { html, text };
 }
 
+type Attachment = { filename: string; content: string; contentType: string };
+
 async function deliver(message: {
   to: string;
   subject: string;
   html: string;
   text: string;
   replyTo?: string;
+  attachments?: Attachment[];
 }): Promise<EmailSendResult> {
   const { configured, apiKey, from } = getResendConfig();
   if (!configured) return { sent: false, error: NOT_CONFIGURED };
@@ -294,17 +297,21 @@ export async function sendClientJoinedEmail(input: {
   });
 }
 
-export type MeetingEmailEvent = 'proposed' | 'rescheduled' | 'confirmed' | 'cancelled';
+export type MeetingEmailEvent = 'proposed' | 'rescheduled' | 'confirmed' | 'cancelled' | 'reminder';
 
 export async function sendMeetingEmail(input: {
   to: string;
   locale: string;
+  /** The recipient's zone: the time in the email is theirs. */
+  timeZone: string;
   event: MeetingEmailEvent;
   actorName: string;
   projectName: string;
   meeting: { title: string; startsAt: Date; durationMinutes: number; location: string; milestoneTitle: string | null };
   url: string;
   replyTo?: string;
+  /** An .ics for "Add to calendar" (confirmations and cancellations). */
+  calendar?: { content: string; contentType: string };
 }): Promise<EmailSendResult> {
   if (!getResendConfig().configured) {
     console.info(`[portal] ${NOT_CONFIGURED} Meeting email to ${input.to} was not sent.`);
@@ -314,7 +321,10 @@ export async function sendMeetingEmail(input: {
   const { meeting } = input;
   const values = { actor: input.actorName, title: meeting.title, project: input.projectName };
   const details = [
-    t('meeting.when', { when: formatDateTime(meeting.startsAt, lang), minutes: String(meeting.durationMinutes) }),
+    t('meeting.when', {
+      when: formatDateTime(meeting.startsAt, lang, input.timeZone),
+      minutes: String(meeting.durationMinutes),
+    }),
     ...(meeting.location ? [t('meeting.where', { location: meeting.location })] : []),
     ...(meeting.milestoneTitle ? [t('meeting.milestone', { milestone: meeting.milestoneTitle })] : []),
   ];
@@ -326,6 +336,7 @@ export async function sendMeetingEmail(input: {
       label: input.event === 'proposed' || input.event === 'rescheduled' ? t('meeting.ctaRespond') : t('meeting.ctaView'),
       url: input.url,
     },
+    ...(input.calendar ? { notes: [t('meeting.calendarAttached')] } : {}),
     footer: t('footer'),
   });
   return deliver({
@@ -333,6 +344,9 @@ export async function sendMeetingEmail(input: {
     subject: t(`meeting.${input.event}.subject`, values),
     replyTo: input.replyTo,
     ...content,
+    ...(input.calendar
+      ? { attachments: [{ filename: 'meeting.ics', content: input.calendar.content, contentType: input.calendar.contentType }] }
+      : {}),
   });
 }
 
@@ -401,6 +415,65 @@ export async function sendProposalResponseEmail(input: {
   return deliver({
     to: input.to,
     subject: t(`proposalResponse.${input.kind}.subject`, values),
+    replyTo: input.clientEmail,
+    ...content,
+  });
+}
+
+/** Asks a client to approve a milestone. */
+export async function sendReviewRequestEmail(input: {
+  to: string;
+  locale: string;
+  projectName: string;
+  milestoneTitle: string;
+  note: string;
+  link: string;
+  url: string;
+}): Promise<EmailSendResult> {
+  if (!getResendConfig().configured) {
+    console.info(`[portal] ${NOT_CONFIGURED} Approval request email to ${input.to} was not sent.`);
+    return { sent: false, error: NOT_CONFIGURED };
+  }
+  const { lang, t } = translator(input.locale);
+  const values = { milestone: input.milestoneTitle, project: input.projectName };
+  const content = renderEmail(lang, {
+    heading: t('review.heading', values),
+    paragraphs: [t('review.body', values)],
+    quote: [input.note, input.link].filter(Boolean).join('\n\n') || undefined,
+    cta: { label: t('review.cta'), url: input.url },
+    footer: t('footer'),
+  });
+  return deliver({ to: input.to, subject: t('review.subject', values), ...content });
+}
+
+/** Tells the admin how a client answered an approval request. */
+export async function sendReviewResponseEmail(input: {
+  to: string;
+  kind: 'approved' | 'changes';
+  clientName: string;
+  clientEmail: string;
+  projectName: string;
+  milestoneTitle: string;
+  comment: string;
+  url: string;
+}): Promise<EmailSendResult> {
+  if (!getResendConfig().configured) {
+    console.info(`[portal] ${NOT_CONFIGURED} Approval response email to ${input.to} was not sent.`);
+    return { sent: false, error: NOT_CONFIGURED };
+  }
+  // Goes to the admin, whose dashboard is English.
+  const { lang, t } = translator('en');
+  const values = { client: input.clientName, milestone: input.milestoneTitle, project: input.projectName };
+  const content = renderEmail(lang, {
+    heading: t(`reviewResponse.${input.kind}.heading`, values),
+    paragraphs: [t(`reviewResponse.${input.kind}.body`, values)],
+    quote: input.comment ? excerpt(input.comment) : undefined,
+    cta: { label: t('reviewResponse.cta'), url: input.url },
+    footer: t('footer'),
+  });
+  return deliver({
+    to: input.to,
+    subject: t(`reviewResponse.${input.kind}.subject`, values),
     replyTo: input.clientEmail,
     ...content,
   });

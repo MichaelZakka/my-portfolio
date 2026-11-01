@@ -2,8 +2,9 @@ import type { PortalLocale } from './constants';
 
 /**
  * Server-side formatting for the portal. Everything is formatted on the server
- * in a fixed time zone, so client components receive plain strings and there
- * is no hydration mismatch between server and browser clocks.
+ * in the viewer's time zone (User.timeZone for clients, PORTAL_TIME_ZONE for
+ * the admin and as the fallback), so client components receive plain strings
+ * and there is no hydration mismatch between server and browser clocks.
  */
 
 /**
@@ -13,15 +14,24 @@ import type { PortalLocale } from './constants';
  */
 const INTL_LOCALE: Record<PortalLocale, string> = { en: 'en-US', ar: 'ar-SY-u-nu-latn' };
 
-export function getPortalTimeZone(): string {
-  const zone = process.env.PORTAL_TIME_ZONE?.trim();
-  if (!zone) return 'UTC';
+export function isValidTimeZone(zone: string): boolean {
   try {
     new Intl.DateTimeFormat('en-US', { timeZone: zone });
-    return zone;
+    return true;
   } catch {
-    return 'UTC';
+    return false;
   }
+}
+
+/** The admin's zone (PORTAL_TIME_ZONE), and the fallback for clients whose browser zone is not known yet. */
+export function getPortalTimeZone(): string {
+  const zone = process.env.PORTAL_TIME_ZONE?.trim();
+  return zone && isValidTimeZone(zone) ? zone : 'UTC';
+}
+
+/** A stored zone if it is valid, otherwise the portal's. */
+export function resolveTimeZone(zone: string | null | undefined): string {
+  return zone && isValidTimeZone(zone) ? zone : getPortalTimeZone();
 }
 
 export function intlLocale(locale: string): string {
@@ -34,22 +44,22 @@ export function formatDate(date: Date, locale: string): string {
 }
 
 /** Explicit fields: Intl rejects dateStyle/timeStyle combined with timeZoneName. */
-export function formatDateTime(date: Date, locale: string): string {
+export function formatDateTime(date: Date, locale: string, timeZone = getPortalTimeZone()): string {
   return new Intl.DateTimeFormat(intlLocale(locale), {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
     hour: 'numeric',
     minute: '2-digit',
-    timeZone: getPortalTimeZone(),
+    timeZone,
     timeZoneName: 'short',
   }).format(date);
 }
 
-/** Pieces for a calendar-style date tile, in the portal time zone. */
-export function formatDateParts(date: Date, locale: string) {
+/** Pieces for a calendar-style date tile, in the viewer's time zone. */
+export function formatDateParts(date: Date, locale: string, timeZone = getPortalTimeZone()) {
   const part = (options: Intl.DateTimeFormatOptions) =>
-    new Intl.DateTimeFormat(intlLocale(locale), { ...options, timeZone: getPortalTimeZone() }).format(date);
+    new Intl.DateTimeFormat(intlLocale(locale), { ...options, timeZone }).format(date);
   return {
     month: part({ month: 'short' }),
     day: part({ day: 'numeric' }),
@@ -59,23 +69,23 @@ export function formatDateParts(date: Date, locale: string) {
 }
 
 /** Time of day only, for chat bubbles (the day is shown by a separator). */
-export function formatTime(date: Date, locale: string): string {
+export function formatTime(date: Date, locale: string, timeZone = getPortalTimeZone()): string {
   return new Intl.DateTimeFormat(intlLocale(locale), {
     hour: 'numeric',
     minute: '2-digit',
-    timeZone: getPortalTimeZone(),
+    timeZone,
   }).format(date);
 }
 
-/** "YYYY-MM-DD" of the calendar day in the portal time zone. */
-export function dayKey(date: Date): string {
-  return new Intl.DateTimeFormat('en-CA', { timeZone: getPortalTimeZone() }).format(date);
+/** "YYYY-MM-DD" of the calendar day in the viewer's time zone. */
+export function dayKey(date: Date, timeZone = getPortalTimeZone()): string {
+  return new Intl.DateTimeFormat('en-CA', { timeZone }).format(date);
 }
 
 /** "Today", "Yesterday", or a full date: the chat's day separators. */
-export function formatDayLabel(date: Date, locale: string, now = new Date()): string {
-  const key = dayKey(date);
-  const days = Math.round((Date.parse(dayKey(now)) - Date.parse(key)) / (24 * 60 * 60 * 1000));
+export function formatDayLabel(date: Date, locale: string, timeZone = getPortalTimeZone(), now = new Date()): string {
+  const key = dayKey(date, timeZone);
+  const days = Math.round((Date.parse(dayKey(now, timeZone)) - Date.parse(key)) / (24 * 60 * 60 * 1000));
   if (days === 0 || days === 1) {
     const label = new Intl.RelativeTimeFormat(intlLocale(locale), { numeric: 'auto' }).format(-days, 'day');
     return label.charAt(0).toLocaleUpperCase(intlLocale(locale)) + label.slice(1);
@@ -84,8 +94,8 @@ export function formatDayLabel(date: Date, locale: string, now = new Date()): st
     weekday: 'long',
     month: 'long',
     day: 'numeric',
-    ...(key.slice(0, 4) === dayKey(now).slice(0, 4) ? {} : { year: 'numeric' }),
-    timeZone: getPortalTimeZone(),
+    ...(key.slice(0, 4) === dayKey(now, timeZone).slice(0, 4) ? {} : { year: 'numeric' }),
+    timeZone,
   }).format(date);
 }
 

@@ -5,6 +5,7 @@ import { progressPercent } from '../../../lib/portal/constants';
 import { apiError, parseJsonBody } from '../../../lib/portal/http';
 import { createInvitation } from '../../../lib/portal/invitations';
 import { createProject } from '../../../lib/portal/projects';
+import { PROGRESS_MILESTONE_SELECT } from '../../../lib/portal/queries';
 import { projectCreateSchema } from '../../../lib/portal/validation';
 
 export async function GET(request: Request) {
@@ -14,7 +15,7 @@ export async function GET(request: Request) {
   const projects = await prisma.project.findMany({
     orderBy: { updatedAt: 'desc' },
     include: {
-      milestones: { select: { status: true } },
+      milestones: { select: PROGRESS_MILESTONE_SELECT },
       members: { select: { user: { select: { email: true, name: true } } } },
     },
   });

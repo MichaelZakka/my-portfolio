@@ -239,7 +239,14 @@ export default function TasksPanel({
         <h2 id="tasks-title" className={styles.cardTitle}>
           Tasks
         </h2>
-        <span className={styles.cardMeta}>Clients only see tasks marked “Visible to client”</span>
+        <span className={styles.cardMeta}>
+          Clients only see tasks marked “Visible to client” ·{' '}
+          <a href={`/portal/preview/${projectId}?tab=milestones`} target="_blank" rel="noopener" className={styles.link}>
+            check in View as client
+          </a>
+          {tasks.some((task) => !task.visibleToClient) &&
+            ` · ${tasks.filter((task) => !task.visibleToClient).length} internal`}
+        </span>
       </div>
       {action.error && (
         <div className={styles.bannerError} role="alert">

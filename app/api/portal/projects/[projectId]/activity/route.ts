@@ -15,5 +15,5 @@ export async function GET(request: Request, { params }: RouteParams) {
     getProjectActivity(auth.project.id, { clientView: true }),
     getPortalTranslations('portal'),
   ]);
-  return NextResponse.json({ activity: presentActivity(activity, labels) });
+  return NextResponse.json({ activity: presentActivity(activity, { ...labels, timeZone: auth.user.timeZone }) });
 }
