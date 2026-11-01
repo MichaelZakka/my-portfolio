@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import { prisma } from '../../../../lib/db';
+import { requireAdminSession } from '../../../../lib/session';
 import { idSchema } from '../../../../lib/portal/validation';
 import NewProjectForm from './NewProjectForm';
 import styles from '../../../admin.module.css';
@@ -14,6 +15,7 @@ export default async function NewProjectPage({
 }: {
   searchParams: Promise<{ requestId?: string }>;
 }) {
+  await requireAdminSession();
   const { requestId } = await searchParams;
   const lead =
     requestId && idSchema.safeParse(requestId).success

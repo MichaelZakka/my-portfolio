@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import type { Prisma } from '@prisma/client';
 import { prisma } from '../../../lib/db';
+import { requireAdminSession } from '../../../lib/session';
 import { LEAD_STATUSES, LEAD_STATUS_LABELS, fromJsonArray, type LeadStatus } from '../../../lib/leads';
 import { PROJECT_TYPE_LABELS } from '../../../lib/projectBrief';
 import StatusBadge from '../../_components/StatusBadge';
@@ -70,6 +71,7 @@ export default async function AdminRequestsPage({
 }: {
   searchParams: Promise<SearchParams>;
 }) {
+  await requireAdminSession();
   const params = await searchParams;
   const where = buildWhere(params);
   const page = Math.max(1, parseInt(params.page ?? '1', 10) || 1);

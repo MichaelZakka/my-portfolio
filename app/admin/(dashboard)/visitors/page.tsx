@@ -7,6 +7,7 @@ import {
   getVisitorCounts,
 } from '../../../lib/analyticsServer';
 import { prisma } from '../../../lib/db';
+import { requireAdminSession } from '../../../lib/session';
 import KpiCard from '../../_components/KpiCard';
 import EmptyState from '../../_components/EmptyState';
 import LineChart from '../../_components/LineChart';
@@ -32,6 +33,7 @@ async function getUtmSources(days: number) {
 }
 
 export default async function AdminVisitorsPage() {
+  await requireAdminSession();
   const [visitorCounts, dailySeries, topPaths, topReferrers, devices, funnel, utmSources] =
     await Promise.all([
       getVisitorCounts(),

@@ -1,4 +1,5 @@
 import { cookies } from 'next/headers';
+import { redirect } from 'next/navigation';
 import { ADMIN_SESSION_COOKIE, verifySessionToken } from './auth';
 
 /** Reads and verifies the admin session cookie from a Server Component / Route Handler. */
@@ -8,11 +9,15 @@ export async function getAdminSession() {
   return verifySessionToken(token);
 }
 
+/**
+ * For admin pages: redirects to the login page without a valid session.
+ * proxy.ts already gates /admin, but every page calls this too so the
+ * dashboard never depends on the proxy alone (layouts are not enough: they
+ * render in parallel with the page and are skipped on client navigation).
+ */
 export async function requireAdminSession() {
   const session = await getAdminSession();
-  if (!session) {
-    throw new Error('UNAUTHENTICATED');
-  }
+  if (!session) redirect('/admin/login');
   return session;
 }
 

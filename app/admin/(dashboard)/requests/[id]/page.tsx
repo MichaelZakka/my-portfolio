@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
 import { prisma } from '../../../../lib/db';
+import { requireAdminSession } from '../../../../lib/session';
 import { fromJsonArray, guessLeadLocale } from '../../../../lib/leads';
 import { PROJECT_TYPE_LABELS, buildWhatsAppMessage } from '../../../../lib/projectBrief';
 import { leadToBriefPayload } from '../../../../lib/leads';
@@ -18,6 +19,7 @@ const WHATSAPP_NUMBER = '963992833739';
 type Params = { params: Promise<{ id: string }> };
 
 export default async function AdminRequestDetailPage({ params }: Params) {
+  await requireAdminSession();
   const { id } = await params;
 
   const lead = await prisma.lead.findUnique({

@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { prisma } from '../../lib/db';
+import { requireAdminSession } from '../../lib/session';
 import { LEAD_STATUS_LABELS, type LeadStatus } from '../../lib/leads';
 import {
   getCtaBreakdown,
@@ -61,6 +62,7 @@ async function getData() {
 }
 
 export default async function AdminOverviewPage() {
+  await requireAdminSession();
   const {
     visitorCounts,
     dailySeries,

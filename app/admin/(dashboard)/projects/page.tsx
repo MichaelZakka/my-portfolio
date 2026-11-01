@@ -2,6 +2,7 @@ import Link from 'next/link';
 import type { Prisma } from '@prisma/client';
 import { Plus } from 'lucide-react';
 import { prisma } from '../../../lib/db';
+import { requireAdminSession } from '../../../lib/session';
 import { progressPercent } from '../../../lib/portal/constants';
 import { ArchivedBadge, ProjectStatusBadge } from '../../_components/ProjectBadges';
 import EmptyState from '../../_components/EmptyState';
@@ -18,6 +19,7 @@ export default async function AdminProjectsPage({
 }: {
   searchParams: Promise<{ view?: string }>;
 }) {
+  await requireAdminSession();
   const { view: rawView } = await searchParams;
   const view: View = rawView && rawView in VIEWS ? (rawView as View) : 'active';
   const where: Prisma.ProjectWhereInput =

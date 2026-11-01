@@ -1,11 +1,16 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '../../../../lib/db';
 import { isLeadStatus, parseLead } from '../../../../lib/leads';
-import { assertSameOrigin } from '../../../../lib/session';
+import { assertSameOrigin, getAdminSession } from '../../../../lib/session';
 
 type RouteParams = { params: Promise<{ id: string }> };
 
+/** Repeats the proxy's admin check on the server (defence in depth). */
+const unauthorized = () => NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
 export async function GET(_request: Request, { params }: RouteParams) {
+  if (!(await getAdminSession())) return unauthorized();
+
   const { id } = await params;
 
   const lead = await prisma.lead.findUnique({
@@ -30,6 +35,7 @@ export async function PATCH(request: Request, { params }: RouteParams) {
   if (!assertSameOrigin(request)) {
     return NextResponse.json({ error: 'Invalid request origin.' }, { status: 403 });
   }
+  if (!(await getAdminSession())) return unauthorized();
 
   const { id } = await params;
 

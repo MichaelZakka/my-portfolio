@@ -9,6 +9,7 @@ import {
   Activity,
 } from 'lucide-react';
 import { prisma } from '../../../lib/db';
+import { requireAdminSession } from '../../../lib/session';
 import { PERSON } from '../../../lib/seo';
 import { STRENGTHS } from '../../../../data/strengths';
 import { PUBLISHED_PROJECTS } from '../../../../data/projects';
@@ -118,6 +119,7 @@ async function getHealthChecks(): Promise<HealthCheck[]> {
 }
 
 export default async function AdminSitePage() {
+  await requireAdminSession();
   const health = await getHealthChecks();
   const okCount = health.filter((c) => c.tone === 'ok').length;
   const warnCount = health.filter((c) => c.tone === 'warn').length;
