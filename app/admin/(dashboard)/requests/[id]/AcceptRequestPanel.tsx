@@ -89,8 +89,8 @@ export default function AcceptRequestPanel({ leadId, clientEmail, defaultLocale,
             </div>
           )}
           <p className={styles.pageSubtitle} style={{ marginBottom: '0.75rem' }}>
-            Accepting creates a project from this brief, marks the request Won and emails {clientEmail} that it
-            was accepted, with a link to join the project in the client portal.
+            Skipping the proposal (for small or repeat jobs) creates the project straight from this brief, marks the
+            request Won and emails {clientEmail} a link to join it in the client portal.
           </p>
           <div className={styles.filterField} style={{ marginBottom: '1rem' }}>
             <label className={styles.filterLabel} htmlFor="accept-locale">
@@ -114,7 +114,7 @@ export default function AcceptRequestPanel({ leadId, clientEmail, defaultLocale,
             style={{ width: '100%', marginBottom: '0.6rem' }}
           >
             <CheckCircle2 size={16} strokeWidth={2} aria-hidden="true" />
-            {pending ? 'Accepting…' : 'Accept and email client'}
+            {pending ? 'Accepting…' : 'Accept without a proposal'}
           </button>
           <Link
             href={`/admin/projects/new?requestId=${leadId}`}

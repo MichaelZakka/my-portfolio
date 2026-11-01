@@ -6,8 +6,11 @@ import { requireAdminSession } from '../../../../lib/session';
 import { fromJsonArray, guessLeadLocale } from '../../../../lib/leads';
 import { PROJECT_TYPE_LABELS, buildWhatsAppMessage } from '../../../../lib/projectBrief';
 import { leadToBriefPayload } from '../../../../lib/leads';
+import { proposalState } from '../../../../lib/portal/constants';
+import { formatDate, formatMoney } from '../../../../lib/portal/format';
 import StatusBadge from '../../../_components/StatusBadge';
 import AcceptRequestPanel from './AcceptRequestPanel';
+import ProposalPanel, { type ProposalRow } from './ProposalPanel';
 import RequestActionsPanel from './RequestActionsPanel';
 import styles from '../../../admin.module.css';
 import detailStyles from './page.module.css';
@@ -27,10 +30,48 @@ export default async function AdminRequestDetailPage({ params }: Params) {
     include: {
       statusEvents: { orderBy: { createdAt: 'desc' } },
       project: { select: { id: true, name: true } },
+      proposals: {
+        orderBy: { version: 'desc' },
+        select: {
+          id: true,
+          version: true,
+          status: true,
+          currency: true,
+          totalAmount: true,
+          sentAt: true,
+          validUntil: true,
+          respondedAt: true,
+          responseNote: true,
+          updatedAt: true,
+        },
+      },
     },
   });
 
   if (!lead) notFound();
+
+  const proposals: ProposalRow[] = lead.proposals.map((proposal) => {
+    const state = proposalState(proposal);
+    const date = (value: Date | null) => (value ? formatDate(value, 'en') : '—');
+    const detail =
+      state === 'draft'
+        ? `Last edited ${date(proposal.updatedAt)}`
+        : state === 'sent'
+          ? `Sent ${date(proposal.sentAt)} · valid until ${date(proposal.validUntil)}`
+          : state === 'expired'
+            ? `Sent ${date(proposal.sentAt)} · expired ${date(proposal.validUntil)}`
+            : proposal.respondedAt
+              ? `Answered ${date(proposal.respondedAt)}`
+              : `Sent ${date(proposal.sentAt)}`;
+    return {
+      id: proposal.id,
+      version: proposal.version,
+      state,
+      total: proposal.totalAmount > 0 ? formatMoney(proposal.totalAmount, proposal.currency, 'en') : 'No price yet',
+      detail,
+      note: state === 'changes_requested' || state === 'declined' ? proposal.responseNote : null,
+    };
+  });
 
   const briefPayload = leadToBriefPayload(lead);
   const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(
@@ -281,6 +322,7 @@ export default async function AdminRequestDetailPage({ params }: Params) {
         </div>
 
         <div>
+          <ProposalPanel leadId={lead.id} converted={Boolean(lead.project)} proposals={proposals} />
           <AcceptRequestPanel
             leadId={lead.id}
             clientEmail={lead.clientEmail}

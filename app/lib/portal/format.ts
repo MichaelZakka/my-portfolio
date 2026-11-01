@@ -106,6 +106,20 @@ export function formatBytes(bytes: number, locale: string): string {
   }).format(value);
 }
 
+/** Proposal prices are whole currency units ("US$1,500", "AED 5,000"). */
+export function formatMoney(amount: number, currency: string, locale: string): string {
+  try {
+    return new Intl.NumberFormat(intlLocale(locale), {
+      style: 'currency',
+      currency,
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(amount);
+  } catch {
+    return `${amount} ${currency}`;
+  }
+}
+
 /** Value for <input type="date">. */
 export function toDateInputValue(date: Date | null): string {
   return date ? date.toISOString().slice(0, 10) : '';

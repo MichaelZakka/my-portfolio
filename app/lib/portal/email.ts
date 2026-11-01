@@ -336,6 +336,76 @@ export async function sendMeetingEmail(input: {
   });
 }
 
+export async function sendProposalEmail(input: {
+  to: string;
+  name: string;
+  locale: string;
+  title: string;
+  total: string;
+  url: string;
+  validUntil: Date;
+}): Promise<EmailSendResult> {
+  if (!getResendConfig().configured) {
+    logLinkFallback('Proposal', input.to, input.url);
+    return { sent: false, error: NOT_CONFIGURED };
+  }
+  const { lang, t } = translator(input.locale);
+  const content = renderEmail(lang, {
+    heading: t('proposal.heading'),
+    paragraphs: [
+      input.name ? t('greeting', { name: input.name }) : t('greetingNoName'),
+      t('proposal.body', { project: input.title }),
+      t('proposal.portal'),
+    ],
+    quote: t('proposal.total', { total: input.total }),
+    cta: { label: t('proposal.cta'), url: input.url },
+    notes: [t('proposal.validity', { date: formatDate(input.validUntil, lang) })],
+    footer: t('footer'),
+  });
+  return deliver({ to: input.to, subject: t('proposal.subject', { project: input.title }), ...content });
+}
+
+export type ProposalResponseKind = 'accepted' | 'changes' | 'declined';
+
+/** Tells the admin how the client answered a proposal. */
+export async function sendProposalResponseEmail(input: {
+  to: string;
+  kind: ProposalResponseKind;
+  clientName: string;
+  clientEmail: string;
+  title: string;
+  version: number;
+  total: string;
+  note: string;
+  url: string;
+}): Promise<EmailSendResult> {
+  if (!getResendConfig().configured) {
+    console.info(`[portal] ${NOT_CONFIGURED} Proposal response email to ${input.to} was not sent.`);
+    return { sent: false, error: NOT_CONFIGURED };
+  }
+  // Goes to the admin, whose dashboard is English.
+  const { lang, t } = translator('en');
+  const values = {
+    client: input.clientName || input.clientEmail,
+    project: input.title,
+    version: String(input.version),
+    total: input.total,
+  };
+  const content = renderEmail(lang, {
+    heading: t(`proposalResponse.${input.kind}.heading`, values),
+    paragraphs: [t(`proposalResponse.${input.kind}.body`, values)],
+    quote: input.note ? excerpt(input.note) : undefined,
+    cta: { label: t(`proposalResponse.${input.kind}.cta`), url: input.url },
+    footer: t('footer'),
+  });
+  return deliver({
+    to: input.to,
+    subject: t(`proposalResponse.${input.kind}.subject`, values),
+    replyTo: input.clientEmail,
+    ...content,
+  });
+}
+
 /** Folds per-recipient results into one { sent, error } for the record (recipients named only when several). */
 export function combineResults(results: { to: string; result: EmailSendResult }[]): EmailSendResult {
   if (results.length === 0) return { sent: false, error: 'No recipients.' };

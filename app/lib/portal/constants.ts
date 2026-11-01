@@ -41,6 +41,7 @@ export const ACTIVITY_TYPES = [
   'MEETING_RESCHEDULED',
   'MEETING_CONFIRMED',
   'MEETING_CANCELLED',
+  'PROPOSAL_ACCEPTED',
 ] as const;
 export type ActivityType = (typeof ACTIVITY_TYPES)[number];
 
@@ -65,6 +66,7 @@ export type ActivityCategory = (typeof ACTIVITY_CATEGORIES)[number];
 
 const ACTIVITY_CATEGORY_OF: Record<ActivityType, ActivityCategory> = {
   PROJECT_CREATED: 'project',
+  PROPOSAL_ACCEPTED: 'project',
   STATUS_CHANGED: 'project',
   CLIENT_INVITED: 'clients',
   INVITE_ACCEPTED: 'clients',
@@ -98,6 +100,40 @@ export type UserRole = (typeof USER_ROLES)[number];
 
 export const PORTAL_LOCALES = ['en', 'ar'] as const;
 export type PortalLocale = (typeof PORTAL_LOCALES)[number];
+
+export const PROPOSAL_STATUSES = ['draft', 'sent', 'changes_requested', 'accepted', 'declined', 'superseded'] as const;
+export type ProposalStatus = (typeof PROPOSAL_STATUSES)[number];
+
+/** A sent proposal past its validUntil shows as expired; the stored status stays "sent". */
+export type ProposalState = ProposalStatus | 'expired';
+
+export const PROPOSAL_STATE_LABELS: Record<ProposalState, string> = {
+  draft: 'Draft',
+  sent: 'Sent',
+  changes_requested: 'Changes requested',
+  accepted: 'Accepted',
+  declined: 'Declined',
+  superseded: 'Replaced',
+  expired: 'Expired',
+};
+
+export const PROPOSAL_CURRENCIES = ['USD', 'EUR', 'GBP', 'AED', 'SAR', 'QAR', 'KWD', 'SYP'] as const;
+export type ProposalCurrency = (typeof PROPOSAL_CURRENCIES)[number];
+
+export const PROPOSAL_DEFAULT_VALID_DAYS = 14;
+export const PROPOSAL_MAX_PHASES = 12;
+export const PROPOSAL_MAX_LIST_ITEMS = 20;
+
+export function proposalState(
+  proposal: { status: string; validUntil: Date | null },
+  now = new Date()
+): ProposalState {
+  const status = (PROPOSAL_STATUSES as readonly string[]).includes(proposal.status)
+    ? (proposal.status as ProposalStatus)
+    : 'draft';
+  if (status === 'sent' && proposal.validUntil && proposal.validUntil.getTime() <= now.getTime()) return 'expired';
+  return status;
+}
 
 export const INVITATION_TTL_DAYS = 7;
 export const PASSWORD_RESET_TTL_MINUTES = 60;

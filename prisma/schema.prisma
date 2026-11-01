@@ -69,6 +69,7 @@ model Lead {
   visualNotes    String
 
   statusEvents LeadStatusEvent[]
+  proposals    Proposal[]
   project      Project? // set once the request is converted into a client project
 
   @@index([createdAt])
@@ -86,6 +87,58 @@ model LeadStatusEvent {
   createdAt  DateTime @default(now())
 
   @@index([leadId])
+}
+
+// A priced scope sent to the person behind a request. One row per version:
+// a sent version is never edited (revising creates the next version), so the
+// client can only accept exactly what they were shown. Accepting creates the
+// project, its milestones and the client's portal account in one transaction
+// and freezes the accepted content in `snapshot` (+ its SHA-256).
+// Allowed values for the String "enums" live in app/lib/portal/constants.ts.
+model Proposal {
+  id             String    @id @default(cuid())
+  leadId         String
+  version        Int
+  status         String    @default("draft") // draft | sent | changes_requested | accepted | declined | superseded
+  locale         String    @default("en") // language the content is written in
+  title          String
+  summary        String    @default("")
+  phases         String    @default("[]") // JSON { title, description, durationDays }[]; become milestones
+  included       String    @default("[]") // JSON string[]
+  excluded       String    @default("[]") // JSON string[]
+  clientProvides String    @default("[]") // JSON string[]
+  currency       String    @default("USD")
+  totalAmount    Int       @default(0) // whole currency units
+  paymentTerms   String    @default("")
+  revisionRounds Int       @default(2)
+  startDate      DateTime? // null: work starts when the client accepts
+  validDays      Int       @default(14)
+
+  // Set when sent. Only the token's SHA-256 is stored, like invitations.
+  recipientEmail String?
+  recipientName  String?
+  tokenHash      String?   @unique
+  sentAt         DateTime?
+  validUntil     DateTime?
+  emailSent      Boolean   @default(false)
+  emailError     String?
+
+  // The client's answer
+  respondedAt     DateTime?
+  responseNote    String? // the requested changes, or why it was declined
+  signerName      String?
+  signerIp        String?
+  signerUserAgent String?
+  snapshot        String? // JSON of exactly what was accepted
+  snapshotHash    String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  lead Lead @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  @@unique([leadId, version])
+  @@index([status])
 }
 
 // Unified analytics event table covering page views + funnel/CTA events.

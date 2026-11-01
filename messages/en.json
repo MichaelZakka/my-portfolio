@@ -183,7 +183,8 @@
       "reset": "Choose a new password",
       "invite": "Accept invitation",
       "projects": "Your projects",
-      "forbidden": "No access"
+      "forbidden": "No access",
+      "proposal": "Proposal"
     },
     "common": {
       "brand": "Michael Zakka",
@@ -373,7 +374,8 @@
       "MEETING_PROPOSED": "Meeting proposed: {title}",
       "MEETING_RESCHEDULED": "New time proposed for meeting: {title}",
       "MEETING_CONFIRMED": "Meeting confirmed: {title}",
-      "MEETING_CANCELLED": "Meeting cancelled: {title}"
+      "MEETING_CANCELLED": "Meeting cancelled: {title}",
+      "PROPOSAL_ACCEPTED": "{name} accepted the proposal"
     },
     "errors": {
       "generic": "Something went wrong. Please try again.",
@@ -403,7 +405,10 @@
       "meetingCancelled": "This meeting was cancelled.",
       "meetingConfirmed": "This meeting is already confirmed.",
       "meetingAwaitingOther": "The other side needs to reply to your proposal.",
-      "meetingChanged": "This meeting was just changed. Reload the page and try again."
+      "meetingChanged": "This meeting was just changed. Reload the page and try again.",
+      "proposalInvalid": "This proposal link isn’t valid.",
+      "proposalExpired": "This proposal has expired. You can still ask for changes.",
+      "proposalClosed": "This proposal was already answered or replaced. Reload the page."
     },
     "forbidden": {
       "title": "You don’t have access to this project",
@@ -428,6 +433,65 @@
       "meetings": "Meetings",
       "messages": "Messages",
       "files": "Files"
+    },
+    "proposal": {
+      "kicker": "Proposal",
+      "preparedFor": "Prepared for {name}",
+      "versionLine": "Version {version} · sent {date}",
+      "validUntil": "Valid until {date}",
+      "validUntilLabel": "Valid until",
+      "overviewTitle": "Overview",
+      "phasesTitle": "Phases and timeline",
+      "phaseDuration": "{days, plural, one {About # day} other {About # days}}",
+      "startLabel": "Start",
+      "startOnAcceptance": "When you accept",
+      "completionLabel": "Estimated completion",
+      "durationLabel": "Total duration",
+      "totalDuration": "{days, plural, one {# day} other {# days}}",
+      "includedTitle": "What’s included",
+      "excludedTitle": "Not included",
+      "clientProvidesTitle": "What I’ll need from you",
+      "investmentTitle": "Investment",
+      "totalLabel": "Total",
+      "paymentLabel": "Payment",
+      "revisionsLabel": "Revisions",
+      "revisions": "{count, plural, =0 {No revision rounds included} one {# round of revisions included} other {# rounds of revisions included}}",
+      "respondTitle": "Your decision",
+      "respondHint": "Accepting starts the project: you’ll get your own space in the client portal to follow progress, message me and share files.",
+      "chooseAction": "What would you like to do?",
+      "actionAccept": "Accept",
+      "actionChanges": "Ask for changes",
+      "actionDecline": "Decline",
+      "email": "Email",
+      "signerName": "Your full name",
+      "agree": "I accept the scope, timeline and price in this proposal.",
+      "newAccountHint": "Create a password for the client portal, where your project will live.",
+      "existingAccountHint": "You already have a portal account. Enter your password to add this project to it.",
+      "createPassword": "Create a password",
+      "confirmPassword": "Confirm password",
+      "yourPassword": "Your password",
+      "acceptSubmit": "Accept and start the project",
+      "accepting": "Accepting…",
+      "changesLabel": "What would you like changed?",
+      "changesSubmit": "Send request",
+      "declineLabel": "Reason (optional)",
+      "declineSubmit": "Decline proposal",
+      "sending": "Sending…",
+      "changesSent": "Thanks, your request was sent. You’ll receive an updated proposal by email.",
+      "declineSent": "Thanks for letting me know. Your answer was sent.",
+      "invalidTitle": "Proposal not found",
+      "invalidText": "This proposal link isn’t valid. Make sure you opened the full link from the email.",
+      "acceptedTitle": "Proposal accepted",
+      "acceptedText": "Accepted by {name} on {date}.",
+      "openProject": "Open the project",
+      "changes_requestedTitle": "Changes requested",
+      "changes_requestedText": "Your request was sent on {date}. You’ll receive an updated proposal by email.",
+      "declinedTitle": "Proposal declined",
+      "declinedText": "This proposal was declined on {date}.",
+      "supersededTitle": "This proposal was replaced",
+      "supersededText": "It is no longer open. If a newer version was sent to you, use the link in the latest email.",
+      "expiredTitle": "This proposal has expired",
+      "expiredText": "It was valid until {date}. Ask for changes below and I’ll send you an updated one."
     }
   },
   "portalEmail": {
@@ -501,6 +565,35 @@
         "subject": "Meeting cancelled: {title}",
         "heading": "Meeting cancelled",
         "body": "{actor} cancelled the meeting “{title}” for “{project}”."
+      }
+    },
+    "proposal": {
+      "subject": "Your proposal for “{project}”",
+      "heading": "Your proposal is ready",
+      "body": "Here’s my proposal for “{project}”: the scope, timeline and price, based on the brief you sent.",
+      "portal": "You can accept it, ask for changes or decline it on the proposal page. Accepting sets up your project space in my client portal.",
+      "total": "Total: {total}",
+      "cta": "Review the proposal",
+      "validity": "This proposal is valid until {date}."
+    },
+    "proposalResponse": {
+      "accepted": {
+        "subject": "{client} accepted the proposal for “{project}”",
+        "heading": "Proposal accepted",
+        "body": "{client} accepted version {version} ({total}). The project and its milestones were created, and the client now has access to the portal.",
+        "cta": "Open the project"
+      },
+      "changes": {
+        "subject": "{client} asked for changes to “{project}”",
+        "heading": "Changes requested",
+        "body": "{client} asked for changes to version {version} of the proposal:",
+        "cta": "Revise the proposal"
+      },
+      "declined": {
+        "subject": "{client} declined the proposal for “{project}”",
+        "heading": "Proposal declined",
+        "body": "{client} declined version {version} of the proposal. The request is now marked Lost.",
+        "cta": "Open the proposal"
       }
     }
   }

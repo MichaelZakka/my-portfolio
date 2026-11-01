@@ -1,10 +1,12 @@
 import {
   PROJECT_STATUS_LABELS,
+  PROPOSAL_STATE_LABELS,
   WORK_STATUS_LABELS,
   isProjectStatus,
   isWorkStatus,
   type InvitationState,
   type ProjectStatus,
+  type ProposalState,
   type WorkStatus,
 } from '../../lib/portal/constants';
 import styles from '../admin.module.css';
@@ -31,6 +33,16 @@ const INVITATION_BADGE: Record<InvitationState, string> = {
   revoked: styles.badgeArchived,
 };
 
+const PROPOSAL_BADGE: Record<ProposalState, string> = {
+  draft: styles.badgeNew,
+  sent: styles.badgeProposal,
+  changes_requested: styles.badgeContacted,
+  accepted: styles.badgeWon,
+  declined: styles.badgeLost,
+  superseded: styles.badgeArchived,
+  expired: styles.badgeLost,
+};
+
 export function ProjectStatusBadge({ status }: { status: string }) {
   const key = isProjectStatus(status) ? status : 'planning';
   return <span className={`${styles.badge} ${PROJECT_BADGE[key]}`}>{PROJECT_STATUS_LABELS[key]}</span>;
@@ -43,6 +55,10 @@ export function WorkStatusBadge({ status }: { status: string }) {
 
 export function InvitationBadge({ state }: { state: InvitationState }) {
   return <span className={`${styles.badge} ${INVITATION_BADGE[state]}`}>{state}</span>;
+}
+
+export function ProposalBadge({ state }: { state: ProposalState }) {
+  return <span className={`${styles.badge} ${PROPOSAL_BADGE[state]}`}>{PROPOSAL_STATE_LABELS[state]}</span>;
 }
 
 export function ArchivedBadge() {

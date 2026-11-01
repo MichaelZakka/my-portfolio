@@ -24,6 +24,7 @@ export type ActivityMeta = {
   MEETING_RESCHEDULED: MeetingMeta;
   MEETING_CONFIRMED: MeetingMeta;
   MEETING_CANCELLED: MeetingMeta;
+  PROPOSAL_ACCEPTED: { proposalId: string; version: number; title: string; name: string };
 };
 
 type MeetingMeta = { meetingId: string; title: string; emailSent?: boolean; emailError?: string | null };
@@ -45,6 +46,7 @@ const SUMMARIES: { [T in ActivityType]: (meta: ActivityMeta[T]) => string } = {
   MEETING_RESCHEDULED: (m) => `New time proposed for meeting: ${m.title}`,
   MEETING_CONFIRMED: (m) => `Meeting confirmed: ${m.title}`,
   MEETING_CANCELLED: (m) => `Meeting cancelled: ${m.title}`,
+  PROPOSAL_ACCEPTED: (m) => `${m.name} accepted proposal v${m.version}`,
 };
 
 /** The one place portal events are recorded. Pass a transaction client to log atomically with the change. */

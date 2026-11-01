@@ -21,9 +21,10 @@ const PUBLIC_PORTAL_PATHS = new Set([
   '/api/portal/auth/forgot-password',
   '/api/portal/auth/reset-password',
   '/api/portal/invitations/accept',
+  '/api/portal/proposals/respond',
   '/api/portal/locale',
 ]);
-const PUBLIC_PORTAL_PREFIXES = ['/portal/invite/', '/portal/reset-password/'];
+const PUBLIC_PORTAL_PREFIXES = ['/portal/invite/', '/portal/reset-password/', '/portal/proposal/'];
 
 const isWithin = (pathname: string, base: string) =>
   pathname === base || pathname.startsWith(`${base}/`);

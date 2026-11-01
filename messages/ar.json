@@ -324,7 +324,8 @@
       "reset": "اختيار كلمة مرور جديدة",
       "invite": "قبول الدعوة",
       "projects": "مشاريعك",
-      "forbidden": "لا تملك صلاحية الوصول"
+      "forbidden": "لا تملك صلاحية الوصول",
+      "proposal": "عرض المشروع"
     },
     "common": {
       "brand": "ميشيل زكا",
@@ -514,7 +515,8 @@
       "MEETING_PROPOSED": "اقتراح اجتماع: {title}",
       "MEETING_RESCHEDULED": "اقتراح موعد جديد للاجتماع: {title}",
       "MEETING_CONFIRMED": "تأكيد الاجتماع: {title}",
-      "MEETING_CANCELLED": "إلغاء الاجتماع: {title}"
+      "MEETING_CANCELLED": "إلغاء الاجتماع: {title}",
+      "PROPOSAL_ACCEPTED": "تمت الموافقة على العرض من قِبل {name}"
     },
     "errors": {
       "generic": "حدث خطأ ما. يرجى المحاولة مرة أخرى.",
@@ -544,7 +546,10 @@
       "meetingCancelled": "تم إلغاء هذا الاجتماع.",
       "meetingConfirmed": "هذا الاجتماع مؤكَّد مسبقاً.",
       "meetingAwaitingOther": "على الطرف الآخر الرد على اقتراحك.",
-      "meetingChanged": "تم تعديل هذا الاجتماع للتو. أعد تحميل الصفحة وحاول مجدداً."
+      "meetingChanged": "تم تعديل هذا الاجتماع للتو. أعد تحميل الصفحة وحاول مجدداً.",
+      "proposalInvalid": "رابط العرض هذا غير صالح.",
+      "proposalExpired": "انتهت صلاحية هذا العرض. لا يزال بإمكانك طلب تعديلات.",
+      "proposalClosed": "سبق الرد على هذا العرض أو تم استبداله. أعد تحميل الصفحة."
     },
     "forbidden": {
       "title": "ليست لديك صلاحية الوصول إلى هذا المشروع",
@@ -569,6 +574,65 @@
       "meetings": "الاجتماعات",
       "messages": "الرسائل",
       "files": "الملفات"
+    },
+    "proposal": {
+      "kicker": "عرض المشروع",
+      "preparedFor": "مُعدّ لـ {name}",
+      "versionLine": "الإصدار {version} · أُرسل في {date}",
+      "validUntil": "صالح حتى {date}",
+      "validUntilLabel": "صالح حتى",
+      "overviewTitle": "نظرة عامة",
+      "phasesTitle": "المراحل والجدول الزمني",
+      "phaseDuration": "{days, plural, one {حوالي يوم واحد} two {حوالي يومين} few {حوالي # أيام} many {حوالي # يوماً} other {حوالي # يوم}}",
+      "startLabel": "البدء",
+      "startOnAcceptance": "عند موافقتك",
+      "completionLabel": "الإنجاز المتوقع",
+      "durationLabel": "المدة الإجمالية",
+      "totalDuration": "{days, plural, one {يوم واحد} two {يومان} few {# أيام} many {# يوماً} other {# يوم}}",
+      "includedTitle": "ما يشمله العرض",
+      "excludedTitle": "ما لا يشمله العرض",
+      "clientProvidesTitle": "ما أحتاجه منك",
+      "investmentTitle": "التكلفة",
+      "totalLabel": "الإجمالي",
+      "paymentLabel": "الدفع",
+      "revisionsLabel": "التعديلات",
+      "revisions": "{count, plural, =0 {لا يشمل جولات تعديل} one {يشمل جولة تعديل واحدة} two {يشمل جولتي تعديل} few {يشمل # جولات تعديل} many {يشمل # جولة تعديل} other {يشمل # جولة تعديل}}",
+      "respondTitle": "قرارك",
+      "respondHint": "الموافقة تبدأ المشروع: ستحصل على مساحة خاصة في بوابة العملاء لمتابعة التقدّم ومراسلتي ومشاركة الملفات.",
+      "chooseAction": "ماذا تريد أن تفعل؟",
+      "actionAccept": "الموافقة",
+      "actionChanges": "طلب تعديلات",
+      "actionDecline": "الرفض",
+      "email": "البريد الإلكتروني",
+      "signerName": "اسمك الكامل",
+      "agree": "أوافق على النطاق والجدول الزمني والسعر الواردة في هذا العرض.",
+      "newAccountHint": "أنشئ كلمة مرور لبوابة العملاء، حيث سيكون مشروعك.",
+      "existingAccountHint": "لديك حساب في البوابة بالفعل. أدخل كلمة المرور لإضافة هذا المشروع إلى حسابك.",
+      "createPassword": "أنشئ كلمة مرور",
+      "confirmPassword": "تأكيد كلمة المرور",
+      "yourPassword": "كلمة المرور",
+      "acceptSubmit": "الموافقة وبدء المشروع",
+      "accepting": "جارٍ تأكيد الموافقة…",
+      "changesLabel": "ما التعديلات التي تريدها؟",
+      "changesSubmit": "إرسال الطلب",
+      "declineLabel": "السبب (اختياري)",
+      "declineSubmit": "رفض العرض",
+      "sending": "جارٍ الإرسال…",
+      "changesSent": "شكراً، تم إرسال طلبك. سيصلك عرض محدّث عبر البريد الإلكتروني.",
+      "declineSent": "شكراً لإعلامي. تم إرسال ردّك.",
+      "invalidTitle": "لم يتم العثور على العرض",
+      "invalidText": "رابط العرض هذا غير صالح. تأكد من فتح الرابط كاملاً من رسالة البريد الإلكتروني.",
+      "acceptedTitle": "تمت الموافقة على العرض",
+      "acceptedText": "تمت الموافقة عليه من قِبل {name} في {date}.",
+      "openProject": "فتح المشروع",
+      "changes_requestedTitle": "تم طلب تعديلات",
+      "changes_requestedText": "أُرسل طلبك في {date}. سيصلك عرض محدّث عبر البريد الإلكتروني.",
+      "declinedTitle": "تم رفض العرض",
+      "declinedText": "تم رفض هذا العرض في {date}.",
+      "supersededTitle": "تم استبدال هذا العرض",
+      "supersededText": "لم يعد هذا العرض متاحاً. إذا أُرسل إليك إصدار أحدث، فاستخدم الرابط في آخر رسالة.",
+      "expiredTitle": "انتهت صلاحية هذا العرض",
+      "expiredText": "كان صالحاً حتى {date}. اطلب التعديلات أدناه وسأرسل إليك عرضاً محدّثاً."
     }
   },
   "portalEmail": {
@@ -642,6 +706,35 @@
         "subject": "تم إلغاء الاجتماع: {title}",
         "heading": "تم إلغاء الاجتماع",
         "body": "ألغى {actor} اجتماع «{title}» الخاص بمشروع «{project}»."
+      }
+    },
+    "proposal": {
+      "subject": "عرضك لمشروع «{project}»",
+      "heading": "عرض مشروعك جاهز",
+      "body": "إليك عرضي لمشروع «{project}»: النطاق والجدول الزمني والسعر، بناءً على التفاصيل التي أرسلتها.",
+      "portal": "يمكنك الموافقة عليه أو طلب تعديلات أو رفضه من صفحة العرض. وعند الموافقة تُنشأ مساحة خاصة بمشروعك في بوابة العملاء.",
+      "total": "الإجمالي: {total}",
+      "cta": "مراجعة العرض",
+      "validity": "هذا العرض صالح حتى {date}."
+    },
+    "proposalResponse": {
+      "accepted": {
+        "subject": "تمت الموافقة على عرض «{project}» من قِبل {client}",
+        "heading": "تمت الموافقة على العرض",
+        "body": "تمت موافقة {client} على الإصدار {version} ({total}). تم إنشاء المشروع ومراحله ومنح العميل حق الوصول إلى البوابة.",
+        "cta": "فتح المشروع"
+      },
+      "changes": {
+        "subject": "طلب تعديلات على «{project}» من {client}",
+        "heading": "طلب تعديلات",
+        "body": "طلب تعديلات من {client} على الإصدار {version} من العرض:",
+        "cta": "تعديل العرض"
+      },
+      "declined": {
+        "subject": "تم رفض عرض «{project}» من قِبل {client}",
+        "heading": "تم رفض العرض",
+        "body": "تم رفض الإصدار {version} من العرض من قِبل {client}. أصبحت حالة الطلب «خاسر».",
+        "cta": "فتح العرض"
       }
     }
   }

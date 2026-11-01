@@ -4,6 +4,9 @@ import {
   MESSAGE_MAX_LENGTH,
   PORTAL_LOCALES,
   PROJECT_STATUSES,
+  PROPOSAL_CURRENCIES,
+  PROPOSAL_MAX_LIST_ITEMS,
+  PROPOSAL_MAX_PHASES,
   WORK_STATUSES,
 } from './constants';
 import { TOKEN_PATTERN } from './credentials';
@@ -82,6 +85,48 @@ export const meetingActionSchema = z.discriminatedUnion('action', [
 
 export type MeetingCreateInput = z.output<typeof meetingCreateSchema>;
 export type MeetingActionInput = z.output<typeof meetingActionSchema>;
+
+// --- Proposals --------------------------------------------------------------
+
+/** The client's answer on the proposal page (it has no account yet, so the token is the credential). */
+export const proposalResponseSchema = z.discriminatedUnion('action', [
+  z.object({
+    action: z.literal('accept'),
+    token: tokenSchema,
+    signerName: z.string().trim().min(2).max(100),
+    agree: z.literal(true),
+    password: passwordInputSchema,
+  }),
+  z.object({ action: z.literal('changes'), token: tokenSchema, note: z.string().trim().min(1).max(3000) }),
+  z.object({ action: z.literal('decline'), token: tokenSchema, note: z.string().trim().max(3000).default('') }),
+]);
+
+export const proposalPhaseSchema = z.object({
+  title: z.string().trim().min(1).max(200),
+  description: z.string().trim().max(2000).default(''),
+  durationDays: z.number().int().min(1).max(365),
+});
+export type ProposalPhase = z.output<typeof proposalPhaseSchema>;
+
+const proposalListSchema = z.array(z.string().trim().min(1).max(300)).max(PROPOSAL_MAX_LIST_ITEMS);
+
+/** The whole draft, saved at once by the editor. Completeness is checked again when sending. */
+export const proposalUpdateSchema = z.object({
+  locale: localeSchema,
+  title: z.string().trim().min(1).max(200),
+  summary: z.string().trim().max(5000),
+  phases: z.array(proposalPhaseSchema).max(PROPOSAL_MAX_PHASES),
+  included: proposalListSchema,
+  excluded: proposalListSchema,
+  clientProvides: proposalListSchema,
+  currency: z.enum(PROPOSAL_CURRENCIES),
+  totalAmount: z.number().int().min(0).max(100_000_000),
+  paymentTerms: z.string().trim().max(1000),
+  revisionRounds: z.number().int().min(0).max(10),
+  startDate: dateOnlySchema,
+  validDays: z.number().int().min(1).max(90),
+});
+export type ProposalUpdateInput = z.output<typeof proposalUpdateSchema>;
 
 // --- Admin ------------------------------------------------------------------
 
