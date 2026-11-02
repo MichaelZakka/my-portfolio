@@ -697,3 +697,16 @@
     flex-wrap: wrap;
   }
 }
+
+/* Sidebar counts: unread client messages (Projects), open problems (Site) */
+.navBadge {
+  margin-left: auto;
+  min-width: 1.35rem;
+  padding: 0.05rem 0.4rem;
+  border-radius: 999px;
+  background: #e0c04a;
+  color: #0a1628;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-align: center;
+}

@@ -35,6 +35,7 @@ export async function DELETE(request: Request, { params }: RouteParams) {
   const id = parseParam(idSchema, milestoneId);
   if (!id.ok) return id.response;
 
-  if (!(await deleteMilestone(auth.project.id, id.data))) return notFound('Milestone not found.');
+  const actor = await getAdminActor();
+  if (!(await deleteMilestone(auth.project.id, id.data, actor.id))) return notFound('Milestone not found.');
   return NextResponse.json({ success: true });
 }

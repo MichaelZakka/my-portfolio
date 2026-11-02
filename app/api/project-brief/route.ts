@@ -6,6 +6,7 @@ import {
 import { sendProjectBriefEmail } from '../../lib/email';
 import { prisma } from '../../lib/db';
 import { briefToLeadCreateInput } from '../../lib/leads';
+import { reportDeliveryFailure, reportError } from '../../lib/monitoring';
 import { getClientIp, rateLimit } from '../../lib/rateLimit';
 
 export async function POST(request: Request) {
@@ -56,7 +57,8 @@ export async function POST(request: Request) {
     });
     leadId = lead.id;
   } catch (err) {
-    console.error('Failed to save project brief to database:', err);
+    // A lost lead is the costliest failure on the site.
+    await reportError({ source: 'intake', message: 'Could not save a project brief', error: err, path: '/api/project-brief' });
     return NextResponse.json(
       { error: 'Could not save your brief right now. Please try again shortly.' },
       { status: 500 }
@@ -72,11 +74,11 @@ export async function POST(request: Request) {
       data: { emailSent: emailResult.sent, emailError: emailResult.error ?? null },
     });
   } catch (err) {
-    console.error('Failed to record email status on lead:', err);
+    await reportError({ source: 'database', message: 'Could not record the email status on a lead', error: err });
   }
 
   if (!emailResult.sent) {
-    console.error('Project brief email notification failed:', emailResult.error);
+    await reportDeliveryFailure('Project brief email notification failed', emailResult.error);
   }
 
   return NextResponse.json({

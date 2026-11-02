@@ -214,6 +214,9 @@ model Project {
   startedAt           DateTime?
   completedAt         DateTime?
   archivedAt          DateTime?
+  // The admin's side of ProjectMember.lastReadAt / lastNotifiedAt (the admin is not a member).
+  adminLastReadAt     DateTime?
+  adminLastNotifiedAt DateTime?
   createdAt           DateTime  @default(now())
   updatedAt           DateTime  @updatedAt
 
@@ -239,6 +242,11 @@ model ProjectMember {
   userId    String
   role      String   @default("client")
   createdAt DateTime @default(now())
+
+  // Messages: what this client has read, and when they were last emailed about
+  // unread ones (one email per unread batch, see notifyAboutMessage).
+  lastReadAt     DateTime?
+  lastNotifiedAt DateTime?
 
   project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
   user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -358,18 +366,22 @@ model Task {
 }
 
 model Message {
-  id         String   @id @default(cuid())
-  projectId  String
-  senderId   String
-  content    String
-  // Notification to the other party (Resend), recorded like Lead.emailSent
-  emailSent  Boolean  @default(false)
-  emailError String?
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id           String   @id @default(cuid())
+  projectId    String
+  senderId     String
+  content      String
+  // Notification to the other party (Resend), recorded like Lead.emailSent.
+  // emailBatched: no email of its own, because the recipient still had an
+  // unread notification about this conversation.
+  emailSent    Boolean  @default(false)
+  emailError   String?
+  emailBatched Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
-  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  sender  User    @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  project     Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  sender      User          @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  attachments ProjectFile[]
 
   @@index([projectId, createdAt])
 }
@@ -384,12 +396,15 @@ model ProjectFile {
   fileSize        Int
   mimeType        String
   visibleToClient Boolean  @default(true)
+  messageId       String? // set when the file was sent as a message attachment
   createdAt       DateTime @default(now())
 
-  project    Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  uploadedBy User    @relation(fields: [uploadedById], references: [id], onDelete: Cascade)
+  project    Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  uploadedBy User     @relation(fields: [uploadedById], references: [id], onDelete: Cascade)
+  message    Message? @relation(fields: [messageId], references: [id], onDelete: SetNull)
 
   @@index([projectId, createdAt])
+  @@index([messageId])
 }
 
 // A meeting either side can propose. proposedByRole is the side whose latest
@@ -435,4 +450,25 @@ model Activity {
   actor   User?   @relation(fields: [actorId], references: [id], onDelete: SetNull)
 
   @@index([projectId, createdAt])
+}
+
+// Server problems worth knowing about (failed uploads, email delivery,
+// crashed requests, browser errors), grouped by fingerprint so a recurring
+// problem is one row with a count. The admin is alerted on the first
+// occurrence and again at most hourly while it stays unresolved.
+// See app/lib/monitoring.ts and the Site page.
+model ErrorEvent {
+  id          String    @id @default(cuid())
+  fingerprint String    @unique
+  source      String // e.g. storage | email | request | browser | cron
+  message     String
+  detail      String? // stack or context, truncated
+  path        String?
+  count       Int       @default(1)
+  firstSeenAt DateTime  @default(now())
+  lastSeenAt  DateTime  @default(now())
+  alertedAt   DateTime?
+  resolvedAt  DateTime?
+
+  @@index([resolvedAt, lastSeenAt])
 }

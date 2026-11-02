@@ -39,6 +39,7 @@ export async function DELETE(request: Request, { params }: RouteParams) {
   const id = parseParam(idSchema, taskId);
   if (!id.ok) return id.response;
 
-  if (!(await deleteTask(auth.project.id, id.data))) return notFound('Task not found.');
+  const actor = await getAdminActor();
+  if (!(await deleteTask(auth.project.id, id.data, actor.id))) return notFound('Task not found.');
   return NextResponse.json({ success: true });
 }

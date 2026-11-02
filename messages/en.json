@@ -184,7 +184,8 @@
       "invite": "Accept invitation",
       "projects": "Your projects",
       "forbidden": "No access",
-      "proposal": "Proposal"
+      "proposal": "Proposal",
+      "account": "Your account"
     },
     "common": {
       "brand": "Michael Zakka",
@@ -199,7 +200,8 @@
       "loading": "Loading…",
       "backToProjects": "All projects",
       "notSet": "Not set",
-      "primaryNav": "Portal"
+      "primaryNav": "Portal",
+      "account": "Account"
     },
     "auth": {
       "signInTitle": "Sign in to your client portal",
@@ -262,7 +264,8 @@
       "phase": "Phase: {phase}",
       "eta": "Estimated completion: {date}",
       "updated": "Updated {date}",
-      "needsApproval": "Needs your approval"
+      "needsApproval": "Needs your approval",
+      "unreadMessages": "{count, plural, one {# new message} other {# new messages}}"
     },
     "status": {
       "planning": "Planning",
@@ -377,7 +380,17 @@
       "reviewThanksChanges": "Thanks, your feedback was sent. I’ll let you know when the changes are ready.",
       "overviewAwaitingApproval": "{count, plural, one {# milestone awaits your approval} other {# milestones await your approval}}",
       "meetingAddToCalendar": "Add to calendar",
-      "meetingTimeZoneHint": "Times are in your time zone ({zone})."
+      "meetingTimeZoneHint": "Times are in your time zone ({zone}).",
+      "loadOlder": "Show earlier messages",
+      "loadingOlder": "Loading…",
+      "newMessages": "New messages",
+      "attachmentsLabel": "Attachments",
+      "attachFiles": "Attach files",
+      "attachHint": "Attach up to {max} files ({size} together)",
+      "removeAttachment": "Remove {name}",
+      "unreadLabel": "Unread",
+      "overviewUnread": "{count, plural, one {# new message} other {# new messages}}",
+      "overviewAttachmentsOnly": "{count, plural, one {Sent an attachment} other {Sent # attachments}}"
     },
     "activity": {
       "PROJECT_CREATED": "Project created",
@@ -432,7 +445,9 @@
       "proposalInvalid": "This proposal link isn’t valid.",
       "proposalExpired": "This proposal has expired. You can still ask for changes.",
       "proposalClosed": "This proposal was already answered or replaced. Reload the page.",
-      "reviewNotPending": "This milestone is no longer awaiting approval. Reload the page."
+      "reviewNotPending": "This milestone is no longer awaiting approval. Reload the page.",
+      "tooManyFiles": "Attach at most {max} files to one message.",
+      "wrongCurrentPassword": "Your current password isn’t correct."
     },
     "forbidden": {
       "title": "You don’t have access to this project",
@@ -516,6 +531,38 @@
       "supersededText": "It is no longer open. If a newer version was sent to you, use the link in the latest email.",
       "expiredTitle": "This proposal has expired",
       "expiredText": "It was valid until {date}. Ask for changes below and I’ll send you an updated one."
+    },
+    "errorPage": {
+      "title": "Something went wrong",
+      "text": "This page couldn’t be shown. The problem has been reported; please try again in a moment.",
+      "retry": "Try again",
+      "home": "Back to your projects"
+    },
+    "account": {
+      "title": "Your account",
+      "subtitle": "Your name, language and password for the client portal.",
+      "profileTitle": "Profile",
+      "name": "Your name",
+      "email": "Email",
+      "emailHint": "Your sign-in address. To change it, ask me in a message.",
+      "save": "Save",
+      "saving": "Saving…",
+      "saved": "Saved.",
+      "languageTitle": "Language",
+      "languageHint": "Used for the portal and for the emails you receive.",
+      "timeZone": "Times are shown in your time zone, {zone}, detected from your browser.",
+      "passwordTitle": "Password",
+      "currentPassword": "Current password",
+      "newPassword": "New password",
+      "confirmPassword": "Confirm new password",
+      "passwordSignsOut": "Changing it signs you out on your other devices.",
+      "changePassword": "Change password",
+      "passwordChanged": "Password changed. You’re still signed in here; your other devices were signed out.",
+      "devicesTitle": "Devices",
+      "devicesHint": "Signed in somewhere you no longer use? Sign out everywhere else.",
+      "lastSignIn": "Last sign-in: {date}. Signed in somewhere you no longer use? Sign out everywhere else.",
+      "signOutOthers": "Sign out on all other devices",
+      "signedOutOthers": "Done. Every other device has been signed out."
     }
   },
   "portalEmail": {
@@ -549,7 +596,12 @@
       "subject": "New message on “{project}”",
       "heading": "New message from {sender}",
       "body": "There’s a new message on “{project}”:",
-      "cta": "Open the conversation"
+      "cta": "Open the conversation",
+      "subjectMany": "{count} new messages on “{project}”",
+      "headingMany": "{count} new messages",
+      "bodyMany": "You have {count} unread messages on “{project}”. The latest, from {sender}:",
+      "attachmentOnly": "(sent an attachment)",
+      "attachments": "{count, plural, one {# attachment is} other {# attachments are}} waiting in the conversation."
     },
     "status": {
       "subject": "“{project}” is now {status}",

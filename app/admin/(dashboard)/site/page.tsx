@@ -7,8 +7,13 @@ import {
   ShieldCheck,
   Globe,
   Activity,
+  BellRing,
+  HeartPulse,
 } from 'lucide-react';
 import { prisma } from '../../../lib/db';
+import { alertChannels } from '../../../lib/monitoring';
+import { formatDateTime } from '../../../lib/portal/format';
+import ProblemsPanel, { type Problem } from './ProblemsPanel';
 import { requireAdminSession } from '../../../lib/session';
 import { PERSON } from '../../../lib/seo';
 import { STRENGTHS } from '../../../../data/strengths';
@@ -52,6 +57,8 @@ const ICON_BY_ID = {
   auth: ShieldCheck,
   siteUrl: Globe,
   analytics: Activity,
+  alerts: BellRing,
+  uptime: HeartPulse,
 } as const;
 
 function StatusIcon({ tone }: { tone: HealthTone }) {
@@ -69,13 +76,15 @@ async function getHealthChecks(): Promise<HealthCheck[]> {
     process.env.ADMIN_EMAIL && process.env.ADMIN_PASSWORD_HASH && process.env.AUTH_SECRET
   );
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim();
+  const channels = alertChannels();
+  const openProblems = await prisma.errorEvent.count({ where: { resolvedAt: null } });
 
   return [
     {
       id: 'database',
       label: 'Database connection',
       tone: 'ok',
-      detail: 'SQLite / Prisma is connected and accepting writes.',
+      detail: 'Postgres (Prisma) is connected and accepting writes.',
       meta: [
         { label: 'Requests', value: leadsCount },
         { label: 'Events', value: analyticsCount },
@@ -115,12 +124,48 @@ async function getHealthChecks(): Promise<HealthCheck[]> {
           : 'No events recorded yet — will populate once the site receives traffic.',
       meta: [{ label: 'Events recorded', value: analyticsCount }],
     },
+    {
+      id: 'alerts',
+      label: 'Problem alerts',
+      tone: channels.webhook || channels.email ? 'ok' : 'bad',
+      detail: channels.webhook
+        ? `Problems are emailed to ${channels.to} and posted to the alert webhook.`
+        : channels.email
+          ? `Problems are emailed to ${channels.to}. Add ALERT_WEBHOOK_URL (Slack/Discord) so you still hear about it when email itself fails.`
+          : 'Nothing can alert you: set RESEND_API_KEY and/or ALERT_WEBHOOK_URL. Problems are still listed below.',
+      meta: [{ label: 'Open problems', value: openProblems }],
+    },
+    {
+      id: 'uptime',
+      label: 'Uptime check',
+      tone: 'warn',
+      detail: `Point a free uptime monitor (UptimeRobot, Better Stack…) at ${siteUrl || 'your site URL'}/api/health every 5 minutes. A site that is down cannot alert you itself.`,
+    },
   ];
+}
+
+async function getProblems(): Promise<Problem[]> {
+  const events = await prisma.errorEvent.findMany({
+    where: { resolvedAt: null },
+    orderBy: { lastSeenAt: 'desc' },
+    take: 30,
+  });
+  return events.map((event) => ({
+    id: event.id,
+    source: event.source,
+    message: event.message,
+    detail: event.detail,
+    path: event.path,
+    count: event.count,
+    firstSeen: formatDateTime(event.firstSeenAt, 'en'),
+    lastSeen: formatDateTime(event.lastSeenAt, 'en'),
+    alerted: event.alertedAt ? formatDateTime(event.alertedAt, 'en') : null,
+  }));
 }
 
 export default async function AdminSitePage() {
   await requireAdminSession();
-  const health = await getHealthChecks();
+  const [health, problems] = await Promise.all([getHealthChecks(), getProblems()]);
   const okCount = health.filter((c) => c.tone === 'ok').length;
   const warnCount = health.filter((c) => c.tone === 'warn').length;
   const badCount = health.filter((c) => c.tone === 'bad').length;
@@ -200,6 +245,8 @@ export default async function AdminSitePage() {
           })}
         </div>
       </div>
+
+      <ProblemsPanel problems={problems} />
 
       <div className={styles.grid2}>
         <div className={styles.card}>

@@ -1,7 +1,10 @@
 import { prisma } from '../db';
 import { updateActivityMeta } from './activity';
 import { buildMeetingIcs, icsContentType, type CalendarMeeting } from './calendar';
+import type { EmailSendResult } from '../email';
+import { reportDeliveryFailure } from '../monitoring';
 import { getPortalTimeZone, resolveTimeZone } from './format';
+import { countUnreadForAdmin, countUnreadForClient } from './messages';
 import {
   adminNotifyAddress,
   combineResults,
@@ -30,6 +33,24 @@ async function clientRecipients(projectId: string) {
   return members.map(({ user }) => ({ ...user, timeZone: resolveTimeZone(user.timeZone) }));
 }
 
+/** An email about the conversation that is still unread covers newer messages for this long. */
+const RENOTIFY_AFTER_MS = 24 * 60 * 60 * 1000;
+
+/** True while the recipient's last message email is unread and recent, so a new message rides along with it. */
+function stillNotified(lastNotifiedAt: Date | null, lastReadAt: Date | null, now: Date): boolean {
+  if (!lastNotifiedAt) return false;
+  if (lastReadAt && lastReadAt.getTime() >= lastNotifiedAt.getTime()) return false;
+  return now.getTime() - lastNotifiedAt.getTime() < RENOTIFY_AFTER_MS;
+}
+
+/**
+ * One email per unread batch, not per message: a recipient who has not read
+ * the conversation since their last message email gets no new one (for a
+ * day). When an email does go out it says how many messages are unread and
+ * quotes the newest. Each send is claimed first (lastNotifiedAt), so two
+ * messages arriving together cannot both email, and a failed send releases
+ * the claim so the next message tries again.
+ */
 export async function notifyAboutMessage(input: {
   messageId: string;
   projectId: string;
@@ -38,45 +59,106 @@ export async function notifyAboutMessage(input: {
   senderEmail: string;
   senderRole: string;
   content: string;
+  attachments: number;
 }) {
-  let outcome;
+  const now = new Date();
+  const results: { to: string; result: EmailSendResult }[] = [];
+  let batched = 0;
+  let recipients = 0;
+  const email = {
+    projectName: input.projectName,
+    senderName: input.senderName,
+    content: input.content,
+    attachments: input.attachments,
+  };
+
   if (input.senderRole === 'client') {
-    const to = adminNotifyAddress();
-    const result = await sendNewMessageEmail({
-      to,
-      locale: 'en',
-      projectName: input.projectName,
-      senderName: input.senderName,
-      content: input.content,
-      url: portalUrl(`/admin/projects/${input.projectId}`),
-      replyTo: input.senderEmail,
+    const project = await prisma.project.findUnique({
+      where: { id: input.projectId },
+      select: { adminLastReadAt: true, adminLastNotifiedAt: true },
     });
-    outcome = combineResults([{ to, result }]);
+    if (project) {
+      recipients = 1;
+      const previous = project.adminLastNotifiedAt;
+      const claimed =
+        !stillNotified(previous, project.adminLastReadAt, now) &&
+        (await prisma.project.updateMany({
+          where: { id: input.projectId, adminLastNotifiedAt: previous },
+          data: { adminLastNotifiedAt: now },
+        })).count === 1;
+      if (!claimed) {
+        batched++;
+      } else {
+        const to = adminNotifyAddress();
+        const result = await sendNewMessageEmail({
+          ...email,
+          to,
+          locale: 'en',
+          count: Math.max(1, await countUnreadForAdmin(input.projectId, project.adminLastReadAt)),
+          url: portalUrl(`/admin/projects/${input.projectId}?tab=messages`),
+          replyTo: input.senderEmail,
+        });
+        if (!result.sent) {
+          await prisma.project.updateMany({
+            where: { id: input.projectId, adminLastNotifiedAt: now },
+            data: { adminLastNotifiedAt: previous },
+          });
+        }
+        results.push({ to, result });
+      }
+    }
   } else {
-    const recipients = await clientRecipients(input.projectId);
-    const results = await Promise.all(
-      recipients.map(async (user) => ({
-        to: user.email,
-        result: await sendNewMessageEmail({
-          to: user.email,
-          locale: user.locale,
-          projectName: input.projectName,
-          senderName: input.senderName,
-          content: input.content,
-          url: portalUrl(`/portal/projects/${input.projectId}`),
-        }),
-      }))
+    const members = await prisma.projectMember.findMany({
+      where: { projectId: input.projectId, user: { role: 'client' } },
+      select: {
+        id: true,
+        lastReadAt: true,
+        lastNotifiedAt: true,
+        user: { select: { id: true, email: true, locale: true } },
+      },
+    });
+    recipients = members.length;
+    await Promise.all(
+      members.map(async (member) => {
+        const previous = member.lastNotifiedAt;
+        const claimed =
+          !stillNotified(previous, member.lastReadAt, now) &&
+          (await prisma.projectMember.updateMany({
+            where: { id: member.id, lastNotifiedAt: previous },
+            data: { lastNotifiedAt: now },
+          })).count === 1;
+        if (!claimed) {
+          batched++;
+          return;
+        }
+        const result = await sendNewMessageEmail({
+          ...email,
+          to: member.user.email,
+          locale: member.user.locale,
+          count: Math.max(1, await countUnreadForClient(input.projectId, member.user.id, member.lastReadAt)),
+          url: portalUrl(`/portal/projects/${input.projectId}?tab=messages`),
+        });
+        if (!result.sent) {
+          await prisma.projectMember.updateMany({
+            where: { id: member.id, lastNotifiedAt: now },
+            data: { lastNotifiedAt: previous },
+          });
+        }
+        results.push({ to: member.user.email, result });
+      })
     );
-    outcome = recipients.length
-      ? combineResults(results)
-      : { sent: false, error: 'No client has access to this project yet.' };
   }
 
+  const outcome = results.length ? combineResults(results) : null;
   await prisma.message.update({
     where: { id: input.messageId },
-    data: { emailSent: outcome.sent, emailError: outcome.error ?? null },
+    data: outcome
+      ? { emailSent: outcome.sent, emailError: outcome.error ?? null, emailBatched: false }
+      : recipients > 0
+        ? { emailSent: false, emailError: null, emailBatched: batched > 0 }
+        : { emailSent: false, emailError: 'No client has access to this project yet.', emailBatched: false },
   });
-  if (!outcome.sent) console.error('[portal] Message notification not sent:', outcome.error);
+  if (outcome && !outcome.sent) await reportDeliveryFailure('Message notification not sent', outcome.error);
 }
 
 export async function notifyAboutStatusChange(input: {
@@ -110,7 +192,7 @@ export async function notifyAboutStatusChange(input: {
     emailSent: outcome.sent,
     emailError: outcome.error ?? null,
   });
-  if (!outcome.sent) console.error('[portal] Status notification not sent:', outcome.error);
+  if (!outcome.sent) await reportDeliveryFailure('Status notification not sent', outcome.error);
 }
 
 export async function notifyAboutClientJoined(input: {
@@ -129,7 +211,7 @@ export async function notifyAboutClientJoined(input: {
   });
 
   await updateActivityMeta(input.activityId, { emailSent: result.sent, emailError: result.error ?? null });
-  if (!result.sent) console.error('[portal] Client-joined notification not sent:', result.error);
+  if (!result.sent) await reportDeliveryFailure('Client-joined notification not sent', result.error);
 }
 
 const MEETING_EMAIL_EVENTS = {
@@ -213,7 +295,7 @@ export async function notifyAboutMeeting(input: {
   }
 
   await updateActivityMeta(input.activityId, { emailSent: outcome.sent, emailError: outcome.error ?? null });
-  if (!outcome.sent) console.error('[portal] Meeting notification not sent:', outcome.error);
+  if (!outcome.sent) await reportDeliveryFailure('Meeting notification not sent', outcome.error);
 }
 
 /** Asks every client member, in their own language, to approve a milestone; records the outcome on the round. */
@@ -250,7 +332,7 @@ export async function notifyAboutReviewRequest(input: {
     where: { id: input.reviewId },
     data: { emailSent: outcome.sent, emailError: outcome.error ?? null },
   });
-  if (!outcome.sent) console.error('[portal] Approval request not sent:', outcome.error);
+  if (!outcome.sent) await reportDeliveryFailure('Approval request not sent', outcome.error);
 }
 
 /** Tells the admin that a client approved a milestone or asked for changes. */
@@ -268,7 +350,7 @@ export async function notifyAboutReviewResponse(input: {
     url: portalUrl(`/admin/projects/${input.projectId}?tab=milestones`),
     ...input,
   });
-  if (!result.sent) console.error('[portal] Approval response email not sent:', result.error);
+  if (!result.sent) await reportDeliveryFailure('Approval response email not sent', result.error);
 }
 
 function meetingCalendar(meeting: CalendarMeeting, projectName: string, url: string) {
@@ -349,7 +431,7 @@ export async function sendMeetingReminders(now = new Date()) {
       })(),
     ]);
     const outcome = combineResults(results);
-    if (!outcome.sent) console.error(`[portal] Meeting reminder for ${meeting.id} not fully sent:`, outcome.error);
+    if (!outcome.sent) await reportDeliveryFailure('Meeting reminder not fully sent', outcome.error);
   }
   return { due: due.length, reminded };
 }

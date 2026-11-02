@@ -11,7 +11,7 @@ import {
 } from './format';
 import type { getPortalTranslations } from './locale';
 import { sortMeetings, type ProjectMeeting } from './meetings';
-import { displayName, type getProjectActivity, type getProjectFiles, type getProjectMessages } from './queries';
+import { displayName, type MessageRow, type getProjectActivity, type getProjectFiles } from './queries';
 
 /**
  * Client-facing JSON shapes, shared by the portal page (initial render) and
@@ -31,9 +31,9 @@ type LinkApi = 'portal' | 'admin';
 
 /** viewerId is null in the admin preview of a project without clients. */
 export function presentMessages(
-  messages: Awaited<ReturnType<typeof getProjectMessages>>,
+  messages: MessageRow[],
   viewerId: string | null,
-  { locale, timeZone }: { locale: string; timeZone: string }
+  { locale, timeZone, projectId, api = 'portal' }: { locale: string; timeZone: string; projectId: string; api?: LinkApi }
 ) {
   return messages.map((message) => ({
     id: message.id,
@@ -48,6 +48,12 @@ export function presentMessages(
       isProjectLead: message.sender.role === 'admin',
       isYou: message.sender.id === viewerId,
     },
+    attachments: message.attachments.map((file) => ({
+      id: file.id,
+      filename: file.filename,
+      sizeLabel: formatBytes(file.fileSize, locale),
+      downloadUrl: `/api/${api}/projects/${projectId}/files/${file.id}`,
+    })),
   }));
 }
 

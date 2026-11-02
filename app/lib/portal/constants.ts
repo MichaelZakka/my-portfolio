@@ -45,6 +45,19 @@ export const ACTIVITY_TYPES = [
   'MEETING_CONFIRMED',
   'MEETING_CANCELLED',
   'PROPOSAL_ACCEPTED',
+  // Audit trail: admin-side changes, always internal (visibleToClient false)
+  'PROJECT_UPDATED',
+  'PROJECT_ARCHIVED',
+  'PROJECT_RESTORED',
+  'MILESTONE_DELETED',
+  'MILESTONE_REVIEW_WITHDRAWN',
+  'TASK_DELETED',
+  'TASK_VISIBILITY_CHANGED',
+  'FILE_DELETED',
+  'FILE_VISIBILITY_CHANGED',
+  'MEMBER_REMOVED',
+  'INVITE_REVOKED',
+  'INVITE_RESENT',
 ] as const;
 export type ActivityType = (typeof ACTIVITY_TYPES)[number];
 
@@ -70,6 +83,18 @@ export type ActivityCategory = (typeof ACTIVITY_CATEGORIES)[number];
 const ACTIVITY_CATEGORY_OF: Record<ActivityType, ActivityCategory> = {
   PROJECT_CREATED: 'project',
   PROPOSAL_ACCEPTED: 'project',
+  PROJECT_UPDATED: 'project',
+  PROJECT_ARCHIVED: 'project',
+  PROJECT_RESTORED: 'project',
+  MILESTONE_DELETED: 'progress',
+  MILESTONE_REVIEW_WITHDRAWN: 'progress',
+  TASK_DELETED: 'progress',
+  TASK_VISIBILITY_CHANGED: 'progress',
+  FILE_DELETED: 'files',
+  FILE_VISIBILITY_CHANGED: 'files',
+  MEMBER_REMOVED: 'clients',
+  INVITE_REVOKED: 'clients',
+  INVITE_RESENT: 'clients',
   STATUS_CHANGED: 'project',
   CLIENT_INVITED: 'clients',
   INVITE_ACCEPTED: 'clients',
@@ -149,6 +174,9 @@ export const PASSWORD_MIN_LENGTH = 10;
 export const PASSWORD_MAX_BYTES = 72;
 
 export const MESSAGE_MAX_LENGTH = 5000;
+
+/** Files per message; together they still have to fit the upload size limit (one request). */
+export const MESSAGE_MAX_ATTACHMENTS = 5;
 
 export function isProjectStatus(value: unknown): value is ProjectStatus {
   return typeof value === 'string' && (PROJECT_STATUSES as readonly string[]).includes(value);

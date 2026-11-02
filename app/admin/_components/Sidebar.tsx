@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { LayoutDashboard, Inbox, FolderKanban, LineChart, Globe, LogOut } from 'lucide-react';
@@ -13,9 +14,42 @@ const NAV_ITEMS = [
   { href: '/admin/site', label: 'Site', icon: Globe },
 ] as const;
 
+type Badges = { messages: number; problems: number };
+
+/** Unread client messages and open problems, refreshed every minute (and on navigation). */
+function useBadges(pathname: string | null): Badges {
+  const [badges, setBadges] = useState<Badges>({ messages: 0, problems: 0 });
+  useEffect(() => {
+    let stopped = false;
+    const load = async () => {
+      if (document.visibilityState !== 'visible') return;
+      try {
+        const response = await fetch('/api/admin/unread', { cache: 'no-store' });
+        if (response.ok && !stopped) setBadges((await response.json()) as Badges);
+      } catch {
+        // Offline: keep the last counts.
+      }
+    };
+    void load();
+    const timer = setInterval(load, 60_000);
+    return () => {
+      stopped = true;
+      clearInterval(timer);
+    };
+  }, [pathname]);
+  return badges;
+}
+
 export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
+  const badges = useBadges(pathname);
+  const badgeFor = (href: string) =>
+    href === '/admin/projects'
+      ? { value: badges.messages, label: 'unread client messages' }
+      : href === '/admin/site'
+        ? { value: badges.problems, label: 'open problems' }
+        : null;
 
   const isActive = (href: string, exact?: boolean) =>
     exact ? pathname === href : pathname === href || pathname?.startsWith(`${href}/`);
@@ -44,6 +78,15 @@ export default function Sidebar() {
               >
                 <Icon size={17} strokeWidth={2} aria-hidden="true" />
                 {item.label}
+                {(() => {
+                  const badge = badgeFor(item.href);
+                  return badge && badge.value > 0 ? (
+                    <span className={styles.navBadge} title={`${badge.value} ${badge.label}`}>
+                      {badge.value}
+                      <span className="visually-hidden"> {badge.label}</span>
+                    </span>
+                  ) : null;
+                })()}
               </Link>
             </li>
           );

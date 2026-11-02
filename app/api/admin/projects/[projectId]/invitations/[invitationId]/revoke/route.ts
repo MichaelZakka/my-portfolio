@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { authorizeAdminProject } from '../../../../../../../lib/portal/access';
+import { authorizeAdminProject, getAdminActor } from '../../../../../../../lib/portal/access';
 import { apiError, parseParam } from '../../../../../../../lib/portal/http';
 import { revokeInvitation } from '../../../../../../../lib/portal/invitations';
 import { idSchema } from '../../../../../../../lib/portal/validation';
@@ -14,7 +14,8 @@ export async function POST(request: Request, { params }: RouteParams) {
   const id = parseParam(idSchema, invitationId);
   if (!id.ok) return id.response;
 
-  const revoked = await revokeInvitation(auth.project.id, id.data);
+  const actor = await getAdminActor();
+  const revoked = await revokeInvitation(auth.project.id, id.data, actor.id);
   if (!revoked) {
     return apiError(409, 'notPending', 'Only pending invitations can be revoked.');
   }

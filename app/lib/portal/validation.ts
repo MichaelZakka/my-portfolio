@@ -56,8 +56,20 @@ export const acceptInvitationSchema = z.object({
 
 export const localeBodySchema = z.object({ locale: localeSchema });
 
+export const accountUpdateSchema = z.object({ name: nameSchema.pipe(z.string().min(1)) });
+
+export const passwordChangeSchema = z.object({
+  currentPassword: z.string().min(1).max(256),
+  newPassword: passwordInputSchema,
+});
+
 export const messageSchema = z.object({
   content: z.string().trim().min(1).max(MESSAGE_MAX_LENGTH),
+});
+
+/** "Read up to here": the createdAt of the newest message the screen showed. */
+export const readMarkSchema = z.object({
+  until: z.iso.datetime({ offset: true }).transform((value) => new Date(value)),
 });
 
 // --- Meetings (both sides) --------------------------------------------------

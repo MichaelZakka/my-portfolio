@@ -22,7 +22,7 @@ const SNIPPET_LENGTH = 160;
 export default function OverviewPanel({ stats, milestones }: { stats: ReactNode; milestones: MilestoneSummary }) {
   const t = useTranslations('portal.project');
   const status = useTranslations('portal.meetingStatus');
-  const { data } = useLive();
+  const { data, unread } = useLive();
 
   const upcoming = data.meetings.filter((m) => !m.past && m.status !== 'cancelled');
   const awaiting = upcoming.filter((m) => m.canAccept).length;
@@ -82,13 +82,16 @@ export default function OverviewPanel({ stats, milestones }: { stats: ReactNode;
         </SummaryCard>
 
         <SummaryCard tab="messages" icon={<MessageCircle size={18} aria-hidden="true" />} title={t('messagesTitle')}>
+          {unread > 0 && <p className={styles.summaryAlert}>{t('overviewUnread', { count: unread })}</p>}
           {lastMessage ? (
             <>
               <p className={styles.summaryKicker}>{t('overviewLatestMessage')}</p>
               <p className={styles.summaryQuote} dir="auto">
-                {lastMessage.content.length > SNIPPET_LENGTH
-                  ? `${lastMessage.content.slice(0, SNIPPET_LENGTH).trimEnd()}…`
-                  : lastMessage.content}
+                {!lastMessage.content
+                  ? t('overviewAttachmentsOnly', { count: lastMessage.attachments.length })
+                  : lastMessage.content.length > SNIPPET_LENGTH
+                    ? `${lastMessage.content.slice(0, SNIPPET_LENGTH).trimEnd()}…`
+                    : lastMessage.content}
               </p>
               <p className={styles.summaryMeta}>
                 <span dir="auto">{lastMessage.sender.isYou ? t('you') : lastMessage.sender.name}</span>

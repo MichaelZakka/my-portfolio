@@ -3,6 +3,7 @@ import type { Prisma, Proposal } from '@prisma/client';
 import { z } from 'zod';
 import type { EmailSendResult } from '../email';
 import { prisma } from '../db';
+import { reportDeliveryFailure } from '../monitoring';
 import { fromJsonArray, guessLeadLocale, toJsonArray } from '../leads';
 import { getAdminActor, isAdminEmail } from './access';
 import { logActivity } from './activity';
@@ -301,7 +302,7 @@ export async function sendProposal(proposalId: string): Promise<ProposalSendSucc
     where: { id: proposal.id },
     data: { emailSent: result.sent, emailError: result.error ?? null },
   });
-  if (!result.sent) console.error('[portal] Proposal email not sent:', result.error);
+  if (!result.sent) await reportDeliveryFailure('Proposal email not sent', result.error);
 
   return { ok: true, proposalUrl, email: result, resent: !first };
 }
@@ -569,5 +570,5 @@ export async function answerProposal(input: {
 export async function notifyAboutProposalAnswer(answer: ProposalAnswer) {
   const url = portalUrl(answer.projectId ? `/admin/projects/${answer.projectId}` : `/admin/proposals/${answer.proposalId}`);
   const result = await sendProposalResponseEmail({ to: adminNotifyAddress(), url, ...answer });
-  if (!result.sent) console.error('[portal] Proposal response email not sent:', result.error);
+  if (!result.sent) await reportDeliveryFailure('Proposal response email not sent', result.error);
 }

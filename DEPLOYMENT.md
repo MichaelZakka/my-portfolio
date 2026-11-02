@@ -15,30 +15,45 @@ production needs a managed Postgres (Neon, Supabase, or Postgres from the Vercel
 Marketplace). The schema was written for both providers (enum-like fields are
 validated strings, list fields are JSON text), so only the provider changes.
 
-Migrations are provider-specific, though: the files in `prisma/migrations` are
-SQLite SQL and cannot be replayed on Postgres. Create a Postgres baseline once:
+The schema is already on Postgres (`provider = "postgresql"`; the old SQLite
+migrations are kept in `prisma/migrations-sqlite` for reference). It needs two
+connection strings:
 
-1. Create the database and copy its connection string. For serverless, use the
-   **pooled** URL as `DATABASE_URL` and the **direct** URL as `DIRECT_URL`, and add
-   `directUrl = env("DIRECT_URL")` under `url` in the `datasource` block.
-2. In `prisma/schema.prisma`, set `provider = "postgresql"`.
-3. Keep the SQLite history for reference and start a Postgres one:
-   ```bash
-   git mv prisma/migrations prisma/migrations-sqlite
-   # with DATABASE_URL / DIRECT_URL pointing at an empty development Postgres database:
-   npx prisma migrate dev --name init
-   ```
-   This writes `prisma/migrations/<timestamp>_init` and a `migration_lock.toml`
-   with `provider = "postgresql"`. Commit both.
-4. Apply it to production: `npm run db:deploy` (runs `prisma migrate deploy`)
-   with the production `DATABASE_URL`, or set Vercel's build command to
-   `prisma migrate deploy && next build`. `prisma generate` already runs on
-   `postinstall`.
-5. Existing SQLite data (leads, analytics) is not copied automatically. Export
-   what you need (for example with `npx prisma studio` or a small script) before
-   switching.
-6. From then on, develop against Postgres too (a Neon dev branch or local
-   Postgres): one schema cannot point at both providers at once.
+| Variable | Value |
+| --- | --- |
+| `DATABASE_URL` | the **pooled** connection string (what the app uses) |
+| `DATABASE_URL_UNPOOLED` | the **direct** connection string (what migrations use; poolers break them) |
+
+Connecting a Neon database to the project in Vercel → **Storage** sets both,
+with exactly these names. With another host, copy both strings from its dashboard
+(if it has no pooler, use the same string twice).
+
+**Applying migrations** (`npm run db:deploy`, i.e. `prisma migrate deploy`) must
+run against the production database, with both variables set. It is safe to
+repeat: it only applies the migrations the database does not have yet.
+
+- From your machine, set the two variables for that one command. The Prisma CLI
+  reads `.env`, not `.env.local`. In PowerShell:
+  ```powershell
+  $env:DATABASE_URL = "<pooled production URL>"
+  $env:DATABASE_URL_UNPOOLED = "<direct production URL>"
+  npm run db:deploy
+  ```
+  (Close that terminal afterwards so the variables don't linger.)
+- Or let every Vercel deploy do it: add
+  `"vercel-build": "prisma migrate deploy && next build"` to the `scripts` in
+  `package.json` (Vercel runs `vercel-build` instead of `build` when it exists).
+  A deploy then fails, and the previous one stays live, if the database is
+  unreachable or a migration fails.
+
+Existing SQLite data (leads, analytics in `prisma/prisma/dev.db`) is not copied
+automatically. Export what you need before relying on the new database.
+
+**Local development** also needs a Postgres, because one schema cannot point at
+both providers. The quickest is Prisma's local server: `npx prisma dev -n portfolio -d`
+prints a `postgres://…` URL; put it in `.env` as both variables, adding
+`&pgbouncer=true&connection_limit=1&connect_timeout=0` (that server allows one
+connection at a time), then run `npm run db:deploy` once.
 
 ### 2. Files: private Vercel Blob
 
@@ -104,7 +119,7 @@ uploads in Blob automatically (or set `STORAGE_DRIVER=vercel-blob`).
 
 | Variable | Needed for | Notes |
 | --- | --- | --- |
-| `DATABASE_URL` (+ `DIRECT_URL`) | everything | Postgres in production (see step 1) |
+| `DATABASE_URL`, `DATABASE_URL_UNPOOLED` | everything | pooled and direct Postgres URLs (see step 1) |
 | `AUTH_SECRET` | admin + portal | 32+ random characters |
 | `ADMIN_EMAIL`, `ADMIN_PASSWORD_HASH` | admin | unchanged; the admin also authors portal messages |
 | `NEXT_PUBLIC_SITE_URL` | portal emails | canonical URL used in invite/reset links |
@@ -112,6 +127,8 @@ uploads in Blob automatically (or set `STORAGE_DRIVER=vercel-blob`).
 | `PORTAL_NOTIFY_EMAIL` | optional | where clients' messages are emailed |
 | `PORTAL_TIME_ZONE` | recommended | your IANA zone (e.g. `Asia/Damascus`): admin screens and your emails. Clients see their own browser's zone; this is only their fallback. Default `UTC` |
 | `CRON_SECRET` | meeting reminders | random string; the reminder job refuses to run without it (see below) |
+| `ALERT_EMAIL` | optional | where problem alerts go (defaults to `PORTAL_NOTIFY_EMAIL`, then the inbox) |
+| `ALERT_WEBHOOK_URL` | recommended | Slack or Discord incoming-webhook URL for problem alerts, so you still hear about it when email is what broke |
 | `PORTAL_MAX_UPLOAD_MB` | optional | default 4 (Vercel body limit 4.5 MB) |
 | `BLOB_READ_WRITE_TOKEN` | portal files | added by connecting a Vercel Blob store |
 | `STORAGE_DRIVER`, `STORAGE_LOCAL_DIR` | optional | `local` / `vercel-blob`; local folder (dev) |
@@ -125,6 +142,15 @@ your own server, use a crontab entry instead, for example hourly:
 `0 * * * * curl -fsS -H "Authorization: Bearer $CRON_SECRET" https://your-domain/api/cron/meeting-reminders`.
 Calendar files (`.ics`, attached to confirmation emails and downloadable from
 each meeting) also carry their own reminders, a day and an hour before.
+
+**Problems and uptime.** Failed uploads and downloads, failed emails, crashed
+pages (server and browser) and unhandled server errors are recorded and listed
+under Admin → Site → Problems, grouped so a recurring problem is one row with a
+count. You are alerted (email, and the webhook if set) on the first occurrence
+and again at most hourly while it stays unresolved. A site that is down cannot
+report itself, so also point a free uptime monitor (UptimeRobot, Better Stack,
+etc.) at `https://your-domain/api/health` every 5 minutes: it answers 200 when
+the site and database work and 503 when the database is unreachable.
 
 ### 6. Demo data
 

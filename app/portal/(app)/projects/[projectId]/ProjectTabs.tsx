@@ -39,7 +39,7 @@ export default function ProjectTabs({
   panels: Record<ProjectTab, ReactNode>;
 }) {
   const t = useTranslations('portal.project');
-  const { data } = useLive();
+  const { data, unread } = useLive();
   const [active, setActive] = useState<ProjectTab>(initialTab);
   const tabRefs = useRef<Partial<Record<ProjectTab, HTMLButtonElement | null>>>({});
   const listRef = useRef<HTMLDivElement>(null);
@@ -86,10 +86,11 @@ export default function ProjectTabs({
     select(PROJECT_TABS[next], { focus: true });
   };
 
+  // `alert` counts need the client (and say why for screen readers); the others are plain totals.
   const awaitingMeetings = data.meetings.filter((m) => m.canAccept).length;
-  const counts: Partial<Record<ProjectTab, { value: number; alert?: boolean }>> = {
-    meetings: awaitingMeetings ? { value: awaitingMeetings, alert: true } : undefined,
-    messages: data.messages.length ? { value: data.messages.length } : undefined,
+  const counts: Partial<Record<ProjectTab, { value: number; alert?: string }>> = {
+    meetings: awaitingMeetings ? { value: awaitingMeetings, alert: t('meetingAwaitingYou') } : undefined,
+    messages: unread ? { value: unread, alert: t('unreadLabel') } : undefined,
     files: data.files.length ? { value: data.files.length } : undefined,
   };
 
@@ -118,8 +119,8 @@ export default function ProjectTabs({
             >
               {label(tab)}
               {count && (
-                <span className={styles.tabCount} data-alert={count.alert || undefined}>
-                  {count.alert ? <span className="visually-hidden">{t('meetingAwaitingYou')}: </span> : null}
+                <span className={styles.tabCount} data-alert={count.alert ? true : undefined}>
+                  {count.alert ? <span className="visually-hidden">{count.alert}: </span> : null}
                   {count.value}
                 </span>
               )}

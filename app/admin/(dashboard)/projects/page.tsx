@@ -4,6 +4,7 @@ import { Plus } from 'lucide-react';
 import { prisma } from '../../../lib/db';
 import { requireAdminSession } from '../../../lib/session';
 import { progressPercent } from '../../../lib/portal/constants';
+import { adminUnreadByProject } from '../../../lib/portal/messages';
 import { PROGRESS_MILESTONE_SELECT } from '../../../lib/portal/queries';
 import { ArchivedBadge, ProjectStatusBadge } from '../../_components/ProjectBadges';
 import EmptyState from '../../_components/EmptyState';
@@ -26,6 +27,7 @@ export default async function AdminProjectsPage({
   const where: Prisma.ProjectWhereInput =
     view === 'active' ? { archivedAt: null } : view === 'archived' ? { archivedAt: { not: null } } : {};
 
+  const unread = await adminUnreadByProject();
   const projects = await prisma.project.findMany({
     where,
     orderBy: { updatedAt: 'desc' },
@@ -88,15 +90,24 @@ export default async function AdminProjectsPage({
               <tbody>
                 {projects.map((project) => {
                   const progress = progressPercent(project.milestones);
+                  const unreadCount = unread.get(project.id) ?? 0;
                   return (
                     <tr key={project.id}>
                       <td data-label="Project">
                         <Link href={`/admin/projects/${project.id}`} className={projectStyles.itemTitle}>
                           {project.name}
                         </Link>
-                        {project.archivedAt && (
-                          <div style={{ marginTop: 4 }}>
-                            <ArchivedBadge />
+                        {(project.archivedAt || unreadCount > 0) && (
+                          <div style={{ marginTop: 4, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                            {project.archivedAt && <ArchivedBadge />}
+                            {unreadCount > 0 && (
+                              <Link
+                                href={`/admin/projects/${project.id}?tab=messages`}
+                                className={`${styles.badge} ${styles.badgeContacted}`}
+                              >
+                                {unreadCount} unread message{unreadCount === 1 ? '' : 's'}
+                              </Link>
+                            )}
                           </div>
                         )}
                       </td>

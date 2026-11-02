@@ -1,7 +1,7 @@
 import { NextResponse, after } from 'next/server';
 import { prisma } from '../../../../lib/db';
 import { authorizeAdminProject, getAdminActor } from '../../../../lib/portal/access';
-import { logActivity } from '../../../../lib/portal/activity';
+import { logActivity, logAudit } from '../../../../lib/portal/activity';
 import { notFound, parseJsonBody } from '../../../../lib/portal/http';
 import { notifyAboutStatusChange } from '../../../../lib/portal/notify';
 import { getAdminProjectDetail } from '../../../../lib/portal/queries';
@@ -50,6 +50,39 @@ export async function PATCH(request: Request, { params }: RouteParams) {
         ...(archived === undefined ? {} : { archivedAt: archived ? current.archivedAt ?? now : null }),
       },
     });
+    // Audit trail for everything but status (which has its own, client-visible entry).
+    const edited = (['name', 'summary', 'currentPhase', 'estimatedCompletion'] as const).filter((field) => {
+      if (changes[field] === undefined) return false;
+      const before = current[field];
+      const after = changes[field];
+      return before instanceof Date || after instanceof Date
+        ? (before as Date | null)?.getTime() !== (after as Date | null)?.getTime()
+        : before !== after;
+    });
+    if (edited.length) {
+      const labels = { name: 'name', summary: 'summary', currentPhase: 'current phase', estimatedCompletion: 'ETA' };
+      await logAudit(
+        {
+          projectId: project.id,
+          actorId: actor.id,
+          type: 'PROJECT_UPDATED',
+          meta: { fields: edited.map((field) => labels[field]).join(', ') },
+        },
+        tx
+      );
+    }
+    if (archived !== undefined && archived !== Boolean(current.archivedAt)) {
+      await logAudit(
+        {
+          projectId: project.id,
+          actorId: actor.id,
+          type: archived ? 'PROJECT_ARCHIVED' : 'PROJECT_RESTORED',
+          meta: { name: project.name },
+        },
+        tx
+      );
+    }
+
     const activity = statusChanged
       ? await logActivity(
           {

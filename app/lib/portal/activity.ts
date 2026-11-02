@@ -28,6 +28,18 @@ export type ActivityMeta = {
   MEETING_CONFIRMED: MeetingMeta;
   MEETING_CANCELLED: MeetingMeta;
   PROPOSAL_ACCEPTED: { proposalId: string; version: number; title: string; name: string };
+  PROJECT_UPDATED: { fields: string };
+  PROJECT_ARCHIVED: { name: string };
+  PROJECT_RESTORED: { name: string };
+  MILESTONE_DELETED: { milestoneId: string; title: string };
+  MILESTONE_REVIEW_WITHDRAWN: ReviewMeta;
+  TASK_DELETED: { taskId: string; title: string };
+  TASK_VISIBILITY_CHANGED: { taskId: string; title: string; visible: boolean };
+  FILE_DELETED: { fileId: string; filename: string };
+  FILE_VISIBILITY_CHANGED: { fileId: string; filename: string; visible: boolean };
+  MEMBER_REMOVED: { email: string; name: string };
+  INVITE_REVOKED: { email: string; invitationId: string };
+  INVITE_RESENT: { email: string; invitationId: string; emailSent?: boolean; emailError?: string | null };
 };
 
 type MeetingMeta = { meetingId: string; title: string; emailSent?: boolean; emailError?: string | null };
@@ -54,7 +66,45 @@ const SUMMARIES: { [T in ActivityType]: (meta: ActivityMeta[T]) => string } = {
   MEETING_CONFIRMED: (m) => `Meeting confirmed: ${m.title}`,
   MEETING_CANCELLED: (m) => `Meeting cancelled: ${m.title}`,
   PROPOSAL_ACCEPTED: (m) => `${m.name} accepted proposal v${m.version}`,
+  PROJECT_UPDATED: (m) => `Project details edited: ${m.fields}`,
+  PROJECT_ARCHIVED: (m) => `Project archived: ${m.name}`,
+  PROJECT_RESTORED: (m) => `Project restored from the archive: ${m.name}`,
+  MILESTONE_DELETED: (m) => `Milestone deleted: ${m.title}`,
+  MILESTONE_REVIEW_WITHDRAWN: (m) => `Approval request withdrawn: ${m.title}`,
+  TASK_DELETED: (m) => `Task deleted: ${m.title}`,
+  TASK_VISIBILITY_CHANGED: (m) => `${m.visible ? 'Task shown to the client' : 'Task hidden from the client'}: ${m.title}`,
+  FILE_DELETED: (m) => `File deleted: ${m.filename}`,
+  FILE_VISIBILITY_CHANGED: (m) => `${m.visible ? 'File shared with the client' : 'File hidden from the client'}: ${m.filename}`,
+  MEMBER_REMOVED: (m) => `Removed ${m.name ? `${m.name} (${m.email})` : m.email} from the project`,
+  INVITE_REVOKED: (m) => `Invitation revoked: ${m.email}`,
+  INVITE_RESENT: (m) => `Invitation resent: ${m.email}`,
 };
+
+/** Admin-side changes that are recorded for the audit trail only; clients never see them. */
+export const AUDIT_ACTIVITY_TYPES = [
+  'PROJECT_UPDATED',
+  'PROJECT_ARCHIVED',
+  'PROJECT_RESTORED',
+  'MILESTONE_DELETED',
+  'MILESTONE_REVIEW_WITHDRAWN',
+  'TASK_DELETED',
+  'TASK_VISIBILITY_CHANGED',
+  'FILE_DELETED',
+  'FILE_VISIBILITY_CHANGED',
+  'MEMBER_REMOVED',
+  'INVITE_REVOKED',
+  'INVITE_RESENT',
+] as const satisfies readonly ActivityType[];
+
+type AuditType = (typeof AUDIT_ACTIVITY_TYPES)[number];
+
+/** Records an audit entry (internal, never shown to clients). */
+export function logAudit<T extends AuditType>(
+  input: { projectId: string; actorId: string | null; type: T; meta: ActivityMeta[T] },
+  db: Db = prisma
+) {
+  return logActivity({ ...input, visibleToClient: false }, db);
+}
 
 /** The one place portal events are recorded. Pass a transaction client to log atomically with the change. */
 export async function logActivity<T extends ActivityType>(

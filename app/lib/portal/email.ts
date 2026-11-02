@@ -208,12 +208,15 @@ export function adminNotifyAddress(): string {
   return process.env.PORTAL_NOTIFY_EMAIL?.trim() || getResendConfig().to;
 }
 
+/** `count`: the recipient's unread messages in this conversation (one email covers the batch). */
 export async function sendNewMessageEmail(input: {
   to: string;
   locale: string;
   projectName: string;
   senderName: string;
   content: string;
+  count: number;
+  attachments: number;
   url: string;
   replyTo?: string;
 }): Promise<EmailSendResult> {
@@ -222,16 +225,19 @@ export async function sendNewMessageEmail(input: {
     return { sent: false, error: NOT_CONFIGURED };
   }
   const { lang, t } = translator(input.locale);
+  const values = { sender: input.senderName, project: input.projectName, count: input.count };
+  const many = input.count > 1;
   const content = renderEmail(lang, {
-    heading: t('message.heading', { sender: input.senderName }),
-    paragraphs: [t('message.body', { project: input.projectName })],
-    quote: excerpt(input.content),
+    heading: many ? t('message.headingMany', values) : t('message.heading', values),
+    paragraphs: [many ? t('message.bodyMany', values) : t('message.body', values)],
+    quote: input.content ? excerpt(input.content) : t('message.attachmentOnly'),
     cta: { label: t('message.cta'), url: input.url },
+    notes: input.attachments > 0 ? [t('message.attachments', { count: input.attachments })] : undefined,
     footer: t('footer'),
   });
   return deliver({
     to: input.to,
-    subject: t('message.subject', { project: input.projectName }),
+    subject: many ? t('message.subjectMany', values) : t('message.subject', values),
     replyTo: input.replyTo,
     ...content,
   });

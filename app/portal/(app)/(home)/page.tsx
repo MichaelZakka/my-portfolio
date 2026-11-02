@@ -36,6 +36,11 @@ export default async function PortalProjectsPage() {
             {t('projects.needsApproval')}
           </span>
         )}
+        {project.unreadMessages > 0 && (
+          <span className={styles.badge} data-tone="proposed">
+            {t('projects.unreadMessages', { count: project.unreadMessages })}
+          </span>
+        )}
       </div>
       <h2 className={styles.projectCardTitle}>
         <Link href={`/portal/projects/${project.id}`} className={styles.projectCardLink}>

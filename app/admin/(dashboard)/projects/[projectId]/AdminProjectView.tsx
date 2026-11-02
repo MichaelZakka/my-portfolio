@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, ExternalLink } from 'lucide-react';
 import type { AdminProjectView as View } from '../../../../lib/portal/adminView';
@@ -34,6 +34,7 @@ type Props = {
 export default function AdminProjectView({ initialView, initialTab, upload }: Props) {
   const [view, setView] = useState(initialView);
   const latest = useRef(0);
+  const stamp = useRef(initialView.liveStamp);
   const projectId = initialView.project.id;
 
   const reload = useCallback(async () => {
@@ -45,9 +46,50 @@ export default function AdminProjectView({ initialView, initialTab, upload }: Pr
     }
     if (!response.ok || ticket !== latest.current) return;
     const body = (await response.json()) as { view: View };
+    stamp.current = body.view.liveStamp;
     setView(body.view);
   }, [projectId]);
   const context = useMemo(() => ({ reload }), [reload]);
+
+  // Live: every change by either side logs activity, so a cheap stamp says when to reload
+  // (every 15 s while the tab is visible, and at once when it becomes visible again).
+  useEffect(() => {
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    let stopped = false;
+    const check = async () => {
+      if (document.visibilityState !== 'visible') return;
+      try {
+        const response = await fetch(`/api/admin/projects/${projectId}/updates`, { cache: 'no-store' });
+        if (response.status === 401) {
+          window.location.assign('/admin/login');
+          return;
+        }
+        if (!response.ok) return;
+        const body = (await response.json()) as { stamp: string };
+        if (body.stamp !== stamp.current) await reload();
+      } catch {
+        // Offline: try again next time.
+      }
+    };
+    const schedule = () => {
+      timer = setTimeout(async () => {
+        await check();
+        if (!stopped) schedule();
+      }, 15_000);
+    };
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') void check();
+    };
+    schedule();
+    document.addEventListener('visibilitychange', onVisible);
+    window.addEventListener('focus', onVisible);
+    return () => {
+      stopped = true;
+      clearTimeout(timer);
+      document.removeEventListener('visibilitychange', onVisible);
+      window.removeEventListener('focus', onVisible);
+    };
+  }, [projectId, reload]);
 
   const { project } = view;
 
@@ -98,7 +140,7 @@ export default function AdminProjectView({ initialView, initialTab, upload }: Pr
         initialTab={initialTab}
         badges={{
           meetings: { value: view.meetings.filter((m) => m.canAccept).length, tone: 'alert' },
-          messages: { value: view.messages.length },
+          messages: { value: view.unreadMessages, tone: 'alert' },
           files: { value: view.files.length },
           clients: { value: view.members.length },
           activity: { value: view.activity.filter((a) => a.emailError).length, tone: 'danger' },
@@ -122,7 +164,16 @@ export default function AdminProjectView({ initialView, initialTab, upload }: Pr
               milestones={view.milestones.map((m) => ({ id: m.id, title: m.title }))}
             />
           ),
-          messages: <MessagesPanel projectId={project.id} messages={view.messages} />,
+          messages: (
+            <MessagesPanel
+              projectId={project.id}
+              messages={view.messages}
+              hasMore={view.messagesHasMore}
+              unread={view.unreadMessages}
+              lastReadAt={view.adminLastReadAt}
+              upload={upload}
+            />
+          ),
           files: <FilesPanel projectId={project.id} files={view.files} {...upload} />,
           clients: (
             <ClientAccessPanel projectId={project.id} members={view.members} invitations={view.invitations} />

@@ -49,6 +49,9 @@ export async function DELETE(request: Request, { params }: RouteParams) {
   const id = parseParam(idSchema, milestoneId);
   if (!id.ok) return id.response;
 
-  if (!(await withdrawMilestoneReview(auth.project.id, id.data))) return notFound('No pending approval request.');
+  const actor = await getAdminActor();
+  if (!(await withdrawMilestoneReview(auth.project.id, id.data, actor.id))) {
+    return notFound('No pending approval request.');
+  }
   return NextResponse.json({ success: true });
 }

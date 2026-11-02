@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { authorizeAdminProject } from '../../../../../../../lib/portal/access';
+import { authorizeAdminProject, getAdminActor } from '../../../../../../../lib/portal/access';
 import { apiError, parseParam } from '../../../../../../../lib/portal/http';
 import { resendInvitation } from '../../../../../../../lib/portal/invitations';
 import { idSchema } from '../../../../../../../lib/portal/validation';
@@ -13,10 +13,12 @@ export async function POST(request: Request, { params }: RouteParams) {
   const id = parseParam(idSchema, invitationId);
   if (!id.ok) return id.response;
 
+  const actor = await getAdminActor();
   const result = await resendInvitation({
     projectId: auth.project.id,
     projectName: auth.project.name,
     invitationId: id.data,
+    actorId: actor.id,
   });
   if (!result.ok) return apiError(result.status, result.code, result.error);
   return NextResponse.json(result);

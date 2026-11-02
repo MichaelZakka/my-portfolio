@@ -9,10 +9,11 @@ import { presentActivity, presentFiles, presentMeetings, presentMessages } from 
 import {
   displayName,
   getClientProjectDetail,
+  getMessagePage,
   getProjectActivity,
   getProjectFiles,
-  getProjectMessages,
 } from '../../../../lib/portal/queries';
+import { getClientReadState, getClientStamps } from '../../../../lib/portal/messages';
 import ProgressBar from '../../../_components/ProgressBar';
 import { ActivitySection, FilesSection, LiveProvider, MessagesSection } from './LiveSections';
 import { MeetingsSection } from './MeetingsSection';
@@ -43,15 +44,24 @@ type ProjectViewProps = {
  * Callers have already checked who may see it.
  */
 export default async function ProjectView({ projectId, tab, viewer, preview = false }: ProjectViewProps) {
-  const [project, messages, files, activity, meetings, labels] = await Promise.all([
+  // Only a signed-in client's own screen is live (polls, marks messages read); the preview is a snapshot.
+  const live = !preview && viewer.id !== null;
+  const [project, messagePage, files, activity, meetings, labels, readState, stamps] = await Promise.all([
     getClientProjectDetail(projectId),
-    getProjectMessages(projectId),
+    getMessagePage(projectId, { clientView: true }),
     getProjectFiles(projectId, { clientView: true }),
     getProjectActivity(projectId, { clientView: true }),
     getProjectMeetings(projectId),
     getPortalTranslations('portal'),
+    viewer.id ? getClientReadState(projectId, viewer.id) : null,
+    live && viewer.id ? getClientStamps(projectId, viewer.id) : null,
   ]);
   if (!project) notFound();
+  const upload = {
+    maxBytes: getMaxUploadBytes(),
+    maxSizeLabel: formatBytes(getMaxUploadBytes(), labels.locale),
+    accept: ACCEPT_ATTRIBUTE,
+  };
   const { t, locale } = labels;
 
   const archived = Boolean(project.archivedAt);
@@ -181,8 +191,18 @@ export default async function ProjectView({ projectId, tab, viewer, preview = fa
 
       <LiveProvider
         projectId={project.id}
+        live={live}
+        stamps={stamps?.stamps ?? null}
+        unread={preview ? 0 : (readState?.unread ?? 0)}
+        lastReadAt={readState?.lastReadAt?.toISOString() ?? null}
+        hasOlderMessages={messagePage.hasMore}
         initial={{
-          messages: presentMessages(messages, viewer.id, { locale, timeZone: viewer.timeZone }),
+          messages: presentMessages(messagePage.messages, viewer.id, {
+            locale,
+            timeZone: viewer.timeZone,
+            projectId: project.id,
+            api,
+          }),
           files: presentFiles(files, project.id, { locale, api }),
           activity: presentActivity(activity, { ...labels, timeZone: viewer.timeZone }),
           meetings: presentMeetings(meetings, 'client', { locale, timeZone: viewer.timeZone, projectId: project.id, api }),
@@ -341,17 +361,13 @@ export default async function ProjectView({ projectId, tab, viewer, preview = fa
                 milestones={project.milestones.map((m) => ({ id: m.id, title: m.title }))}
               />
             ),
-            messages: <MessagesSection projectId={project.id} archived={archived} preview={preview} />,
+            messages: <MessagesSection projectId={project.id} archived={archived} preview={preview} upload={upload} />,
             files: (
               <FilesSection
                 projectId={project.id}
                 archived={archived}
                 preview={preview}
-                upload={{
-                  maxBytes: getMaxUploadBytes(),
-                  maxSizeLabel: formatBytes(getMaxUploadBytes(), locale),
-                  accept: ACCEPT_ATTRIBUTE,
-                }}
+                upload={upload}
               />
             ),
             activity: <ActivitySection />,

@@ -29,6 +29,9 @@ export default async function PortalAppLayout({ children }: { children: React.Re
             <Link href="/portal" className={styles.navLink}>
               {t('projects')}
             </Link>
+            <Link href="/portal/account" className={styles.navLink}>
+              {t('account')}
+            </Link>
           </nav>
           <div className={styles.headerActions}>
             <span className={styles.userEmail} dir="ltr" title={t('signedInAs', { email: user.email })}>

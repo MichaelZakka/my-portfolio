@@ -1945,3 +1945,144 @@
   gap: var(--s-2);
   font-weight: 600;
 }
+
+/* ---------- Messages: older pages, the "new" divider, attachments ---------- */
+
+.loadOlder {
+  display: flex;
+  justify-content: center;
+  margin-block-end: var(--s-2);
+}
+
+.loadOlder button {
+  background: none;
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  padding: 4px 14px;
+  font: inherit;
+  font-size: 13px;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.loadOlder button:hover {
+  color: var(--text);
+}
+
+.newDivider {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  margin: var(--s-3) 0 var(--s-2);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--accent-text);
+}
+
+.newDivider::before,
+.newDivider::after {
+  content: '';
+  flex: 1;
+  border-block-start: 1px solid var(--accent-line);
+}
+
+.attachments {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 4px 0 0;
+  padding: 0;
+}
+
+.attachment {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  max-inline-size: 100%;
+  padding: 6px 10px;
+  border: 1px solid var(--border-strong);
+  border-radius: 12px;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+  text-decoration: none;
+}
+
+.attachment:hover {
+  border-color: var(--accent-line);
+}
+
+.attachmentName {
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.attachmentSize {
+  flex-shrink: 0;
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.attachmentChips {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+  margin: 0 0 var(--s-2);
+  padding: 0;
+}
+
+.attachmentChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-inline-size: 100%;
+  padding: 4px 6px 4px 10px;
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  font-size: 13px;
+}
+
+.chipRemove {
+  display: grid;
+  place-items: center;
+  inline-size: 22px;
+  block-size: 22px;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.chipRemove:hover {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.attachButton {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  inline-size: 38px;
+  block-size: 38px;
+  margin-inline-start: -8px;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.attachButton:hover {
+  color: var(--text);
+}
+
+.attachButton:focus-visible,
+.chipRemove:focus-visible {
+  outline: 2px solid var(--accent-text);
+  outline-offset: 2px;
+}

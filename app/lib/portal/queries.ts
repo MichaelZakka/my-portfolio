@@ -1,5 +1,6 @@
 import { prisma } from '../db';
 import { progressPercent } from './constants';
+import { countUnreadForClient } from './messages';
 
 /**
  * Read models shared by portal pages and the portal GET APIs. Client queries
@@ -53,13 +54,25 @@ export async function listClientProjects(userId: string) {
       updatedAt: true,
       milestones: { select: PROGRESS_MILESTONE_SELECT },
       reviews: { where: { status: 'pending' }, select: { id: true } },
+      members: { where: { userId }, select: { lastReadAt: true } },
     },
   });
-  return projects.map(({ milestones, reviews, ...project }) => ({
-    ...project,
+  const unread = await Promise.all(
+    projects.map((project) => countUnreadForClient(project.id, userId, project.members[0]?.lastReadAt ?? null))
+  );
+  return projects.map(({ milestones, reviews, ...project }, index) => ({
+    id: project.id,
+    name: project.name,
+    summary: project.summary,
+    status: project.status,
+    currentPhase: project.currentPhase,
+    estimatedCompletion: project.estimatedCompletion,
+    archivedAt: project.archivedAt,
+    updatedAt: project.updatedAt,
     milestoneCount: milestones.length,
     progress: progressPercent(milestones),
     awaitingApproval: reviews.length,
+    unreadMessages: unread[index],
   }));
 }
 
@@ -133,23 +146,47 @@ export async function getClientProjectDetail(projectId: string) {
 
 export const MESSAGE_PAGE_SIZE = 100;
 
-/** Newest MESSAGE_PAGE_SIZE messages, returned oldest-first for display. */
-export async function getProjectMessages(projectId: string) {
-  const messages = await prisma.message.findMany({
-    where: { projectId },
-    orderBy: { createdAt: 'desc' },
-    take: MESSAGE_PAGE_SIZE,
-    select: {
-      id: true,
-      content: true,
-      createdAt: true,
-      emailSent: true,
-      emailError: true,
-      sender: { select: { id: true, name: true, email: true, role: true } },
+const messageSelect = (clientView: boolean) =>
+  ({
+    id: true,
+    content: true,
+    createdAt: true,
+    emailSent: true,
+    emailError: true,
+    emailBatched: true,
+    sender: { select: { id: true, name: true, email: true, role: true } },
+    // A file the admin later hides disappears from the client's copy of the message too.
+    attachments: {
+      where: clientView ? { visibleToClient: true } : {},
+      orderBy: { createdAt: 'asc' },
+      select: { id: true, filename: true, fileSize: true, mimeType: true, visibleToClient: true },
     },
+  }) as const;
+
+/**
+ * One page of the conversation, oldest-first for display: the newest
+ * MESSAGE_PAGE_SIZE messages, or the ones before `before` (a message id of
+ * this project). hasMore says whether an older page exists.
+ */
+export async function getMessagePage(
+  projectId: string,
+  { before, clientView }: { before?: string | null; clientView: boolean }
+) {
+  if (before) {
+    const cursor = await prisma.message.findFirst({ where: { id: before, projectId }, select: { id: true } });
+    if (!cursor) return { messages: [], hasMore: false };
+  }
+  const rows = await prisma.message.findMany({
+    where: { projectId },
+    orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+    take: MESSAGE_PAGE_SIZE + 1,
+    ...(before ? { cursor: { id: before }, skip: 1 } : {}),
+    select: messageSelect(clientView),
   });
-  return messages.reverse();
+  return { messages: rows.slice(0, MESSAGE_PAGE_SIZE).reverse(), hasMore: rows.length > MESSAGE_PAGE_SIZE };
 }
+
+export type MessageRow = Awaited<ReturnType<typeof getMessagePage>>['messages'][number];
 
 export async function getProjectFiles(projectId: string, { clientView }: { clientView: boolean }) {
   return prisma.projectFile.findMany({

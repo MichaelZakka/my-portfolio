@@ -1,7 +1,8 @@
 import type { EmailSendResult } from '../email';
+import { reportDeliveryFailure } from '../monitoring';
 import { prisma } from '../db';
 import { isAdminEmail } from './access';
-import { logActivity, updateActivityMeta } from './activity';
+import { logActivity, logAudit, updateActivityMeta } from './activity';
 import { INVITATION_TTL_DAYS, invitationState, type PortalLocale } from './constants';
 import { generateToken, hashToken, TOKEN_PATTERN } from './credentials';
 import { portalUrl, sendInvitationEmail, type InvitationEmailKind } from './email';
@@ -52,7 +53,7 @@ async function sendAndRecord(input: {
   if (input.activityId) {
     await updateActivityMeta(input.activityId, { emailSent: result.sent, emailError: result.error ?? null });
   }
-  if (!result.sent) console.error('[portal] Invitation email not sent:', result.error);
+  if (!result.sent) await reportDeliveryFailure('Invitation email not sent', result.error);
 
   return { ok: true, invitationId: input.invitationId, inviteUrl, email: result };
 }
@@ -144,6 +145,7 @@ export async function resendInvitation(input: {
   projectId: string;
   projectName: string;
   invitationId: string;
+  actorId: string;
 }): Promise<InvitationSuccess | InvitationFailure> {
   const invitation = await prisma.invitation.findFirst({
     where: { id: input.invitationId, projectId: input.projectId },
@@ -159,12 +161,24 @@ export async function resendInvitation(input: {
   const { token, tokenHash } = generateToken();
   const now = new Date();
   const expiresAt = expiryFrom(now);
-  await prisma.invitation.update({
-    where: { id: invitation.id },
-    data: { tokenHash, expiresAt, lastSentAt: now },
+  const activity = await prisma.$transaction(async (tx) => {
+    await tx.invitation.update({
+      where: { id: invitation.id },
+      data: { tokenHash, expiresAt, lastSentAt: now },
+    });
+    return logAudit(
+      {
+        projectId: input.projectId,
+        actorId: input.actorId,
+        type: 'INVITE_RESENT',
+        meta: { email: invitation.email, invitationId: invitation.id },
+      },
+      tx
+    );
   });
 
   return sendAndRecord({
+    activityId: activity.id,
     invitationId: invitation.id,
     email: invitation.email,
     name: invitation.user?.name ?? '',
@@ -189,10 +203,18 @@ export async function findInvitationByToken(token: string) {
   return { ...invitation, state: invitationState(invitation) };
 }
 
-export async function revokeInvitation(projectId: string, invitationId: string): Promise<boolean> {
-  const { count } = await prisma.invitation.updateMany({
-    where: { id: invitationId, projectId, acceptedAt: null, revokedAt: null },
-    data: { revokedAt: new Date() },
+export async function revokeInvitation(projectId: string, invitationId: string, actorId: string): Promise<boolean> {
+  return prisma.$transaction(async (tx) => {
+    const { count } = await tx.invitation.updateMany({
+      where: { id: invitationId, projectId, acceptedAt: null, revokedAt: null },
+      data: { revokedAt: new Date() },
+    });
+    if (count !== 1) return false;
+    const invitation = await tx.invitation.findUniqueOrThrow({ where: { id: invitationId }, select: { email: true } });
+    await logAudit(
+      { projectId, actorId, type: 'INVITE_REVOKED', meta: { email: invitation.email, invitationId } },
+      tx
+    );
+    return true;
   });
-  return count === 1;
 }

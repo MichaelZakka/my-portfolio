@@ -1,62 +1,58 @@
 import { NextResponse, after } from 'next/server';
-import { prisma } from '../../../../../lib/db';
 import { authorizeAdminProject, getAdminActor } from '../../../../../lib/portal/access';
-import { logActivity } from '../../../../../lib/portal/activity';
-import { parseJsonBody } from '../../../../../lib/portal/http';
+import { presentAdminMessages } from '../../../../../lib/portal/adminView';
+import { notFound } from '../../../../../lib/portal/http';
+import { createMessage, markReadByAdmin, readMessageInput } from '../../../../../lib/portal/messages';
 import { notifyAboutMessage } from '../../../../../lib/portal/notify';
-import { displayName, getProjectMessages } from '../../../../../lib/portal/queries';
-import { messageSchema } from '../../../../../lib/portal/validation';
+import { displayName, getMessagePage } from '../../../../../lib/portal/queries';
+import { idSchema } from '../../../../../lib/portal/validation';
 
 type RouteParams = { params: Promise<{ projectId: string }> };
 
+/** The newest page, or with ?before=<message id> the page before it, in the admin screen's shape. */
 export async function GET(request: Request, { params }: RouteParams) {
   const { projectId } = await params;
   const auth = await authorizeAdminProject(request, projectId);
   if (!auth.ok) return auth.response;
 
-  return NextResponse.json({ messages: await getProjectMessages(auth.project.id) });
+  const before = new URL(request.url).searchParams.get('before');
+  if (before && !idSchema.safeParse(before).success) return notFound();
+
+  const page = await getMessagePage(auth.project.id, { before, clientView: false });
+  return NextResponse.json({ messages: presentAdminMessages(auth.project.id, page.messages), hasMore: page.hasMore });
 }
 
-/** Posts as the admin and emails every client member (each in their language). */
+/** Posts as the admin (JSON, or multipart with attachments); clients are emailed once per unread batch. */
 export async function POST(request: Request, { params }: RouteParams) {
   const { projectId } = await params;
   const auth = await authorizeAdminProject(request, projectId, { mutation: true });
   if (!auth.ok) return auth.response;
 
-  const body = await parseJsonBody(request, messageSchema);
-  if (!body.ok) return body.response;
+  const input = await readMessageInput(request);
+  if (!input.ok) return input.response;
 
   const actor = await getAdminActor();
   const senderName = displayName(actor);
-  const message = await prisma.$transaction(async (tx) => {
-    const created = await tx.message.create({
-      data: { projectId: auth.project.id, senderId: actor.id, content: body.data.content },
-      select: { id: true, createdAt: true },
-    });
-    await logActivity(
-      {
-        projectId: auth.project.id,
-        actorId: actor.id,
-        type: 'MESSAGE_SENT',
-        meta: { messageId: created.id, senderName },
-        visibleToClient: true,
-      },
-      tx
-    );
-    return created;
+  const created = await createMessage({
+    projectId: auth.project.id,
+    sender: { id: actor.id, name: senderName },
+    ...input.data,
   });
+  if (!created.ok) return created.response;
+  await markReadByAdmin(auth.project.id, created.data.createdAt);
 
   after(() =>
     notifyAboutMessage({
-      messageId: message.id,
+      messageId: created.data.id,
       projectId: auth.project.id,
       projectName: auth.project.name,
       senderName,
       senderEmail: actor.email,
       senderRole: 'admin',
-      content: body.data.content,
+      content: input.data.content,
+      attachments: created.data.attachments,
     })
   );
 
-  return NextResponse.json({ message }, { status: 201 });
+  return NextResponse.json({ message: { id: created.data.id, createdAt: created.data.createdAt } }, { status: 201 });
 }

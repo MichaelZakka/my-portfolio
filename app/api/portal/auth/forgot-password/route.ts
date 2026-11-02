@@ -5,6 +5,7 @@ import { PASSWORD_RESET_TTL_MINUTES } from '../../../../lib/portal/constants';
 import { generateToken } from '../../../../lib/portal/credentials';
 import { portalUrl, sendPasswordResetEmail } from '../../../../lib/portal/email';
 import { parseJsonBody, rateLimited, rejectCrossOrigin } from '../../../../lib/portal/http';
+import { reportDeliveryFailure } from '../../../../lib/monitoring';
 import { getPortalLocale } from '../../../../lib/portal/locale';
 import { forgotPasswordSchema } from '../../../../lib/portal/validation';
 
@@ -58,7 +59,7 @@ export async function POST(request: Request) {
       where: { tokenHash },
       data: { emailSent: result.sent, emailError: result.error ?? null },
     });
-    if (!result.sent) console.error('[portal] Password reset email not sent:', result.error);
+    if (!result.sent) await reportDeliveryFailure('Password reset email not sent', result.error);
   });
 
   return ok;

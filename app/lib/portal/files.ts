@@ -1,8 +1,9 @@
 import { randomUUID } from 'crypto';
 import { prisma } from '../db';
+import { reportError } from '../monitoring';
 import { logActivity } from './activity';
 import { apiError, type Result } from './http';
-import { getDriverFor, getUploadDriver, type StoredObject } from './storage';
+import { getDriverFor, getUploadDriver, type StorageDriverName, type StoredObject } from './storage';
 
 /**
  * Upload validation and storage for project files.
@@ -78,31 +79,19 @@ function detectKind(filename: string, bytes: Uint8Array): FileKind | null {
 
 export type ValidUpload = { filename: string; mimeType: string; bytes: Uint8Array };
 
-/** Parses a multipart body with a `file` field and enforces the size limit and type allow-list. */
-export async function readUpload(
-  request: Request
-): Promise<Result<{ upload: ValidUpload; form: FormData }>> {
-  const max = getMaxUploadBytes();
-  const tooLarge = () =>
-    apiError(413, 'fileTooLarge', `Files can be at most ${Math.round(max / 1024 / 1024)} MB.`, { maxBytes: max });
+const tooLarge = (max: number) =>
+  apiError(413, 'fileTooLarge', `Files can be at most ${Math.round(max / 1024 / 1024)} MB.`, { maxBytes: max });
 
-  // Reject obviously oversized bodies before buffering them (multipart adds a little overhead).
+/** Rejects obviously oversized bodies before buffering them (multipart adds a little overhead). */
+export function declaredBodyTooLarge(request: Request, max = getMaxUploadBytes()): Result<null> {
   const declared = Number(request.headers.get('content-length') || 0);
-  if (declared > max + 64 * 1024) return { ok: false, response: tooLarge() };
+  return declared > max + 64 * 1024 ? { ok: false, response: tooLarge(max) } : { ok: true, data: null };
+}
 
-  let form: FormData;
-  try {
-    form = await request.formData();
-  } catch {
-    return { ok: false, response: apiError(400, 'invalidInput', 'Expected a multipart/form-data upload.') };
-  }
-
-  const file = form.get('file');
-  if (!(file instanceof File)) {
-    return { ok: false, response: apiError(400, 'noFile', 'No file was uploaded.') };
-  }
+/** Size and type allow-list for one uploaded file (the stored type comes from the extension, checked against the bytes). */
+export async function validateUploadFile(file: File, max = getMaxUploadBytes()): Promise<Result<ValidUpload>> {
   if (file.size === 0) return { ok: false, response: apiError(400, 'emptyFile', 'The file is empty.') };
-  if (file.size > max) return { ok: false, response: tooLarge() };
+  if (file.size > max) return { ok: false, response: tooLarge(max) };
 
   const bytes = new Uint8Array(await file.arrayBuffer());
   const filename = sanitizeFilename(file.name);
@@ -115,8 +104,60 @@ export async function readUpload(
       }),
     };
   }
+  return { ok: true, data: { filename, mimeType: kind.mimeType, bytes } };
+}
 
-  return { ok: true, data: { upload: { filename, mimeType: kind.mimeType, bytes }, form } };
+/** Parses a multipart body with a `file` field and enforces the size limit and type allow-list. */
+export async function readUpload(
+  request: Request
+): Promise<Result<{ upload: ValidUpload; form: FormData }>> {
+  const sizeCheck = declaredBodyTooLarge(request);
+  if (!sizeCheck.ok) return sizeCheck;
+
+  let form: FormData;
+  try {
+    form = await request.formData();
+  } catch {
+    return { ok: false, response: apiError(400, 'invalidInput', 'Expected a multipart/form-data upload.') };
+  }
+
+  const file = form.get('file');
+  if (!(file instanceof File)) {
+    return { ok: false, response: apiError(400, 'noFile', 'No file was uploaded.') };
+  }
+  const upload = await validateUploadFile(file);
+  if (!upload.ok) return upload;
+  return { ok: true, data: { upload: upload.data, form } };
+}
+
+export type WrittenUpload = ValidUpload & { storageKey: string; storageDriver: StorageDriverName };
+
+/** Writes the bytes of every upload. If any write fails, the ones already written are removed again. */
+export async function writeUploads(projectId: string, uploads: ValidUpload[]): Promise<Result<WrittenUpload[]>> {
+  const choice = getUploadDriver();
+  if (!choice.driver) {
+    await reportError({ source: 'storage', message: `File upload refused: ${choice.reason}` });
+    return { ok: false, response: apiError(503, 'storageUnavailable', 'File storage is not configured.') };
+  }
+  const driver = choice.driver;
+  const written: WrittenUpload[] = [];
+  for (const upload of uploads) {
+    const storageKey = `projects/${projectId}/${randomUUID()}`;
+    try {
+      await driver.put(storageKey, upload.bytes, upload.mimeType);
+    } catch (err) {
+      await discardUploads(written);
+      await reportError({ source: 'storage', message: `Storage write failed (${driver.name})`, error: err });
+      return { ok: false, response: apiError(502, 'storageUnavailable', 'Could not store the file.') };
+    }
+    written.push({ ...upload, storageKey, storageDriver: driver.name });
+  }
+  return { ok: true, data: written };
+}
+
+/** Removes stored bytes whose database rows were never written. */
+export async function discardUploads(written: WrittenUpload[]) {
+  await Promise.all(written.map((file) => deleteStoredFile(file)));
 }
 
 /** Writes the bytes, then the ProjectFile row and its FILE_UPLOADED activity (bytes are removed again if the DB write fails). */
@@ -126,20 +167,9 @@ export async function storeProjectFile(input: {
   upload: ValidUpload;
   visibleToClient: boolean;
 }): Promise<Result<{ id: string; filename: string }>> {
-  const choice = getUploadDriver();
-  if (!choice.driver) {
-    console.error('[portal] File upload refused:', choice.reason);
-    return { ok: false, response: apiError(503, 'storageUnavailable', 'File storage is not configured.') };
-  }
-  const driver = choice.driver;
-  const key = `projects/${input.projectId}/${randomUUID()}`;
-
-  try {
-    await driver.put(key, input.upload.bytes, input.upload.mimeType);
-  } catch (err) {
-    console.error('[portal] Storage write failed:', err);
-    return { ok: false, response: apiError(502, 'storageUnavailable', 'Could not store the file.') };
-  }
+  const stored = await writeUploads(input.projectId, [input.upload]);
+  if (!stored.ok) return stored;
+  const [upload] = stored.data;
 
   try {
     const file = await prisma.$transaction(async (tx) => {
@@ -147,11 +177,11 @@ export async function storeProjectFile(input: {
         data: {
           projectId: input.projectId,
           uploadedById: input.uploadedById,
-          filename: input.upload.filename,
-          storageKey: key,
-          storageDriver: driver.name,
-          fileSize: input.upload.bytes.byteLength,
-          mimeType: input.upload.mimeType,
+          filename: upload.filename,
+          storageKey: upload.storageKey,
+          storageDriver: upload.storageDriver,
+          fileSize: upload.bytes.byteLength,
+          mimeType: upload.mimeType,
           visibleToClient: input.visibleToClient,
         },
         select: { id: true, filename: true },
@@ -170,7 +200,7 @@ export async function storeProjectFile(input: {
     });
     return { ok: true, data: file };
   } catch (err) {
-    await driver.delete(key).catch(() => {});
+    await discardUploads(stored.data);
     throw err;
   }
 }
@@ -198,9 +228,16 @@ export async function fileDownloadResponse(file: {
   try {
     object = driver ? await driver.get(file.storageKey) : null;
   } catch (err) {
-    console.error('[portal] Storage read failed:', err);
+    await reportError({ source: 'storage', message: `Storage read failed (${file.storageDriver})`, error: err });
+    return apiError(410, 'fileUnavailable', 'This file is no longer available.');
   }
   if (!object) {
+    // A row without its bytes: someone sees "no longer available" for a file that should exist.
+    await reportError({
+      source: 'storage',
+      message: `Stored file is missing (${file.storageDriver})`,
+      context: { filename: file.filename },
+    });
     return apiError(410, 'fileUnavailable', 'This file is no longer available.');
   }
 
@@ -222,6 +259,6 @@ export async function deleteStoredFile(file: { storageKey: string; storageDriver
   try {
     await driver.delete(file.storageKey);
   } catch (err) {
-    console.error('[portal] Storage delete failed:', err);
+    await reportError({ source: 'storage', message: `Storage delete failed (${file.storageDriver})`, error: err });
   }
 }

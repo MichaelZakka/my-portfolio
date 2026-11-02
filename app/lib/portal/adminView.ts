@@ -1,6 +1,7 @@
 import { parseActivityMeta } from './activity';
 import { invitationState } from './constants';
 import { getProjectMeetings } from './meetings';
+import { getAdminStamps } from './messages';
 import { presentMeetings } from './present';
 import {
   dayKey,
@@ -16,9 +17,35 @@ import {
   displayName,
   getAdminProjectDetail,
   getProjectActivity,
+  getMessagePage,
   getProjectFiles,
-  getProjectMessages,
+  type MessageRow,
 } from './queries';
+
+/** The admin screen's message shape (also returned by GET /api/admin/projects/[id]/messages?before=…). */
+export function presentAdminMessages(projectId: string, messages: MessageRow[]) {
+  return messages.map((message) => ({
+    id: message.id,
+    content: message.content,
+    sentAt: formatDateTime(message.createdAt, 'en'),
+    createdAt: message.createdAt.toISOString(),
+    time: formatTime(message.createdAt, 'en'),
+    dayKey: dayKey(message.createdAt),
+    dayLabel: formatDayLabel(message.createdAt, 'en'),
+    senderName: displayName(message.sender),
+    fromAdmin: message.sender.role === 'admin',
+    emailSent: message.emailSent,
+    emailError: message.emailError,
+    emailBatched: message.emailBatched,
+    attachments: message.attachments.map((file) => ({
+      id: file.id,
+      filename: file.filename,
+      sizeLabel: formatBytes(file.fileSize, 'en'),
+      hidden: !file.visibleToClient,
+      downloadUrl: `/api/admin/projects/${projectId}/files/${file.id}`,
+    })),
+  }));
+}
 
 /**
  * Everything the admin project screen shows, with labels already formatted.
@@ -26,12 +53,13 @@ import {
  * returns the same shape, which the screen re-reads after every change.
  */
 export async function buildAdminProjectView(projectId: string) {
-  const [project, messages, files, activity, meetings] = await Promise.all([
+  const [project, messagePage, files, activity, meetings, live] = await Promise.all([
     getAdminProjectDetail(projectId),
-    getProjectMessages(projectId),
+    getMessagePage(projectId, { clientView: false }),
     getProjectFiles(projectId, { clientView: false }),
     getProjectActivity(projectId, { clientView: false }),
     getProjectMeetings(projectId),
+    getAdminStamps(projectId),
   ]);
   if (!project) return null;
 
@@ -112,19 +140,13 @@ export async function buildAdminProjectView(projectId: string) {
       milestoneId: task.milestoneId,
       visibleToClient: task.visibleToClient,
     })),
-    messages: messages.map((message) => ({
-      id: message.id,
-      content: message.content,
-      sentAt: formatDateTime(message.createdAt, 'en'),
-      createdAt: message.createdAt.toISOString(),
-      time: formatTime(message.createdAt, 'en'),
-      dayKey: dayKey(message.createdAt),
-      dayLabel: formatDayLabel(message.createdAt, 'en'),
-      senderName: displayName(message.sender),
-      fromAdmin: message.sender.role === 'admin',
-      emailSent: message.emailSent,
-      emailError: message.emailError,
-    })),
+    messages: presentAdminMessages(project.id, messagePage.messages),
+    messagesHasMore: messagePage.hasMore,
+    unreadMessages: live.unread,
+    /** Where "New messages" starts on this screen: client messages after this instant. */
+    adminLastReadAt: project.adminLastReadAt?.toISOString() ?? null,
+    /** Compared with GET …/updates by the open screen, which reloads when it changes. */
+    liveStamp: live.stamp,
     meetings: presentMeetings(meetings, 'admin', {
       locale: 'en',
       timeZone: getPortalTimeZone(),

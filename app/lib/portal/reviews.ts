@@ -1,5 +1,5 @@
 import { prisma } from '../db';
-import { logActivity } from './activity';
+import { logActivity, logAudit } from './activity';
 import { displayName } from './queries';
 
 /**
@@ -59,11 +59,11 @@ export async function requestMilestoneReview(input: {
  * Cancels the pending round (e.g. sent too early) and hides its "ready for
  * your approval" entry from the client's feed. Returns false when nothing was pending.
  */
-export async function withdrawMilestoneReview(projectId: string, milestoneId: string): Promise<boolean> {
+export async function withdrawMilestoneReview(projectId: string, milestoneId: string, actorId: string): Promise<boolean> {
   return prisma.$transaction(async (tx) => {
     const pending = await tx.milestoneReview.findMany({
       where: { projectId, milestoneId, status: 'pending' },
-      select: { id: true },
+      select: { id: true, milestone: { select: { title: true } } },
     });
     if (pending.length === 0) return false;
 
@@ -71,11 +71,15 @@ export async function withdrawMilestoneReview(projectId: string, milestoneId: st
       where: { id: { in: pending.map((r) => r.id) }, status: 'pending' },
       data: { status: 'withdrawn' },
     });
-    for (const { id } of pending) {
+    for (const { id, milestone } of pending) {
       await tx.activity.updateMany({
         where: { projectId, type: 'MILESTONE_REVIEW_REQUESTED', meta: { contains: `"reviewId":"${id}"` } },
         data: { visibleToClient: false },
       });
+      await logAudit(
+        { projectId, actorId, type: 'MILESTONE_REVIEW_WITHDRAWN', meta: { milestoneId, reviewId: id, title: milestone.title } },
+        tx
+      );
     }
     return true;
   });

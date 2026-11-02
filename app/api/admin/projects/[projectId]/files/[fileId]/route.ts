@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '../../../../../../lib/db';
-import { authorizeAdminProject } from '../../../../../../lib/portal/access';
-import { syncActivityVisibility } from '../../../../../../lib/portal/activity';
+import { authorizeAdminProject, getAdminActor } from '../../../../../../lib/portal/access';
+import { logAudit, syncActivityVisibility } from '../../../../../../lib/portal/activity';
 import { deleteStoredFile, fileDownloadResponse } from '../../../../../../lib/portal/files';
 import { notFound, parseJsonBody, parseParam } from '../../../../../../lib/portal/http';
 import { fileUpdateSchema, idSchema } from '../../../../../../lib/portal/validation';
@@ -39,9 +39,20 @@ export async function PATCH(request: Request, { params }: RouteParams) {
   if (!file) return notFound('File not found.');
 
   const { visibleToClient } = body.data;
+  if (visibleToClient === file.visibleToClient) return NextResponse.json({ success: true });
+  const actor = await getAdminActor();
   await prisma.$transaction(async (tx) => {
     await tx.projectFile.update({ where: { id: file.id }, data: { visibleToClient } });
     await syncActivityVisibility(auth.project.id, { fileId: file.id }, visibleToClient, tx);
+    await logAudit(
+      {
+        projectId: auth.project.id,
+        actorId: actor.id,
+        type: 'FILE_VISIBILITY_CHANGED',
+        meta: { fileId: file.id, filename: file.filename, visible: visibleToClient },
+      },
+      tx
+    );
   });
   return NextResponse.json({ success: true });
 }
@@ -56,7 +67,14 @@ export async function DELETE(request: Request, { params }: RouteParams) {
   const file = await findFile(auth.project.id, id.data);
   if (!file) return notFound('File not found.');
 
-  await prisma.projectFile.delete({ where: { id: file.id } });
+  const actor = await getAdminActor();
+  await prisma.$transaction(async (tx) => {
+    await tx.projectFile.delete({ where: { id: file.id } });
+    await logAudit(
+      { projectId: auth.project.id, actorId: actor.id, type: 'FILE_DELETED', meta: { fileId: file.id, filename: file.filename } },
+      tx
+    );
+  });
   await deleteStoredFile(file);
   return NextResponse.json({ success: true });
 }

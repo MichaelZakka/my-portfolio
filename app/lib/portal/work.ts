@@ -1,6 +1,6 @@
 import type { Prisma } from '@prisma/client';
 import { prisma } from '../db';
-import { logActivity, syncActivityVisibility } from './activity';
+import { logActivity, logAudit, syncActivityVisibility } from './activity';
 import type { WorkStatus } from './constants';
 
 /**
@@ -129,10 +129,15 @@ export async function updateMilestone(input: {
   });
 }
 
-export async function deleteMilestone(projectId: string, milestoneId: string): Promise<boolean> {
-  // Tasks keep existing: Task.milestoneId is ON DELETE SET NULL.
-  const { count } = await prisma.milestone.deleteMany({ where: { id: milestoneId, projectId } });
-  return count === 1;
+export async function deleteMilestone(projectId: string, milestoneId: string, actorId: string): Promise<boolean> {
+  return prisma.$transaction(async (tx) => {
+    const milestone = await tx.milestone.findFirst({ where: { id: milestoneId, projectId }, select: { title: true } });
+    if (!milestone) return false;
+    // Tasks keep existing: Task.milestoneId is ON DELETE SET NULL.
+    await tx.milestone.delete({ where: { id: milestoneId } });
+    await logAudit({ projectId, actorId, type: 'MILESTONE_DELETED', meta: { milestoneId, title: milestone.title } }, tx);
+    return true;
+  });
 }
 
 // --- Tasks --------------------------------------------------------------------
@@ -248,6 +253,15 @@ export async function updateTask(input: {
 
     if (visibleToClient !== current.visibleToClient) {
       await syncActivityVisibility(projectId, { taskId }, visibleToClient, tx);
+      await logAudit(
+        {
+          projectId,
+          actorId: input.actorId,
+          type: 'TASK_VISIBILITY_CHANGED',
+          meta: { taskId, title: task.title, visible: visibleToClient },
+        },
+        tx
+      );
     }
     if (changes.status === 'done' && current.status !== 'done') {
       await logActivity(
@@ -265,7 +279,12 @@ export async function updateTask(input: {
   });
 }
 
-export async function deleteTask(projectId: string, taskId: string): Promise<boolean> {
-  const { count } = await prisma.task.deleteMany({ where: { id: taskId, projectId } });
-  return count === 1;
+export async function deleteTask(projectId: string, taskId: string, actorId: string): Promise<boolean> {
+  return prisma.$transaction(async (tx) => {
+    const task = await tx.task.findFirst({ where: { id: taskId, projectId }, select: { title: true } });
+    if (!task) return false;
+    await tx.task.delete({ where: { id: taskId } });
+    await logAudit({ projectId, actorId, type: 'TASK_DELETED', meta: { taskId, title: task.title } }, tx);
+    return true;
+  });
 }
