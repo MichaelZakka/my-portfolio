@@ -210,6 +210,8 @@ export default async function ProjectView({ projectId, tab, viewer, preview = fa
       >
         <ProjectTabs
           initialTab={isProjectTab(tab) ? tab : 'overview'}
+          projectName={preview ? `Preview: ${project.name}` : project.name}
+          siteTitle={t('meta.title')}
           panels={{
             overview: (
               <OverviewPanel

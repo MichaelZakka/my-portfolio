@@ -34,9 +34,14 @@ export function useProjectTabs(): Tabs | null {
 export default function ProjectTabs({
   initialTab,
   panels,
+  projectName,
+  siteTitle,
 }: {
   initialTab: ProjectTab;
   panels: Record<ProjectTab, ReactNode>;
+  /** For the browser tab: "(2) Messages · Clinic site · Michael Zakka · Client portal". */
+  projectName: string;
+  siteTitle: string;
 }) {
   const t = useTranslations('portal.project');
   const { data, unread } = useLive();
@@ -95,6 +100,12 @@ export default function ProjectTabs({
   };
 
   const label = (tab: ProjectTab) => (tab === 'overview' ? t('tabOverview') : t(`${tab}Title`));
+
+  // The browser tab names the open section and counts unread messages, so it is clear from the tab bar.
+  useEffect(() => {
+    const section = active === 'overview' ? '' : `${label(active)} · `;
+    document.title = `${unread ? `(${unread}) ` : ''}${section}${projectName} · ${siteTitle}`;
+  });
 
   return (
     <TabsContext.Provider value={{ active, select: (tab) => select(tab, { scroll: true }) }}>

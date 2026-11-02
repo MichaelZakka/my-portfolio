@@ -10,12 +10,13 @@ import ProposalResponseForm from './ProposalResponseForm';
 import styles from '../../portal.module.css';
 import proposalStyles from '../../_components/proposal.module.css';
 
-export async function generateMetadata(): Promise<Metadata> {
-  const { t } = await getPortalTranslations('portal.meta');
-  return { title: t('proposal') };
-}
-
 type Props = { params: Promise<{ token: string }> };
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { t } = await getPortalTranslations('portal.meta');
+  const found = await findProposalByToken((await params).token);
+  return { title: found ? t('proposalFor', { title: found.content.title }) : t('proposal') };
+}
 
 /** The emailed proposal link: no account needed. Accepting creates the client's portal account and project. */
 export default async function ProposalPage({ params }: Props) {

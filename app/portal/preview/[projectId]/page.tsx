@@ -14,9 +14,15 @@ import styles from '../../portal.module.css';
 
 export const dynamic = 'force-dynamic';
 
-export const metadata: Metadata = { title: 'Client view (preview)' };
-
 type Props = { params: Promise<{ projectId: string }>; searchParams: Promise<{ tab?: string }> };
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { projectId } = await params;
+  const project = idSchema.safeParse(projectId).success
+    ? await prisma.project.findUnique({ where: { id: projectId }, select: { name: true } })
+    : null;
+  return { title: `Preview: ${project?.name ?? 'project'}` };
+}
 
 /**
  * The admin's "view as client": the client project screen with every

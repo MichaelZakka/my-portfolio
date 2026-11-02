@@ -177,7 +177,7 @@
   },
   "portal": {
     "meta": {
-      "title": "Client portal",
+      "title": "Michael Zakka · Client portal",
       "signIn": "Sign in",
       "forgot": "Forgot password",
       "reset": "Choose a new password",
@@ -185,7 +185,8 @@
       "projects": "Your projects",
       "forbidden": "No access",
       "proposal": "Proposal",
-      "account": "Your account"
+      "account": "Your account",
+      "proposalFor": "Proposal: {title}"
     },
     "common": {
       "brand": "Michael Zakka",
