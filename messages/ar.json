@@ -531,7 +531,9 @@
       "removeAttachment": "إزالة {name}",
       "unreadLabel": "غير مقروءة",
       "overviewUnread": "{count, plural, one {رسالة جديدة واحدة} two {رسالتان جديدتان} few {# رسائل جديدة} many {# رسالة جديدة} other {# رسالة جديدة}}",
-      "overviewAttachmentsOnly": "{count, plural, one {أُرسل مرفق} two {أُرسل مرفقان} few {أُرسلت # مرفقات} many {أُرسل # مرفقاً} other {أُرسل # مرفق}}"
+      "overviewAttachmentsOnly": "{count, plural, one {أُرسل مرفق} two {أُرسل مرفقان} few {أُرسلت # مرفقات} many {أُرسل # مرفقاً} other {أُرسل # مرفق}}",
+      "meetingCancelYes": "إلغاء الاجتماع",
+      "meetingCancelKeep": "الإبقاء عليه"
     },
     "activity": {
       "PROJECT_CREATED": "تم إنشاء المشروع",

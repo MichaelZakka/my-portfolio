@@ -6,6 +6,7 @@ import { StatusSelect } from './MilestonesPanel';
 import { jsonInit, useAdminAction } from '../useAdminAction';
 import styles from '../../../admin.module.css';
 import projectStyles from '../projects.module.css';
+import { confirmDialog } from '../../../../components/confirmDialog';
 
 export type AdminTask = {
   id: string;
@@ -79,7 +80,7 @@ function TaskRow({
   };
 
   const remove = async () => {
-    if (!window.confirm(`Delete task “${task.title}”?`)) return;
+    if (!(await confirmDialog({ title: 'Delete task?', message: `“${task.title}” will be deleted.`, confirmLabel: 'Delete', danger: true }))) return;
     await run(`delete-${task.id}`, url, jsonInit('DELETE'));
   };
 

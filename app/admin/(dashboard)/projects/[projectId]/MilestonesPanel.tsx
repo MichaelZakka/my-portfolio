@@ -6,6 +6,7 @@ import { WORK_STATUSES, WORK_STATUS_LABELS } from '../../../../lib/portal/consta
 import { jsonInit, useAdminAction } from '../useAdminAction';
 import styles from '../../../admin.module.css';
 import projectStyles from '../projects.module.css';
+import { confirmDialog } from '../../../../components/confirmDialog';
 
 export type AdminMilestone = {
   id: string;
@@ -50,7 +51,7 @@ function ReviewSection({ milestone, url, action }: { milestone: AdminMilestone; 
   };
 
   const withdraw = async () => {
-    if (!window.confirm(`Withdraw the approval request for “${milestone.title}”?`)) return;
+    if (!(await confirmDialog({ title: 'Withdraw approval request?', message: `The client will no longer be asked to approve “${milestone.title}”.`, confirmLabel: 'Withdraw' }))) return;
     await run(`withdraw-${milestone.id}`, `${url}/review`, jsonInit('DELETE'));
   };
 
@@ -192,7 +193,7 @@ function MilestoneRow({
   };
 
   const remove = async () => {
-    if (!window.confirm(`Delete milestone “${milestone.title}”? Its tasks stay, without a milestone.`)) return;
+    if (!(await confirmDialog({ title: 'Delete milestone?', message: `“${milestone.title}” will be deleted. Its tasks stay, without a milestone.`, confirmLabel: 'Delete', danger: true }))) return;
     await run(`delete-${milestone.id}`, url, jsonInit('DELETE'));
   };
 

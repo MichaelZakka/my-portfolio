@@ -8,6 +8,7 @@ import type { AdminProjectView } from '../../../../lib/portal/adminView';
 import { jsonInit, useAdminAction } from '../useAdminAction';
 import styles from '../../../admin.module.css';
 import projectStyles from '../projects.module.css';
+import { confirmDialog } from '../../../../components/confirmDialog';
 
 type Meeting = AdminProjectView['meetings'][number];
 type Action = ReturnType<typeof useAdminAction>;
@@ -35,7 +36,7 @@ function MeetingRow({ meeting, url, action }: { meeting: Meeting; url: string; a
   };
 
   const cancel = async () => {
-    if (!window.confirm(`Cancel “${meeting.title}”? The client will be emailed.`)) return;
+    if (!(await confirmDialog({ title: 'Cancel meeting?', message: `“${meeting.title}” will be cancelled and the client emailed.`, confirmLabel: 'Cancel meeting', cancelLabel: 'Keep it', danger: true }))) return;
     await act('cancel', { action: 'cancel' });
   };
 

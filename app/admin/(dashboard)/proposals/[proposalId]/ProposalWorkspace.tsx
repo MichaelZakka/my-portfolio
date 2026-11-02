@@ -10,6 +10,7 @@ import ProposalEditor, { type ProposalDraft } from './ProposalEditor';
 import ProposalLinkResult, { type SendResult } from './ProposalLinkResult';
 import styles from '../../../admin.module.css';
 import projectStyles from '../../projects/projects.module.css';
+import { confirmDialog } from '../../../../components/confirmDialog';
 
 export type ProposalFacts = {
   recipient: string;
@@ -56,7 +57,7 @@ export default function ProposalWorkspace({
 
   const resend = async () => {
     const question = `Email ${facts.recipient} a new link? The current link stops working and the validity period restarts.`;
-    if (pending || !window.confirm(question)) return;
+    if (pending || !(await confirmDialog({ title: 'Email a new link?', message: question, confirmLabel: 'Send new link' }))) return;
     const result = await run<SendResult>('resend', `/api/admin/proposals/${proposalId}/send`, jsonInit('POST'));
     if (result) setSent(result);
   };

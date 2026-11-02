@@ -5,6 +5,7 @@ import { PROJECT_STATUSES, PROJECT_STATUS_LABELS } from '../../../../lib/portal/
 import { jsonInit, useAdminAction } from '../useAdminAction';
 import styles from '../../../admin.module.css';
 import projectStyles from '../projects.module.css';
+import { confirmDialog } from '../../../../components/confirmDialog';
 
 type Props = {
   project: {
@@ -56,7 +57,7 @@ export default function ProjectSettingsPanel({ project }: Props) {
     const message = project.archived
       ? 'Restore this project? Clients can message and upload again.'
       : 'Archive this project? Clients keep read-only access to its history and files.';
-    if (!window.confirm(message)) return;
+    if (!(await confirmDialog({ title: project.archived ? 'Restore project?' : 'Archive project?', message, confirmLabel: project.archived ? 'Restore' : 'Archive' }))) return;
     await run('archive', `/api/admin/projects/${project.id}`, jsonInit('PATCH', { archived: !project.archived }));
   };
 

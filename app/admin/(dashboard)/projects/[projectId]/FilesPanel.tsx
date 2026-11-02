@@ -5,6 +5,7 @@ import { Download, Eye, EyeOff, Trash2 } from 'lucide-react';
 import { jsonInit, useAdminAction } from '../useAdminAction';
 import styles from '../../../admin.module.css';
 import projectStyles from '../projects.module.css';
+import { confirmDialog } from '../../../../components/confirmDialog';
 
 export type AdminFile = {
   id: string;
@@ -54,7 +55,7 @@ export default function FilesPanel({ projectId, files, maxBytes, maxSizeLabel, a
     run(`visibility-${target.id}`, `${base}/${target.id}`, jsonInit('PATCH', { visibleToClient: !target.visibleToClient }));
 
   const remove = async (target: AdminFile) => {
-    if (!window.confirm(`Delete “${target.filename}”? This cannot be undone.`)) return;
+    if (!(await confirmDialog({ title: 'Delete file?', message: `“${target.filename}” will be deleted. This cannot be undone.`, confirmLabel: 'Delete', danger: true }))) return;
     await run(`delete-${target.id}`, `${base}/${target.id}`, jsonInit('DELETE'));
   };
 

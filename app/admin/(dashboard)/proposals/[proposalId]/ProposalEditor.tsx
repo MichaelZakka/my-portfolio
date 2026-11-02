@@ -8,6 +8,7 @@ import { jsonInit, useAdminAction } from '../../projects/useAdminAction';
 import type { SendResult } from './ProposalLinkResult';
 import styles from '../../../admin.module.css';
 import projectStyles from '../../projects/projects.module.css';
+import { confirmDialog } from '../../../../components/confirmDialog';
 
 export type ProposalDraft = {
   locale: PortalLocale;
@@ -129,14 +130,14 @@ export default function ProposalEditor({
 
   const handleSend = async () => {
     const question = `Send version ${version} to ${recipient}?\n\nIt is locked once sent. To change it later, you revise it as a new version.`;
-    if (pending || !window.confirm(question)) return;
+    if (pending || !(await confirmDialog({ title: 'Send proposal?', message: question, confirmLabel: 'Send' }))) return;
     if (!(await save('send'))) return;
     const result = await run<SendResult>('send', `/api/admin/proposals/${proposalId}/send`, jsonInit('POST'));
     if (result) onSent(result);
   };
 
   const handleDelete = async () => {
-    if (pending || !window.confirm(`Delete the version ${version} draft?`)) return;
+    if (pending || !(await confirmDialog({ title: 'Delete draft?', message: `The version ${version} draft will be deleted.`, confirmLabel: 'Delete', danger: true }))) return;
     const result = await run('delete', `/api/admin/proposals/${proposalId}`, jsonInit('DELETE'));
     if (result) router.push(`/admin/requests/${leadId}`);
   };

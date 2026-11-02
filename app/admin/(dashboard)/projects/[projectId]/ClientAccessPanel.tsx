@@ -7,6 +7,7 @@ import InviteResult, { type InviteOutcome } from '../InviteResult';
 import { jsonInit, useAdminAction } from '../useAdminAction';
 import styles from '../../../admin.module.css';
 import projectStyles from '../projects.module.css';
+import { confirmDialog } from '../../../../components/confirmDialog';
 
 type Member = { id: string; name: string; email: string; activated: boolean; lastLogin: string | null };
 type Invitation = {
@@ -60,12 +61,12 @@ export default function ClientAccessPanel({
   };
 
   const revoke = async (invitation: Invitation) => {
-    if (!window.confirm(`Revoke the invitation for ${invitation.email}? The link stops working.`)) return;
+    if (!(await confirmDialog({ title: 'Revoke invitation?', message: `The link sent to ${invitation.email} stops working.`, confirmLabel: 'Revoke', danger: true }))) return;
     await run(`revoke-${invitation.id}`, `${base}/invitations/${invitation.id}/revoke`, jsonInit('POST'));
   };
 
   const removeMember = async (member: Member) => {
-    if (!window.confirm(`Remove ${member.email}'s access to this project?`)) return;
+    if (!(await confirmDialog({ title: 'Remove access?', message: `${member.email} will no longer see this project.`, confirmLabel: 'Remove', danger: true }))) return;
     await run(`remove-${member.id}`, `${base}/members/${member.id}`, jsonInit('DELETE'));
   };
 

@@ -9,6 +9,7 @@ import type { ClientMeeting } from '../../../../lib/portal/present';
 import { jsonRequest, readJson, useErrorMessage, type ApiErrorBody } from '../../../_components/useErrorMessage';
 import { useLive } from './LiveSections';
 import styles from '../../../portal.module.css';
+import { confirmDialog } from '../../../../components/confirmDialog';
 
 type Milestone = { id: string; title: string };
 
@@ -143,8 +144,14 @@ function MeetingItem({
     if (startsAt && (await onAction('reschedule', { action: 'reschedule', startsAt }))) setRescheduling(false);
   };
 
-  const cancel = () => {
-    if (window.confirm(t('meetingCancelConfirm'))) onAction('cancel', { action: 'cancel' });
+  const cancel = async () => {
+    const ok = await confirmDialog({
+      message: t('meetingCancelConfirm'),
+      confirmLabel: t('meetingCancelYes'),
+      cancelLabel: t('meetingCancelKeep'),
+      danger: true,
+    });
+    if (ok) onAction('cancel', { action: 'cancel' });
   };
 
   const awaitingYou = meeting.canAccept && !readOnly;

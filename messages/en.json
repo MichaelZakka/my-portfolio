@@ -390,7 +390,9 @@
       "removeAttachment": "Remove {name}",
       "unreadLabel": "Unread",
       "overviewUnread": "{count, plural, one {# new message} other {# new messages}}",
-      "overviewAttachmentsOnly": "{count, plural, one {Sent an attachment} other {Sent # attachments}}"
+      "overviewAttachmentsOnly": "{count, plural, one {Sent an attachment} other {Sent # attachments}}",
+      "meetingCancelYes": "Cancel meeting",
+      "meetingCancelKeep": "Keep it"
     },
     "activity": {
       "PROJECT_CREATED": "Project created",
