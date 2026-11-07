@@ -1,0 +1,92 @@
+.grid {
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: clamp(var(--s-6), 6vw, var(--s-9));
+  align-items: center;
+}
+
+.paragraph {
+  margin-block: var(--s-5) var(--s-6);
+  max-width: 58ch;
+  color: var(--text-muted);
+}
+
+.facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--s-4) var(--s-5);
+  margin-block-end: var(--s-6);
+  font-size: 15px;
+}
+
+.facts li {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s-3);
+}
+
+.factIcon {
+  flex-shrink: 0;
+  margin-block-start: 3px;
+  color: var(--accent-text);
+}
+
+.infoCard {
+  padding: var(--s-6);
+}
+
+.infoRow {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr);
+  column-gap: var(--s-4);
+  padding-block: var(--s-5);
+  border-block-end: 1px solid var(--border);
+}
+
+.infoRow:first-child {
+  padding-block-start: 0;
+}
+
+.infoRow:last-child {
+  padding-block-end: 0;
+  border-block-end: 0;
+}
+
+.infoIcon {
+  grid-row: span 2;
+  color: var(--accent-text);
+}
+
+.infoLabel {
+  display: contents;
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.infoValue {
+  grid-column: 2;
+  color: var(--text-muted);
+  font-size: 15px;
+  overflow-wrap: anywhere;
+  text-align: start;
+}
+
+.infoValue a:hover {
+  color: var(--text);
+}
+
+@media (max-width: 899px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .facts {
+    grid-template-columns: 1fr;
+  }
+
+  .infoCard {
+    padding: var(--s-5);
+  }
+}

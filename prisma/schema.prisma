@@ -1,0 +1,474 @@
+// Prisma schema for the portfolio admin dashboard and client portal.
+//
+// Local dev uses SQLite (zero setup, file-based). For production on Vercel,
+// switch the datasource below to `postgresql` and point DATABASE_URL at a
+// managed Postgres instance (Neon / Supabase / Vercel Postgres) — see
+// "Client portal in production" in DEPLOYMENT.md. Array-like fields
+// (projectTypes, personalities, etc.) are intentionally stored as JSON-text
+// strings, and enum-like fields as plain strings validated in app code, so
+// the schema and application code work unchanged on both providers.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DATABASE_URL_UNPOOLED")
+}
+
+model Lead {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Pipeline
+  status          String    @default("new")
+  source          String    @default("work-with-me")
+  notes           String    @default("")
+  lastContactedAt DateTime?
+
+  // Request metadata
+  userAgent   String?
+  referrer    String?
+  landingPath String?
+
+  // Email notification bookkeeping (Resend)
+  emailSent  Boolean @default(false)
+  emailError String?
+
+  // --- ProjectBriefPayload fields (1:1) ---
+  projectTitle       String
+  projectDescription String
+  timeline           String
+  budget             String
+  clientName         String
+  clientEmail        String
+  company            String
+  phone              String
+
+  projectTypes     String // JSON string[]
+  projectTypeOther String
+
+  businessDomains     String // JSON string[]
+  businessDomainOther String
+
+  hasBrand      String
+  brandName     String
+  tagline       String
+  personalities String // JSON string[]
+  references    String
+  logoUrl       String
+
+  primaryColor   String
+  secondaryColor String
+  accentColor    String
+  mood           String
+  colorApproach  String
+  visualNotes    String
+
+  statusEvents LeadStatusEvent[]
+  proposals    Proposal[]
+  project      Project? // set once the request is converted into a client project
+
+  @@index([createdAt])
+  @@index([status])
+  @@index([clientEmail])
+}
+
+model LeadStatusEvent {
+  id         String   @id @default(cuid())
+  leadId     String
+  lead       Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  fromStatus String?
+  toStatus   String
+  note       String?
+  createdAt  DateTime @default(now())
+
+  @@index([leadId])
+}
+
+// A priced scope sent to the person behind a request. One row per version:
+// a sent version is never edited (revising creates the next version), so the
+// client can only accept exactly what they were shown. Accepting creates the
+// project, its milestones and the client's portal account in one transaction
+// and freezes the accepted content in `snapshot` (+ its SHA-256).
+// Allowed values for the String "enums" live in app/lib/portal/constants.ts.
+model Proposal {
+  id             String    @id @default(cuid())
+  leadId         String
+  version        Int
+  status         String    @default("draft") // draft | sent | changes_requested | accepted | declined | superseded
+  locale         String    @default("en") // language the content is written in
+  title          String
+  summary        String    @default("")
+  phases         String    @default("[]") // JSON { title, description, durationDays }[]; become milestones
+  included       String    @default("[]") // JSON string[]
+  excluded       String    @default("[]") // JSON string[]
+  clientProvides String    @default("[]") // JSON string[]
+  currency       String    @default("USD")
+  totalAmount    Int       @default(0) // whole currency units
+  paymentTerms   String    @default("")
+  revisionRounds Int       @default(2)
+  startDate      DateTime? // null: work starts when the client accepts
+  validDays      Int       @default(14)
+
+  // Set when sent. Only the token's SHA-256 is stored, like invitations.
+  recipientEmail String?
+  recipientName  String?
+  tokenHash      String?   @unique
+  sentAt         DateTime?
+  validUntil     DateTime?
+  emailSent      Boolean   @default(false)
+  emailError     String?
+
+  // The client's answer
+  respondedAt     DateTime?
+  responseNote    String? // the requested changes, or why it was declined
+  signerName      String?
+  signerIp        String?
+  signerUserAgent String?
+  snapshot        String? // JSON of exactly what was accepted
+  snapshotHash    String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  lead Lead @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  @@unique([leadId, version])
+  @@index([status])
+}
+
+// Unified analytics event table covering page views + funnel/CTA events.
+model AnalyticsEvent {
+  id       String  @id @default(cuid())
+  type     String // page_view | cta_click | survey_started | survey_step_completed | survey_submitted | survey_abandoned
+  path     String?
+  label    String? // e.g. whatsapp | work-with-me | mailto | tel | project-live
+  referrer String?
+
+  utmSource   String?
+  utmMedium   String?
+  utmCampaign String?
+  utmTerm     String?
+  utmContent  String?
+
+  device  String? // mobile | tablet | desktop
+  country String?
+
+  sessionId String? // random per-browser-session id, not a persistent fingerprint
+  meta      String? // small JSON blob for extra context (e.g. { step: 2 })
+
+  createdAt DateTime @default(now())
+
+  @@index([type, createdAt])
+  @@index([path])
+  @@index([sessionId])
+}
+
+// ---------------------------------------------------------------------------
+// Client portal (/portal for clients, /admin/projects for the admin)
+// Allowed values for the String "enums" live in app/lib/portal/constants.ts.
+// ---------------------------------------------------------------------------
+
+// Anyone attached to a project. Clients sign in at /portal with a bcrypt
+// password. The admin keeps signing in with the env credentials; their row
+// (role "admin", no password) only authors messages, uploads and activity.
+model User {
+  id              String    @id @default(cuid())
+  email           String    @unique // always stored lower-cased
+  name            String    @default("")
+  role            String    @default("client") // client | admin
+  passwordHash    String? // null until an invitation is accepted
+  locale          String    @default("en") // en | ar: portal UI and email language
+  timeZone        String? // IANA zone from the client's browser (portal times and emails); null: PORTAL_TIME_ZONE
+  sessionVersion  Int       @default(0) // bumped to sign out every session (e.g. password reset)
+  emailVerifiedAt DateTime?
+  lastLoginAt     DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  memberships      ProjectMember[]
+  invitations      Invitation[]
+  passwordResets   PasswordResetToken[]
+  messages         Message[]
+  uploadedFiles    ProjectFile[]
+  activities       Activity[]
+  meetingsProposed Meeting[]
+  reviewsRequested MilestoneReview[]    @relation("ReviewRequestedBy")
+  reviewsAnswered  MilestoneReview[]    @relation("ReviewRespondedBy")
+
+  @@index([role])
+}
+
+model Project {
+  id                  String    @id @default(cuid())
+  requestId           String?   @unique // the Lead this project was converted from
+  name                String
+  summary             String    @default("")
+  status              String    @default("planning")
+  currentPhase        String    @default("")
+  estimatedCompletion DateTime?
+  startedAt           DateTime?
+  completedAt         DateTime?
+  archivedAt          DateTime?
+  // The admin's side of ProjectMember.lastReadAt / lastNotifiedAt (the admin is not a member).
+  adminLastReadAt     DateTime?
+  adminLastNotifiedAt DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  request     Lead?             @relation(fields: [requestId], references: [id], onDelete: SetNull)
+  members     ProjectMember[]
+  invitations Invitation[]
+  milestones  Milestone[]
+  tasks       Task[]
+  messages    Message[]
+  files       ProjectFile[]
+  activities  Activity[]
+  meetings    Meeting[]
+  reviews     MilestoneReview[]
+
+  @@index([createdAt])
+  @@index([status])
+}
+
+// Membership is the only thing that grants a client access to a project.
+model ProjectMember {
+  id        String   @id @default(cuid())
+  projectId String
+  userId    String
+  role      String   @default("client")
+  createdAt DateTime @default(now())
+
+  // Messages: what this client has read, and when they were last emailed about
+  // unread ones (one email per unread batch, see notifyAboutMessage).
+  lastReadAt     DateTime?
+  lastNotifiedAt DateTime?
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, userId])
+  @@index([userId])
+}
+
+model Invitation {
+  id         String    @id @default(cuid())
+  projectId  String
+  email      String
+  tokenHash  String    @unique // SHA-256 of the emailed token; the raw token is never stored
+  role       String    @default("client")
+  userId     String?
+  expiresAt  DateTime
+  acceptedAt DateTime?
+  revokedAt  DateTime?
+  lastSentAt DateTime?
+  emailSent  Boolean   @default(false)
+  emailError String?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user    User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([expiresAt])
+  @@index([email])
+  @@index([projectId])
+}
+
+model PasswordResetToken {
+  id         String    @id @default(cuid())
+  userId     String
+  tokenHash  String    @unique // SHA-256 of the emailed token
+  expiresAt  DateTime
+  usedAt     DateTime?
+  emailSent  Boolean   @default(false)
+  emailError String?
+  createdAt  DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model Milestone {
+  id            String    @id @default(cuid())
+  projectId     String
+  title         String
+  description   String    @default("")
+  status        String    @default("todo")
+  order         Int       @default(0)
+  estimatedDays Int? // its weight in the progress bar; set from the proposal's phase durations
+  dueDate       DateTime?
+  completedAt   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  project  Project           @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  tasks    Task[]
+  meetings Meeting[]
+  reviews  MilestoneReview[]
+
+  @@index([projectId, order])
+}
+
+// One sign-off round: the admin asks the client to approve a milestone; any
+// client member approves it (marking it done) or asks for changes (reopening
+// it). Rounds are never deleted, so the history shows who approved what, when,
+// and how many revision rounds a milestone took.
+model MilestoneReview {
+  id            String    @id @default(cuid())
+  projectId     String
+  milestoneId   String
+  status        String    @default("pending") // pending | approved | changes_requested | withdrawn
+  note          String    @default("") // what the client should check
+  link          String    @default("") // optional http(s) preview link
+  requestedById String?
+  requestedAt   DateTime  @default(now())
+  respondedById String?
+  respondedAt   DateTime?
+  response      String? // the requested changes, or an optional comment with the approval
+  // Notification to the clients (Resend), recorded like Message.emailSent
+  emailSent     Boolean   @default(false)
+  emailError    String?
+
+  project     Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  milestone   Milestone @relation(fields: [milestoneId], references: [id], onDelete: Cascade)
+  requestedBy User?     @relation("ReviewRequestedBy", fields: [requestedById], references: [id], onDelete: SetNull)
+  respondedBy User?     @relation("ReviewRespondedBy", fields: [respondedById], references: [id], onDelete: SetNull)
+
+  @@index([milestoneId, requestedAt])
+  @@index([projectId, status])
+}
+
+model Task {
+  id              String    @id @default(cuid())
+  projectId       String
+  milestoneId     String?
+  title           String
+  description     String    @default("")
+  status          String    @default("todo")
+  visibleToClient Boolean   @default(false)
+  order           Int       @default(0)
+  completedAt     DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  project   Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  milestone Milestone? @relation(fields: [milestoneId], references: [id], onDelete: SetNull)
+
+  @@index([milestoneId])
+  @@index([projectId, status])
+}
+
+model Message {
+  id           String   @id @default(cuid())
+  projectId    String
+  senderId     String
+  content      String
+  // Notification to the other party (Resend), recorded like Lead.emailSent.
+  // emailBatched: no email of its own, because the recipient still had an
+  // unread notification about this conversation.
+  emailSent    Boolean  @default(false)
+  emailError   String?
+  emailBatched Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  project     Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  sender      User          @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  attachments ProjectFile[]
+
+  @@index([projectId, createdAt])
+}
+
+model ProjectFile {
+  id              String   @id @default(cuid())
+  projectId       String
+  uploadedById    String
+  filename        String
+  storageKey      String
+  storageDriver   String   @default("local") // driver that holds the bytes: local | vercel-blob
+  fileSize        Int
+  mimeType        String
+  visibleToClient Boolean  @default(true)
+  messageId       String? // set when the file was sent as a message attachment
+  createdAt       DateTime @default(now())
+
+  project    Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  uploadedBy User     @relation(fields: [uploadedById], references: [id], onDelete: Cascade)
+  message    Message? @relation(fields: [messageId], references: [id], onDelete: SetNull)
+
+  @@index([projectId, createdAt])
+  @@index([messageId])
+}
+
+// A meeting either side can propose. proposedByRole is the side whose latest
+// proposal is pending: only the other side can accept it; either side can
+// propose a new time (which hands the decision back) or cancel.
+model Meeting {
+  id              String    @id @default(cuid())
+  projectId       String
+  milestoneId     String?
+  title           String
+  agenda          String    @default("")
+  location        String    @default("") // a place or a video-call link
+  startsAt        DateTime
+  durationMinutes Int       @default(30)
+  status          String    @default("proposed") // proposed | confirmed | cancelled
+  proposedById    String?
+  proposedByRole  String // client | admin
+  confirmedAt     DateTime?
+  cancelledAt     DateTime?
+  reminderSentAt  DateTime? // the day-before reminder; cleared when the time changes
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  project    Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  milestone  Milestone? @relation(fields: [milestoneId], references: [id], onDelete: SetNull)
+  proposedBy User?      @relation(fields: [proposedById], references: [id], onDelete: SetNull)
+
+  @@index([projectId, startsAt])
+  @@index([milestoneId])
+}
+
+model Activity {
+  id              String   @id @default(cuid())
+  projectId       String
+  actorId         String?
+  type            String
+  summary         String
+  meta            String? // JSON; event details plus email bookkeeping where an event sends mail
+  visibleToClient Boolean  @default(true)
+  createdAt       DateTime @default(now())
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  actor   User?   @relation(fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([projectId, createdAt])
+}
+
+// Server problems worth knowing about (failed uploads, email delivery,
+// crashed requests, browser errors), grouped by fingerprint so a recurring
+// problem is one row with a count. The admin is alerted on the first
+// occurrence and again at most hourly while it stays unresolved.
+// See app/lib/monitoring.ts and the Site page.
+model ErrorEvent {
+  id          String    @id @default(cuid())
+  fingerprint String    @unique
+  source      String // e.g. storage | email | request | browser | cron
+  message     String
+  detail      String? // stack or context, truncated
+  path        String?
+  count       Int       @default(1)
+  firstSeenAt DateTime  @default(now())
+  lastSeenAt  DateTime  @default(now())
+  alertedAt   DateTime?
+  resolvedAt  DateTime?
+
+  @@index([resolvedAt, lastSeenAt])
+}

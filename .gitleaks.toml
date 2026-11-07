@@ -1,0 +1,103 @@
+# Gitleaks configuration: the built-in rules plus rules for the secrets this
+# project actually uses. The built-in set alone did not flag a real Neon
+# DATABASE_URL or ADMIN_PASSWORD_HASH (checked 2026-11-08 with gitleaks 8.30.1).
+#
+# Used automatically (it sits at the repo root) by the pre-commit hook in
+# .githooks/pre-commit and by manual scans:
+#   gitleaks git -v          # every commit on every branch
+#   gitleaks dir . -v        # files on disk (also scans ignored files like .env)
+#
+# A false positive can be silenced with a `gitleaks:allow` comment on that line
+# or by adding its fingerprint to a .gitleaksignore file. Never allowlist a real secret.
+
+title = "portfolio"
+
+[extend]
+useDefault = true
+
+# DATABASE_URL / DATABASE_URL_UNPOOLED: postgres://user:PASSWORD@host/db
+[[rules]]
+id = "postgres-url-with-password"
+description = "Postgres connection string with an embedded password"
+regex = '''postgres(?:ql)?://[^\s:/@'"`<>]+:([^\s/@'"`<>]{4,})@[^\s/'"`<>]+'''
+secretGroup = 1
+keywords = ["postgres"]
+
+  [[rules.allowlists]]
+  description = "Local throwaway databases and documentation placeholders"
+  regexTarget = "match"
+  regexes = [
+    '''@(?:localhost|127\.0\.0\.1|\[::1\])(?:[:/?]|$)''',
+    '''://[^:/@]+:(?:PASSWORD|password|pass|secret|changeme|\*+|<[^>]*>)@''',
+  ]
+
+# Neon role passwords (also the password part of Neon connection strings).
+[[rules]]
+id = "neon-password"
+description = "Neon database password"
+regex = '''\bnpg_[A-Za-z0-9]{12,}\b'''
+keywords = ["npg_"]
+
+# RESEND_API_KEY
+[[rules]]
+id = "resend-api-key"
+description = "Resend API key"
+regex = '''\bre_[A-Za-z0-9]{8}_[A-Za-z0-9]{20,}\b'''
+keywords = ["re_"]
+
+# BLOB_READ_WRITE_TOKEN
+[[rules]]
+id = "vercel-blob-token"
+description = "Vercel Blob read-write token"
+regex = '''\bvercel_blob_rw_[A-Za-z0-9]{8,}_[A-Za-z0-9]{16,}\b'''
+keywords = ["vercel_blob_rw_"]
+
+# ALERT_WEBHOOK_URL (Discord flavour; Slack webhooks are a built-in rule)
+[[rules]]
+id = "discord-webhook-url"
+description = "Discord incoming-webhook URL"
+regex = '''https://(?:ptb\.|canary\.)?discord(?:app)?\.com/api/webhooks/\d+/[A-Za-z0-9_-]{30,}'''
+keywords = ["discord"]
+
+# ADMIN_PASSWORD_HASH as printed by `npm run hash-password` (scrypt salt:hash).
+[[rules]]
+id = "scrypt-password-hash"
+description = "Salted scrypt password hash (ADMIN_PASSWORD_HASH)"
+regex = '''\b[0-9a-f]{32}:[0-9a-f]{128}\b'''
+
+# bcrypt hashes of real passwords can be cracked offline.
+[[rules]]
+id = "bcrypt-hash"
+description = "bcrypt password hash"
+regex = '''\$2[aby]?\$\d{2}\$[./A-Za-z0-9]{53}'''
+keywords = ["$2a$", "$2b$", "$2y$"]
+
+  [[rules.allowlists]]
+  description = "Timing-equalisation constant in app/lib/portal/credentials.ts (not a real password)"
+  regexTarget = "line"
+  regexes = ['''\bDUMMY_HASH\s*=''']
+
+# This project's secret env vars assigned a literal value anywhere (docs, scripts, env files).
+[[rules]]
+id = "project-secret-assignment"
+description = "Literal value assigned to one of this project's secret environment variables"
+regex = '''(?i)\b(?:AUTH_SECRET|CRON_SECRET|ADMIN_PASSWORD_HASH|BLOB_READ_WRITE_TOKEN|SEED_CLIENT_PASSWORD|RESEND_API_KEY|ALERT_WEBHOOK_URL|DATABASE_URL(?:_UNPOOLED)?)\s*[:=]\s*["']?([^\s"'`#]{8,})'''
+secretGroup = 1
+keywords = [
+  "auth_secret", "cron_secret", "admin_password_hash", "blob_read_write_token",
+  "seed_client_password", "resend_api_key", "alert_webhook_url", "database_url",
+]
+
+  [[rules.allowlists]]
+  description = "Placeholders, variable references and template interpolation"
+  regexTarget = "secret"
+  regexes = [
+    '''^replace-with-''',
+    '''^postgres(?:ql)?://USER:PASSWORD@''',
+    '''^postgres(?:ql)?://[^@]*@(?:localhost|127\.0\.0\.1)''',
+    '''^file:''',
+    '''^\$''',
+    '''\$\{''',
+    '''^process\.env''',
+    '''^<''',
+  ]

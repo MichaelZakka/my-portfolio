@@ -1,0 +1,845 @@
+{
+  "_review": "TODO(michael): every string in this file is machine-drafted Arabic. Review and correct it, then delete this key. Content under \"content\" overrides the English in data/*.ts; anything missing falls back to English.",
+  "meta": {
+    "jobTitle": "مطوّر ويب (React / Next.js)",
+    "title": "ميشيل زكا | مطوّر ويب (React / Next.js)",
+    "description": "ميشيل زكا مطوّر ويب يبني تطبيقات React وNext.js جاهزة للإنتاج: ثنائية اللغة (عربي/إنجليزي، RTL/LTR)، سريعة، ومستخدمة من جمهور حقيقي. المشاريع والخبرات والسيرة الذاتية.",
+    "ogAlt": "ميشيل زكا، مطوّر ويب (React / Next.js)"
+  },
+  "common": {
+    "skipToContent": "انتقل إلى المحتوى",
+    "switchLanguage": "EN",
+    "switchLanguageLabel": "عرض هذه الصفحة بالإنجليزية",
+    "opensInNewTab": "(يفتح في نافذة جديدة)"
+  },
+  "nav": {
+    "label": "التنقل الرئيسي",
+    "home": "الرئيسية",
+    "about": "نبذة",
+    "projects": "المشاريع",
+    "experience": "الخبرات",
+    "contact": "تواصل",
+    "resume": "السيرة الذاتية",
+    "workWithMe": "اعمل معي",
+    "openMenu": "فتح القائمة",
+    "closeMenu": "إغلاق القائمة"
+  },
+  "hero": {
+    "openTo": "متاح لـ {list}",
+    "openToRemote": "العمل عن بُعد",
+    "openToOnsite": "العمل الحضوري في دمشق",
+    "greeting": "مرحباً، أنا",
+    "name": "ميشيل زكا",
+    "intro": "مطوّر ويب أبني تطبيقات React وNext.js جاهزة للإنتاج: ثنائية اللغة (عربي/إنجليزي، RTL/LTR)، سريعة، ويستخدمها جمهور حقيقي.",
+    "viewProjects": "عرض المشاريع",
+    "downloadResume": "تحميل السيرة الذاتية",
+    "github": "الملف الشخصي على GitHub",
+    "linkedin": "الملف الشخصي على LinkedIn",
+    "stackLabel": "التقنيات التي أعمل بها"
+  },
+  "about": {
+    "eyebrow": "نبذة عني",
+    "title": "أبني حلولاً تُحدث فرقاً",
+    "paragraph": "أنا مطوّر ويب في دمشق، أبني مواقع وتطبيقات ويب جاهزة للإنتاج باستخدام React وNext.js وTypeScript. أطلقت مواقع ثنائية اللغة عربي/إنجليزي لشركات في المملكة العربية السعودية، وتوليت فيها تخطيطات RTL والتصميم المتجاوب والنشر على Vercel من البداية إلى النهاية. أهتم بالصفحات السريعة والواجهات سهلة الوصول والمكوّنات التي يسهل تعديلها. أبحث عن دور في تطوير الويب ضمن فريق منتج، أتولى فيه الميزات من التصميم حتى الإنتاج.",
+    "downloadResume": "تحميل السيرة الذاتية",
+    "location": "الموقع",
+    "locationValue": "دمشق، سوريا",
+    "email": "البريد الإلكتروني",
+    "linkedin": "LinkedIn",
+    "languages": "اللغات",
+    "languagesValue": "العربية، الإنجليزية"
+  },
+  "strengths": {
+    "eyebrow": "نقاط القوة",
+    "title": "ما أقدّمه للفريق"
+  },
+  "projects": {
+    "eyebrow": "مشاريع مختارة",
+    "title": "دراسات حالة",
+    "personal": "مشروع شخصي",
+    "myRole": "دوري:",
+    "stack": "التقنيات المستخدمة",
+    "caseStudy": "دراسة حالة",
+    "screenshotAlt": "لقطة شاشة لموقع {title}",
+    "live": "الموقع",
+    "code": "الكود",
+    "liveLabel": "موقع {title} المباشر",
+    "codeLabel": "كود {title} على GitHub",
+    "private": "كود العميل خاص"
+  },
+  "caseStudy": {
+    "metaTitle": "دراسة حالة: {title}",
+    "allProjects": "كل المشاريع",
+    "breadcrumb": "مسار التنقل",
+    "eyebrow": "دراسة حالة",
+    "personalSuffix": "مشروع شخصي",
+    "overview": "نظرة عامة",
+    "challenge": "التحدي",
+    "solution": "الحل",
+    "results": "النتائج",
+    "screenshots": "لقطات الشاشة",
+    "facts": "معلومات المشروع",
+    "myRole": "دوري",
+    "team": "الفريق",
+    "builtAt": "نُفّذ في",
+    "stack": "التقنيات المستخدمة",
+    "more": "مشاريع أخرى",
+    "previous": "السابق",
+    "next": "التالي",
+    "coverAlt": "لقطة شاشة للصفحة الرئيسية لموقع {title}",
+    "shotAlt": "لقطة شاشة {n} لموقع {title}"
+  },
+  "experience": {
+    "eyebrow": "الخبرات",
+    "title": "أين عملت"
+  },
+  "skills": {
+    "eyebrow": "المهارات",
+    "title": "المهارات والتقنيات"
+  },
+  "education": {
+    "eyebrow": "التعليم",
+    "title": "التعليم والشهادات",
+    "degree": "بكالوريوس هندسة تكنولوجيا المعلومات",
+    "institution": "جامعة دمشق",
+    "location": "دمشق",
+    "duration": "2020 – 2025",
+    "description": "تخصص في الذكاء الاصطناعي واللغات الطبيعية",
+    "certTitle": "IELTS Academic",
+    "certIssuer": "إتقان اللغة الإنجليزية",
+    "certDate": "مايو 2026",
+    "certDateFull": "تاريخ الحصول عليها: 26 مايو 2026",
+    "overall": "الدرجة الكلية",
+    "listening": "الاستماع",
+    "reading": "القراءة",
+    "writing": "الكتابة",
+    "speaking": "المحادثة",
+    "bandsLabel": "درجات IELTS Academic"
+  },
+  "volunteering": {
+    "eyebrow": "العمل التطوعي",
+    "title": "العطاء للمجتمع",
+    "org": "Peace Circuit",
+    "logoAlt": "شعار Peace Circuit",
+    "roles": "شريك مؤسس · مسؤول عن الموقع الإلكتروني · مدرّب في الأمان الرقمي",
+    "text": "أتولى صيانة الموقع الإلكتروني لشبكة Peace Circuit وأدعم فريقها التقني، وهي شبكة تعمل في مجال بناء السلام والتكنولوجيا. كما أقدّم جلسات تدريبية في الأمان الرقمي تساعد المشاركين على حماية أنفسهم ومجتمعاتهم على الإنترنت."
+  },
+  "contact": {
+    "eyebrow": "تواصل",
+    "title": "تواصل معي",
+    "description": "هل توظّف لدور في تطوير الويب، أو تريد الحديث عن مشروع؟ أرسل رسالة أو تواصل معي مباشرة.",
+    "email": "البريد الإلكتروني",
+    "linkedin": "LinkedIn",
+    "github": "GitHub",
+    "form": {
+      "title": "أرسل رسالة",
+      "name": "الاسم",
+      "email": "البريد الإلكتروني",
+      "message": "الرسالة",
+      "send": "إرسال الرسالة",
+      "sending": "جارٍ الإرسال…",
+      "successTitle": "تم إرسال الرسالة",
+      "successText": "شكراً لتواصلك. سأرد عليك عبر البريد الإلكتروني قريباً."
+    },
+    "errors": {
+      "name": "يرجى إدخال اسمك (من 2 إلى 100 حرف).",
+      "email": "يرجى إدخال بريد إلكتروني صحيح.",
+      "message": "يجب أن تكون رسالتك بين 10 و5000 حرف.",
+      "fixFields": "يرجى تصحيح الحقول المحددة.",
+      "rateLimited": "رسائل كثيرة. يرجى المحاولة بعد بضع دقائق.",
+      "sendFailed": "عذراً، تعذّر إرسال رسالتك. يرجى مراسلتي عبر البريد الإلكتروني مباشرة."
+    }
+  },
+  "footer": {
+    "rights": "© {year} ميشيل زكا. جميع الحقوق محفوظة.",
+    "builtWith": "مبني باستخدام Next.js وTypeScript",
+    "viewSource": "عرض الكود المصدري",
+    "social": "روابط التواصل"
+  },
+  "blog": {
+    "metaTitle": "ملاحظات",
+    "metaDescription": "ملاحظات ميشيل زكا حول React وNext.js وواجهات RTL/LTR وتطوير الويب.",
+    "eyebrow": "ملاحظات",
+    "title": "كتابات",
+    "lead": "ملاحظات قصيرة حول React وNext.js وبناء الواجهات ثنائية اللغة.",
+    "empty": "أعمل على كتابة الملاحظات الأولى. عُد قريباً.",
+    "allNotes": "كل الملاحظات",
+    "draft": "مسودة (في وضع التطوير فقط)"
+  },
+  "workWithMe": {
+    "metaTitle": "اعمل معي",
+    "metaDescription": "أخبر ميشيل زكا عن مشروعك: تطبيقات ويب، صفحات هبوط، متاجر Shopify، أو تطبيقات Flutter. شارك أهدافك وهويتك البصرية.",
+    "loading": "جارٍ تحميل استبيان المشروع"
+  },
+  "notFound": {
+    "title": "الصفحة غير موجودة",
+    "text": "هذه الصفحة غير موجودة أو تم نقلها.",
+    "back": "العودة إلى الرئيسية"
+  },
+  "content": {
+    "strengths": {
+      "nextjs": {
+        "title": "تطبيقات Next.js جاهزة للإنتاج",
+        "proof": "أطلقت أربعة مواقع لعملاء باستخدام Next.js وVercel، من أول سطر كود حتى تشغيل الموقع على نطاقه."
+      },
+      "rtl": {
+        "title": "واجهات ثنائية اللغة RTL/LTR",
+        "proof": "بنيت تخطيطات عربية/إنجليزية تنعكس بشكل صحيح في مواقع عملاء ثنائية اللغة."
+      },
+      "performance": {
+        "title": "الأداء وتحسين محركات البحث",
+        "proof": "أستخدم next/image وnext/font والبيانات الوصفية والبيانات المنظمة افتراضياً، وهذا الموقع مبني بالطريقة نفسها."
+      },
+      "shopify": {
+        "title": "التجارة الإلكترونية / Shopify",
+        "proof": "أنشئ متاجر Shopify وأديرها ضمن دوري الحالي."
+      }
+    },
+    "projects": {
+      "learn-programming": {
+        "summary": "تطبيق ويب تعليمي يعلّم أساسيات البرمجة عبر دروس منظمة.",
+        "overview": "مشروع شخصي للتعلّم والتجربة، وليس للاستخدام التجاري. تطبيق ويب تعليمي مبني بـ Next.js يساعد المستخدمين على تعلّم أساسيات البرمجة عبر دروس منظمة وواجهة سهلة. منشور على Vercel.",
+        "role": "مشروع فردي: التصميم والتطوير والنشر",
+        "team": "فردي",
+        "challenges": [
+          "عرض الدروس بترتيب واضح يبقى مقروءاً على الهواتف والحواسيب."
+        ],
+        "solutions": [
+          "صفحات دروس منظمة باستخدام نظام التوجيه في Next.js وتخطيط متجاوب.",
+          "النشر على Vercel للمعاينات الفورية وبناءات الإنتاج."
+        ]
+      },
+      "new-logo": {
+        "summary": "صفحة هبوط ثنائية اللغة لشركة سعودية متخصصة في العلامات التجارية والهوية البصرية.",
+        "overview": "صفحة هبوط مبنية بـ Next.js لشركة علامات تجارية في المملكة العربية السعودية متخصصة في الهوية البصرية والتصميم. تركّز على عرض خدمات الشركة بتصميم حديث ومصقول يناسب السوق المحلي.",
+        "role": "مطوّر ويب في TGMENA: بنيت الموقع ونشرته",
+        "team": "فريق TGMENA",
+        "challenges": [
+          "خدمة الزوار باللغتين العربية والإنجليزية بقاعدة كود واحدة وتخطيط ينعكس بشكل صحيح.",
+          "الحفاظ على سرعة صفحة غنية بالصور على الهاتف."
+        ],
+        "solutions": [
+          "صفحات ثنائية اللغة بتخطيط يراعي الاتجاه للعربية (RTL) والإنجليزية (LTR).",
+          "تخطيط متجاوب وصور محسّنة للشاشات الصغيرة.",
+          "بناء Next.js منشور على Vercel."
+        ]
+      },
+      "sam-sign": {
+        "summary": "صفحة هبوط ثنائية اللغة لشركة سعودية للوحات الإعلانية تخدم الشركات والمتاجر.",
+        "overview": "صفحة هبوط مبنية بـ Next.js لشركة SAM Sign المتخصصة في لوحات الشركات والمتاجر. صُممت لعرض حلول اللوحات ومساعدة العملاء المحتملين على فهم الخدمات بعرض واضح واحترافي.",
+        "role": "مطوّر ويب في TGMENA: بنيت الموقع ونشرته",
+        "team": "فريق TGMENA",
+        "challenges": [
+          "عرض منتجات لوحات كثيرة بوضوح باللغتين العربية والإنجليزية."
+        ],
+        "solutions": [
+          "تخطيط ثنائي اللغة RTL/LTR بهيكل خدمات واضح.",
+          "تصميم متجاوب وصور منتجات محسّنة.",
+          "بناء Next.js منشور على Vercel."
+        ]
+      },
+      "tgmena": {
+        "title": "موقع TGMENA",
+        "summary": "موقع شركة TGMENA للحلول التقنية والعلامات التجارية والتسويق.",
+        "overview": "صفحة هبوط مبنية بـ Next.js لشركة TGMENA (Toward Greatness) المتخصصة في الحلول التقنية والعلامات التجارية وخدمات التسويق. صُممت لعرض خدمات الشركة كاملة بتصميم حديث واحترافي يعكس خبرتها المتعددة.",
+        "team": "فريق TGMENA، بالتعاون مع Ahmad Afif",
+        "challenges": [
+          "عرض عدة مجالات خدمات (تقنية، علامات تجارية، تسويق) دون إرباك الزوار."
+        ],
+        "solutions": [
+          "تخطيط متجاوب مقسّم إلى أقسام لكل مجال خدمة.",
+          "بناء Next.js منشور على Vercel."
+        ]
+      },
+      "tiny-tots": {
+        "summary": "موقع ثنائي اللغة عربي/إنجليزي لروضة أطفال في المملكة العربية السعودية.",
+        "overview": "صفحة هبوط ثنائية اللغة مبنية بـ Next.js لروضة Tiny Tots في المملكة العربية السعودية. صُممت لتعريف الأهالي ببرامج الروضة وقيمها بعرض دافئ وموثوق يناسب السوق المحلي.",
+        "team": "فريق TGMENA، بالتعاون مع Ahmad Afif",
+        "challenges": [
+          "العربية تُكتب من اليمين إلى اليسار: يجب أن ينعكس التخطيط والمسافات والأيقونات بالكامل دون كسر النسخة الإنجليزية.",
+          "يتصفح معظم الأهالي من الهاتف، لذا يجب أن تبقى الصفحة خفيفة ومقروءة على الشاشات الصغيرة."
+        ],
+        "solutions": [
+          "تخطيط ثنائي اللغة RTL/LTR بتنسيقات تراعي الاتجاه، بحيث تخدم مجموعة مكوّنات واحدة اللغتين.",
+          "تصميم متجاوب مع صور محسّنة.",
+          "بناء Next.js منشور على Vercel."
+        ]
+      }
+    },
+    "experience": {
+      "tgmena": {
+        "companyNote": "Toward Greatness، المعروفة باسم TGMENA، شركة تقدّم حلولاً تقنية وخدمات العلامات التجارية والتسويق.",
+        "role": "مطوّر Full-stack",
+        "duration": "أكتوبر 2025 – الآن",
+        "location": "عن بُعد · دوام كامل",
+        "achievements": [
+          "بنيت وأطلقت مواقع عملاء ثنائية اللغة عربي/إنجليزي والموقع الرسمي للشركة باستخدام React وNext.js على Vercel.",
+          "أنشأت متاجر Shopify لعملاء الشركة وأدرتها.",
+          "قيّمت الخيارات التقنية مع الفريق لاختيار التقنيات المناسبة لمشاريع العملاء."
+        ]
+      },
+      "freelance": {
+        "company": "عمل حر",
+        "role": "مطوّر ويب",
+        "duration": "2024 – الآن",
+        "location": "عن بُعد",
+        "achievements": [
+          "سلّمت تطبيقات ويب وصفحات هبوط متجاوبة باستخدام React وNext.js لعملاء من مجالات مختلفة.",
+          "توليت المشاريع من البداية إلى النهاية، من جمع المتطلبات حتى النشر.",
+          "أدرت التواصل مع العملاء مباشرة للالتزام بالنطاق والمواعيد."
+        ]
+      },
+      "bwire": {
+        "role": "مطوّر Flutter",
+        "duration": "أبريل 2024 – ديسمبر 2024",
+        "location": "حضوري · دمشق (الشعلان) · دوام كامل",
+        "achievements": [
+          "بنيت تطبيقات Android وiOS متعددة المنصات باستخدام Flutter انطلاقاً من وثائق SRS وتصاميم UI/UX.",
+          "دمجت واجهات API الخلفية بالتعاون مع فريق الخلفية.",
+          "قدّمت واجهات متجاوبة وسهلة الاستخدام بالتعاون الوثيق مع المصممين وأصحاب المصلحة."
+        ]
+      }
+    },
+    "skills": {
+      "groups": {
+        "frontend": "الواجهات الأمامية",
+        "styling": "التنسيق",
+        "ecommerce": "التجارة الإلكترونية",
+        "tooling": "الأدوات",
+        "quality": "الاختبار والجودة",
+        "mobile": "تطبيقات الجوال"
+      },
+      "names": {
+        "Responsive design": "التصميم المتجاوب",
+        "RTL layouts": "تخطيطات RTL",
+        "Accessibility": "إمكانية الوصول"
+      }
+    }
+  },
+  "portal": {
+    "meta": {
+      "title": "ميشيل زكا · بوابة العملاء",
+      "signIn": "تسجيل الدخول",
+      "forgot": "نسيت كلمة المرور",
+      "reset": "اختيار كلمة مرور جديدة",
+      "invite": "قبول الدعوة",
+      "projects": "مشاريعك",
+      "forbidden": "لا تملك صلاحية الوصول",
+      "proposal": "عرض المشروع",
+      "account": "حسابك",
+      "proposalFor": "عرض: {title}"
+    },
+    "common": {
+      "brand": "ميشيل زكا",
+      "portalName": "بوابة العملاء",
+      "skipToContent": "انتقل إلى المحتوى",
+      "switchLanguage": "EN",
+      "switchLanguageLabel": "عرض البوابة بالإنجليزية",
+      "signOut": "تسجيل الخروج",
+      "signingOut": "جارٍ تسجيل الخروج…",
+      "signedInAs": "تم تسجيل الدخول باسم {email}",
+      "projects": "المشاريع",
+      "loading": "جارٍ التحميل…",
+      "backToProjects": "كل المشاريع",
+      "notSet": "غير محدد",
+      "primaryNav": "البوابة",
+      "account": "الحساب"
+    },
+    "auth": {
+      "signInTitle": "تسجيل الدخول إلى بوابة العملاء",
+      "signInSubtitle": "تابع تقدّم مشروعك ورسائلك وملفاتك في مكان واحد.",
+      "email": "البريد الإلكتروني",
+      "password": "كلمة المرور",
+      "signIn": "تسجيل الدخول",
+      "signingIn": "جارٍ تسجيل الدخول…",
+      "forgotLink": "نسيت كلمة المرور؟",
+      "sessionExpired": "انتهت جلستك. يرجى تسجيل الدخول مجدداً.",
+      "notConfigured": "لم يتم إعداد تسجيل الدخول إلى البوابة على هذا الموقع بعد.",
+      "forgotTitle": "إعادة تعيين كلمة المرور",
+      "forgotSubtitle": "أدخل البريد الإلكتروني الذي تستخدمه في البوابة. إذا كان مرتبطاً بحساب، فسنرسل إليك رابطاً لاختيار كلمة مرور جديدة.",
+      "sendLink": "إرسال رابط إعادة التعيين",
+      "sendingLink": "جارٍ الإرسال…",
+      "forgotSent": "إذا كان هناك حساب مرتبط بالبريد {email}، فسيصلك رابط إعادة التعيين قريباً. تنتهي صلاحيته خلال {minutes} دقيقة.",
+      "backToSignIn": "العودة إلى تسجيل الدخول",
+      "resetTitle": "اختر كلمة مرور جديدة",
+      "resetSubtitle": "حفظ كلمة مرور جديدة يسجّل خروجك من جميع الأجهزة الأخرى.",
+      "newPassword": "كلمة المرور الجديدة",
+      "confirmPassword": "تأكيد كلمة المرور الجديدة",
+      "passwordHint": "{min} أحرف على الأقل.",
+      "savePassword": "حفظ كلمة المرور",
+      "savingPassword": "جارٍ الحفظ…",
+      "resetInvalidTitle": "لا يمكن استخدام هذا الرابط",
+      "resetInvalidText": "رابط إعادة التعيين غير صالح أو منتهي الصلاحية أو سبق استخدامه.",
+      "requestNewLink": "طلب رابط جديد"
+    },
+    "invite": {
+      "title": "الانضمام إلى «{project}»",
+      "subtitle": "دعاك ميشيل زكا لمتابعة هذا المشروع عبر بوابة العملاء.",
+      "newAccountHint": "أنشئ كلمة مرور لإكمال إعداد حسابك.",
+      "existingAccountHint": "لديك حساب في البوابة بالفعل. أدخل كلمة المرور لإضافة هذا المشروع إلى حسابك.",
+      "email": "البريد الإلكتروني",
+      "name": "اسمك",
+      "createPassword": "أنشئ كلمة مرور",
+      "confirmPassword": "تأكيد كلمة المرور",
+      "yourPassword": "كلمة المرور",
+      "accept": "قبول الدعوة",
+      "accepting": "جارٍ الانضمام…",
+      "invalidTitle": "لم يتم العثور على الدعوة",
+      "invalidText": "رابط الدعوة هذا غير صالح. تأكد من فتح الرابط كاملاً من رسالة البريد الإلكتروني.",
+      "expiredTitle": "انتهت صلاحية هذه الدعوة",
+      "expiredText": "روابط الدعوة صالحة لمدة {days} أيام. اطلب من ميشيل زكا إرسال دعوة جديدة.",
+      "revokedTitle": "تم سحب هذه الدعوة",
+      "revokedText": "لم يعد هذا الرابط يعمل. إذا كنت تعتقد أن ذلك خطأ، فردّ على رسالة الدعوة.",
+      "acceptedTitle": "تم قبول الدعوة مسبقاً",
+      "acceptedText": "سبق استخدام هذه الدعوة. سجّل الدخول لرؤية المشروع.",
+      "goToSignIn": "الانتقال إلى تسجيل الدخول"
+    },
+    "projects": {
+      "title": "مشاريعك",
+      "subtitle": "التقدّم والرسائل والملفات لكل مشروع من مشاريعك.",
+      "emptyTitle": "لا توجد مشاريع بعد",
+      "emptyText": "عند إضافتك إلى مشروع، سيظهر هنا.",
+      "archivedTitle": "المؤرشفة",
+      "archivedBadge": "مؤرشف",
+      "progress": "اكتمل {percent}٪",
+      "noMilestones": "لا توجد مراحل بعد",
+      "phase": "المرحلة: {phase}",
+      "eta": "الإنجاز المتوقع: {date}",
+      "updated": "آخر تحديث: {date}",
+      "needsApproval": "بانتظار موافقتك",
+      "unreadMessages": "{count, plural, one {رسالة جديدة واحدة} two {رسالتان جديدتان} few {# رسائل جديدة} many {# رسالة جديدة} other {# رسالة جديدة}}"
+    },
+    "status": {
+      "planning": "التخطيط",
+      "in_progress": "قيد التنفيذ",
+      "review": "قيد المراجعة",
+      "on_hold": "متوقف مؤقتاً",
+      "completed": "مكتمل"
+    },
+    "workStatus": {
+      "todo": "لم يبدأ",
+      "in_progress": "قيد التنفيذ",
+      "done": "مكتمل"
+    },
+    "project": {
+      "statusLabel": "الحالة",
+      "phaseLabel": "المرحلة الحالية",
+      "etaLabel": "الإنجاز المتوقع",
+      "progressLabel": "التقدّم",
+      "progressCaption": "{percent}٪ · المراحل المكتملة: {done} من {total}",
+      "progressEmpty": "سيظهر التقدّم بعد إضافة المراحل.",
+      "progressAria": "تقدّم المشروع",
+      "archivedNotice": "هذا المشروع مؤرشف. لا يزال بإمكانك قراءة سجله وتنزيل الملفات.",
+      "sectionsNav": "أقسام المشروع",
+      "milestonesTitle": "المراحل",
+      "milestonesEmpty": "لم يتم التخطيط لأي مراحل بعد.",
+      "due": "الموعد: {date}",
+      "completedOn": "اكتملت في {date}",
+      "tasksForMilestone": "مهام {milestone}",
+      "otherTasks": "مهام أخرى",
+      "noTasks": "لا توجد مهام لعرضها بعد.",
+      "messagesTitle": "الرسائل",
+      "messagesEmpty": "لا توجد رسائل بعد. اكتب هنا أسئلتك وتحديثاتك حول المشروع.",
+      "you": "أنت",
+      "projectLead": "مسؤول المشروع",
+      "replyLabel": "رسالتك",
+      "replyPlaceholder": "اكتب رسالة…",
+      "send": "إرسال",
+      "sending": "جارٍ الإرسال…",
+      "sent": "تم إرسال الرسالة.",
+      "replyDisabledArchived": "المراسلة مغلقة في المشاريع المؤرشفة.",
+      "filesTitle": "الملفات",
+      "filesEmpty": "لم تتم مشاركة أي ملفات بعد.",
+      "uploadLabel": "رفع ملف",
+      "uploadHint": "PDF أو صور أو Word أو Excel أو PowerPoint أو ZIP أو TXT أو CSV، بحجم أقصى {size}.",
+      "uploadButton": "رفع",
+      "uploading": "جارٍ الرفع…",
+      "uploaded": "تم رفع الملف.",
+      "downloadFile": "تنزيل {name}",
+      "fileMeta": "{size} · {name} · {date}",
+      "activityTitle": "النشاط",
+      "activityEmpty": "لا يوجد نشاط بعد.",
+      "taskMilestone": "المرحلة",
+      "taskUpdated": "آخر تحديث",
+      "taskCompleted": "تاريخ الإنجاز",
+      "taskNoDescription": "لا توجد تفاصيل إضافية لهذه المهمة بعد.",
+      "meetingsTitle": "الاجتماعات",
+      "meetingsEmpty": "لا توجد اجتماعات بعد. يمكنك اقتراح اجتماع أدناه.",
+      "meetingAwaitingYou": "بانتظار ردّك",
+      "meetingAwaitingOther": "بانتظار رد مسؤول المشروع",
+      "meetingDuration": "{minutes} دقيقة",
+      "meetingMilestone": "المرحلة: {milestone}",
+      "meetingAccept": "قبول",
+      "meetingSuggest": "اقتراح موعد آخر",
+      "meetingCancel": "إلغاء الاجتماع",
+      "meetingCancelConfirm": "هل تريد إلغاء هذا الاجتماع؟ سيتم إبلاغ الطرف الآخر.",
+      "meetingNewTime": "التاريخ والوقت الجديدان",
+      "meetingSendTime": "إرسال الموعد الجديد",
+      "meetingNeverMind": "تراجع",
+      "meetingProposeTitle": "اقتراح اجتماع",
+      "meetingTopic": "الموضوع",
+      "meetingWhen": "التاريخ والوقت (بتوقيتك المحلي)",
+      "meetingDurationLabel": "المدة",
+      "meetingLocation": "المكان أو رابط الاجتماع (اختياري)",
+      "meetingAgenda": "جدول الأعمال (اختياري)",
+      "meetingMilestoneLabel": "المرحلة المرتبطة (اختياري)",
+      "meetingNoMilestone": "بدون",
+      "meetingPropose": "اقتراح الاجتماع",
+      "meetingSending": "جارٍ الإرسال…",
+      "meetingSent": "تم. أُبلغ الطرف الآخر.",
+      "meetingsUpcoming": "القادمة",
+      "meetingsEarlier": "السابقة والملغاة",
+      "meetingJoin": "الانضمام إلى الاجتماع",
+      "meetingYouProposed": "أنت اقترحت هذا الموعد",
+      "sendHint": "Ctrl + Enter للإرسال",
+      "tabOverview": "نظرة عامة",
+      "overviewCurrentMilestone": "المرحلة الحالية",
+      "overviewAllDone": "اكتملت جميع المراحل.",
+      "overviewMilestonesDone": "اكتمل {done} من {total} مراحل",
+      "overviewNextMeeting": "الاجتماع القادم",
+      "overviewNoMeetings": "لا توجد اجتماعات قادمة.",
+      "overviewMeetingsAwaiting": "{count, plural, one {اجتماع واحد بانتظار ردّك} two {اجتماعان بانتظار ردّك} few {# اجتماعات بانتظار ردّك} other {# اجتماعاً بانتظار ردّك}}",
+      "overviewLatestMessage": "آخر رسالة",
+      "overviewNoMessages": "لا توجد رسائل بعد.",
+      "overviewFilesCount": "{count, plural, one {ملف واحد مشترك} two {ملفان مشتركان} few {# ملفات مشتركة} other {# ملفاً مشتركاً}}",
+      "overviewViewAll": "عرض كل {section}",
+      "activityLegend": "دليل الألوان",
+      "reviewAwaiting": "بانتظار موافقتك",
+      "reviewReadyTitle": "جاهزة لموافقتك",
+      "reviewSentOn": "أُرسلت للموافقة في {date}",
+      "reviewOpenLink": "فتح المعاينة",
+      "reviewApproveHint": "الموافقة تؤكد اكتمال العمل في هذه المرحلة. إذا كان هناك ما يجب تغييره، فأخبرني به وسأعدّله.",
+      "reviewApprove": "موافقة",
+      "reviewApproving": "جارٍ تأكيد الموافقة…",
+      "reviewRequestChanges": "طلب تعديلات",
+      "reviewChangesLabel": "ما الذي يجب تغييره؟",
+      "reviewSendChanges": "إرسال",
+      "reviewSending": "جارٍ الإرسال…",
+      "reviewCancel": "إلغاء",
+      "reviewApprovedBy": "تمت الموافقة من قِبل {name} في {date}",
+      "reviewChangesBy": "طلب تعديلات من {name} في {date}",
+      "reviewThanksApproved": "شكراً، تمت الموافقة على هذه المرحلة.",
+      "reviewThanksChanges": "شكراً، تم إرسال ملاحظاتك. سأخبرك عندما تصبح التعديلات جاهزة.",
+      "overviewAwaitingApproval": "{count, plural, one {مرحلة واحدة بانتظار موافقتك} two {مرحلتان بانتظار موافقتك} few {# مراحل بانتظار موافقتك} many {# مرحلة بانتظار موافقتك} other {# مرحلة بانتظار موافقتك}}",
+      "meetingAddToCalendar": "إضافة إلى التقويم",
+      "meetingTimeZoneHint": "الأوقات بحسب منطقتك الزمنية ({zone}).",
+      "loadOlder": "عرض الرسائل السابقة",
+      "loadingOlder": "جارٍ التحميل…",
+      "newMessages": "رسائل جديدة",
+      "attachmentsLabel": "المرفقات",
+      "attachFiles": "إرفاق ملفات",
+      "attachHint": "حتى {max} ملفات بحجم إجمالي {size}",
+      "removeAttachment": "إزالة {name}",
+      "unreadLabel": "غير مقروءة",
+      "overviewUnread": "{count, plural, one {رسالة جديدة واحدة} two {رسالتان جديدتان} few {# رسائل جديدة} many {# رسالة جديدة} other {# رسالة جديدة}}",
+      "overviewAttachmentsOnly": "{count, plural, one {أُرسل مرفق} two {أُرسل مرفقان} few {أُرسلت # مرفقات} many {أُرسل # مرفقاً} other {أُرسل # مرفق}}",
+      "meetingCancelYes": "إلغاء الاجتماع",
+      "meetingCancelKeep": "الإبقاء عليه"
+    },
+    "activity": {
+      "PROJECT_CREATED": "تم إنشاء المشروع",
+      "CLIENT_INVITED": "تمت دعوة عميل",
+      "INVITE_ACCEPTED": "انضم {name} إلى المشروع",
+      "MILESTONE_CREATED": "أُضيفت مرحلة: {title}",
+      "MILESTONE_COMPLETED": "اكتملت مرحلة: {title}",
+      "TASK_CREATED": "أُضيفت مهمة: {title}",
+      "TASK_COMPLETED": "اكتملت مهمة: {title}",
+      "MESSAGE_SENT": "أرسل {senderName} رسالة",
+      "FILE_UPLOADED": "تمت مشاركة ملف: {filename}",
+      "STATUS_CHANGED": "تغيّرت الحالة إلى: {to}",
+      "fallback": "تم تحديث المشروع",
+      "MEETING_PROPOSED": "اقتراح اجتماع: {title}",
+      "MEETING_RESCHEDULED": "اقتراح موعد جديد للاجتماع: {title}",
+      "MEETING_CONFIRMED": "تأكيد الاجتماع: {title}",
+      "MEETING_CANCELLED": "إلغاء الاجتماع: {title}",
+      "PROPOSAL_ACCEPTED": "تمت الموافقة على العرض من قِبل {name}",
+      "MILESTONE_REVIEW_REQUESTED": "بانتظار موافقتك: {title}",
+      "MILESTONE_APPROVED": "تمت الموافقة على «{title}» من قِبل {name}",
+      "MILESTONE_CHANGES_REQUESTED": "طلب تعديلات على «{title}» من {name}"
+    },
+    "errors": {
+      "generic": "حدث خطأ ما. يرجى المحاولة مرة أخرى.",
+      "network": "تعذّر الاتصال بالخادم. تحقّق من اتصالك وحاول مجدداً.",
+      "invalidCredentials": "البريد الإلكتروني أو كلمة المرور غير صحيحة.",
+      "rateLimited": "محاولات كثيرة. يرجى الانتظار بضع دقائق ثم المحاولة مجدداً.",
+      "invalidInput": "يرجى التحقق من البيانات المدخلة والمحاولة مجدداً.",
+      "passwordTooShort": "استخدم {min} أحرف على الأقل.",
+      "passwordTooLong": "كلمة المرور طويلة جداً. الحد الأقصى 72 بايت (نحو 36 حرفاً عربياً أو 72 حرفاً إنجليزياً).",
+      "passwordMismatch": "كلمتا المرور غير متطابقتين.",
+      "invalidToken": "هذا الرابط غير صالح أو منتهي الصلاحية.",
+      "invitationInvalid": "رابط الدعوة هذا غير صالح.",
+      "invitationExpired": "انتهت صلاحية هذه الدعوة.",
+      "invitationRevoked": "تم سحب هذه الدعوة.",
+      "invitationAccepted": "سبق قبول هذه الدعوة. سجّل الدخول للمتابعة.",
+      "fileTooLarge": "حجم الملف أكبر من {size}.",
+      "fileTypeNotAllowed": "نوع الملف هذا غير مسموح.",
+      "emptyFile": "الملف فارغ.",
+      "noFile": "اختر ملفاً أولاً.",
+      "storageUnavailable": "رفع الملفات غير متاح حالياً.",
+      "fileUnavailable": "هذا الملف لم يعد متاحاً.",
+      "projectArchived": "هذا المشروع مؤرشف.",
+      "unauthorized": "انتهت جلستك. يرجى تسجيل الدخول مجدداً.",
+      "forbidden": "ليست لديك صلاحية الوصول إلى هذا المشروع.",
+      "notFound": "غير موجود.",
+      "notConfigured": "لم يتم إعداد تسجيل الدخول إلى البوابة بعد.",
+      "meetingCancelled": "تم إلغاء هذا الاجتماع.",
+      "meetingConfirmed": "هذا الاجتماع مؤكَّد مسبقاً.",
+      "meetingAwaitingOther": "على الطرف الآخر الرد على اقتراحك.",
+      "meetingChanged": "تم تعديل هذا الاجتماع للتو. أعد تحميل الصفحة وحاول مجدداً.",
+      "proposalInvalid": "رابط العرض هذا غير صالح.",
+      "proposalExpired": "انتهت صلاحية هذا العرض. لا يزال بإمكانك طلب تعديلات.",
+      "proposalClosed": "سبق الرد على هذا العرض أو تم استبداله. أعد تحميل الصفحة.",
+      "reviewNotPending": "لم تعد هذه المرحلة بانتظار الموافقة. أعد تحميل الصفحة.",
+      "tooManyFiles": "الحد الأقصى للمرفقات في الرسالة الواحدة: {max}.",
+      "wrongCurrentPassword": "كلمة المرور الحالية غير صحيحة."
+    },
+    "forbidden": {
+      "title": "ليست لديك صلاحية الوصول إلى هذا المشروع",
+      "text": "هذا المشروع غير مشارك مع حسابك. إذا كنت تعتقد أن ذلك خطأ، فتواصل مع ميشيل زكا.",
+      "back": "العودة إلى مشاريعك"
+    },
+    "notFound": {
+      "title": "المشروع غير موجود",
+      "text": "هذا المشروع غير موجود أو تمت إزالته.",
+      "back": "العودة إلى مشاريعك"
+    },
+    "meetingStatus": {
+      "proposed": "بانتظار الرد",
+      "confirmed": "مؤكَّد",
+      "cancelled": "ملغى",
+      "past": "منتهٍ"
+    },
+    "activityCategories": {
+      "project": "المشروع",
+      "clients": "العملاء",
+      "progress": "المراحل والمهام",
+      "meetings": "الاجتماعات",
+      "messages": "الرسائل",
+      "files": "الملفات"
+    },
+    "proposal": {
+      "kicker": "عرض المشروع",
+      "preparedFor": "مُعدّ لـ {name}",
+      "versionLine": "الإصدار {version} · أُرسل في {date}",
+      "validUntil": "صالح حتى {date}",
+      "validUntilLabel": "صالح حتى",
+      "overviewTitle": "نظرة عامة",
+      "phasesTitle": "المراحل والجدول الزمني",
+      "phaseDuration": "{days, plural, one {حوالي يوم واحد} two {حوالي يومين} few {حوالي # أيام} many {حوالي # يوماً} other {حوالي # يوم}}",
+      "startLabel": "البدء",
+      "startOnAcceptance": "عند موافقتك",
+      "completionLabel": "الإنجاز المتوقع",
+      "durationLabel": "المدة الإجمالية",
+      "totalDuration": "{days, plural, one {يوم واحد} two {يومان} few {# أيام} many {# يوماً} other {# يوم}}",
+      "includedTitle": "ما يشمله العرض",
+      "excludedTitle": "ما لا يشمله العرض",
+      "clientProvidesTitle": "ما أحتاجه منك",
+      "investmentTitle": "التكلفة",
+      "totalLabel": "الإجمالي",
+      "paymentLabel": "الدفع",
+      "revisionsLabel": "التعديلات",
+      "revisions": "{count, plural, =0 {لا يشمل جولات تعديل} one {يشمل جولة تعديل واحدة} two {يشمل جولتي تعديل} few {يشمل # جولات تعديل} many {يشمل # جولة تعديل} other {يشمل # جولة تعديل}}",
+      "respondTitle": "قرارك",
+      "respondHint": "الموافقة تبدأ المشروع: ستحصل على مساحة خاصة في بوابة العملاء لمتابعة التقدّم ومراسلتي ومشاركة الملفات.",
+      "chooseAction": "ماذا تريد أن تفعل؟",
+      "actionAccept": "الموافقة",
+      "actionChanges": "طلب تعديلات",
+      "actionDecline": "الرفض",
+      "email": "البريد الإلكتروني",
+      "signerName": "اسمك الكامل",
+      "agree": "أوافق على النطاق والجدول الزمني والسعر الواردة في هذا العرض.",
+      "newAccountHint": "أنشئ كلمة مرور لبوابة العملاء، حيث سيكون مشروعك.",
+      "existingAccountHint": "لديك حساب في البوابة بالفعل. أدخل كلمة المرور لإضافة هذا المشروع إلى حسابك.",
+      "createPassword": "أنشئ كلمة مرور",
+      "confirmPassword": "تأكيد كلمة المرور",
+      "yourPassword": "كلمة المرور",
+      "acceptSubmit": "الموافقة وبدء المشروع",
+      "accepting": "جارٍ تأكيد الموافقة…",
+      "changesLabel": "ما التعديلات التي تريدها؟",
+      "changesSubmit": "إرسال الطلب",
+      "declineLabel": "السبب (اختياري)",
+      "declineSubmit": "رفض العرض",
+      "sending": "جارٍ الإرسال…",
+      "changesSent": "شكراً، تم إرسال طلبك. سيصلك عرض محدّث عبر البريد الإلكتروني.",
+      "declineSent": "شكراً لإعلامي. تم إرسال ردّك.",
+      "invalidTitle": "لم يتم العثور على العرض",
+      "invalidText": "رابط العرض هذا غير صالح. تأكد من فتح الرابط كاملاً من رسالة البريد الإلكتروني.",
+      "acceptedTitle": "تمت الموافقة على العرض",
+      "acceptedText": "تمت الموافقة عليه من قِبل {name} في {date}.",
+      "openProject": "فتح المشروع",
+      "changes_requestedTitle": "تم طلب تعديلات",
+      "changes_requestedText": "أُرسل طلبك في {date}. سيصلك عرض محدّث عبر البريد الإلكتروني.",
+      "declinedTitle": "تم رفض العرض",
+      "declinedText": "تم رفض هذا العرض في {date}.",
+      "supersededTitle": "تم استبدال هذا العرض",
+      "supersededText": "لم يعد هذا العرض متاحاً. إذا أُرسل إليك إصدار أحدث، فاستخدم الرابط في آخر رسالة.",
+      "expiredTitle": "انتهت صلاحية هذا العرض",
+      "expiredText": "كان صالحاً حتى {date}. اطلب التعديلات أدناه وسأرسل إليك عرضاً محدّثاً."
+    },
+    "errorPage": {
+      "title": "حدث خطأ ما",
+      "text": "تعذّر عرض هذه الصفحة. تم الإبلاغ عن المشكلة؛ يرجى المحاولة مرة أخرى بعد قليل.",
+      "retry": "إعادة المحاولة",
+      "home": "العودة إلى مشاريعك"
+    },
+    "account": {
+      "title": "حسابك",
+      "subtitle": "اسمك ولغتك وكلمة المرور الخاصة ببوابة العملاء.",
+      "profileTitle": "الملف الشخصي",
+      "name": "اسمك",
+      "email": "البريد الإلكتروني",
+      "emailHint": "عنوان تسجيل الدخول. لتغييره، راسلني من خلال البوابة.",
+      "save": "حفظ",
+      "saving": "جارٍ الحفظ…",
+      "saved": "تم الحفظ.",
+      "languageTitle": "اللغة",
+      "languageHint": "تُستخدم في البوابة وفي الرسائل التي تصلك عبر البريد الإلكتروني.",
+      "timeZone": "تُعرض الأوقات بحسب منطقتك الزمنية ({zone})، كما حددها متصفحك.",
+      "passwordTitle": "كلمة المرور",
+      "currentPassword": "كلمة المرور الحالية",
+      "newPassword": "كلمة المرور الجديدة",
+      "confirmPassword": "تأكيد كلمة المرور الجديدة",
+      "passwordSignsOut": "تغييرها يُنهي جلساتك على أجهزتك الأخرى.",
+      "changePassword": "تغيير كلمة المرور",
+      "passwordChanged": "تم تغيير كلمة المرور. تبقى جلستك هنا مفتوحة، وتم تسجيل الخروج من الأجهزة الأخرى.",
+      "devicesTitle": "الأجهزة",
+      "devicesHint": "هل سجّلت الدخول من جهاز لم تعد تستخدمه؟ يمكنك تسجيل الخروج من كل الأجهزة الأخرى.",
+      "lastSignIn": "آخر تسجيل دخول: {date}. هل سجّلت الدخول من جهاز لم تعد تستخدمه؟ يمكنك تسجيل الخروج من كل الأجهزة الأخرى.",
+      "signOutOthers": "تسجيل الخروج من كل الأجهزة الأخرى",
+      "signedOutOthers": "تم. سُجّل الخروج من جميع الأجهزة الأخرى."
+    }
+  },
+  "portalEmail": {
+    "greeting": "مرحباً {name}،",
+    "greetingNoName": "مرحباً،",
+    "footer": "ميشيل زكا · بوابة العملاء",
+    "invite": {
+      "subject": "دعوة لمتابعة مشروع «{project}»",
+      "heading": "دعوة إلى بوابة العملاء",
+      "body": "دعاك ميشيل زكا لمتابعة تقدّم مشروع «{project}»: المراحل والرسائل والملفات في مكان واحد.",
+      "cta": "قبول الدعوة",
+      "expiry": "تنتهي صلاحية هذا الرابط في {date}. إذا انتهت صلاحيته، فردّ على هذه الرسالة وسأرسل إليك رابطاً جديداً.",
+      "ignore": "إذا لم تكن تتوقع هذه الدعوة، يمكنك تجاهل هذه الرسالة."
+    },
+    "accepted": {
+      "subject": "تم قبول طلب مشروعك «{project}»",
+      "heading": "تم قبول طلب مشروعك",
+      "body": "شكراً لإرسالك تفاصيل مشروع «{project}». راجعتُ الطلب ويسعدني العمل عليه معك.",
+      "portal": "أنشأتُ لنا مساحة خاصة بالمشروع في بوابة العملاء، حيث يمكنك متابعة التقدّم ومراسلتي ومشاركة الملفات. استخدم الزر أدناه للانضمام إليها.",
+      "cta": "الانضمام إلى المشروع"
+    },
+    "reset": {
+      "subject": "إعادة تعيين كلمة مرور بوابة العملاء",
+      "heading": "إعادة تعيين كلمة المرور",
+      "body": "تلقّينا طلباً لإعادة تعيين كلمة مرور حسابك في بوابة العملاء.",
+      "cta": "اختيار كلمة مرور جديدة",
+      "expiry": "تنتهي صلاحية هذا الرابط خلال {minutes} دقيقة، ويمكن استخدامه مرة واحدة فقط.",
+      "ignore": "إذا لم تطلب ذلك، يمكنك تجاهل هذه الرسالة؛ لن تتغيّر كلمة مرورك."
+    },
+    "message": {
+      "subject": "رسالة جديدة في مشروع «{project}»",
+      "heading": "رسالة جديدة من {sender}",
+      "body": "وصلت رسالة جديدة في مشروع «{project}»:",
+      "cta": "فتح المحادثة",
+      "subjectMany": "{count, plural, two {رسالتان جديدتان} few {# رسائل جديدة} many {# رسالة جديدة} other {# رسالة جديدة}} في «{project}»",
+      "headingMany": "{count, plural, two {رسالتان جديدتان} few {# رسائل جديدة} many {# رسالة جديدة} other {# رسالة جديدة}}",
+      "bodyMany": "لديك رسائل غير مقروءة في «{project}». آخرها من {sender}:",
+      "attachmentOnly": "(أُرسل مرفق)",
+      "attachments": "{count, plural, one {يوجد مرفق واحد} two {يوجد مرفقان} few {توجد # مرفقات} many {يوجد # مرفقاً} other {يوجد # مرفق}} في المحادثة."
+    },
+    "status": {
+      "subject": "مشروع «{project}» أصبح: {status}",
+      "heading": "تحديث حالة المشروع",
+      "body": "تغيّرت حالة مشروع «{project}» من «{from}» إلى «{to}».",
+      "phase": "المرحلة الحالية: {phase}",
+      "cta": "عرض المشروع"
+    },
+    "joined": {
+      "subject": "انضم {client} إلى «{project}»",
+      "heading": "قبل {client} الدعوة",
+      "body": "قبل {client} ({email}) الدعوة ويمكنه الآن متابعة «{project}» في بوابة العملاء.",
+      "cta": "فتح المشروع"
+    },
+    "meeting": {
+      "when": "الموعد: {when} ({minutes} دقيقة)",
+      "where": "المكان: {location}",
+      "milestone": "المرحلة: {milestone}",
+      "ctaRespond": "القبول أو اقتراح موعد آخر",
+      "ctaView": "عرض الاجتماع",
+      "proposed": {
+        "subject": "اقترح {actor} اجتماعاً: {title}",
+        "heading": "اقتراح اجتماع جديد",
+        "body": "اقترح {actor} اجتماعاً بخصوص مشروع «{project}». يمكنك قبوله أو اقتراح موعد يناسبك أكثر."
+      },
+      "rescheduled": {
+        "subject": "موعد جديد مقترح لاجتماع «{title}»",
+        "heading": "تم اقتراح موعد جديد",
+        "body": "اقترح {actor} موعداً جديداً لاجتماع «{title}» في مشروع «{project}». يمكنك قبوله أو اقتراح موعد آخر."
+      },
+      "confirmed": {
+        "subject": "تم تأكيد الاجتماع: {title}",
+        "heading": "تم تأكيد الاجتماع",
+        "body": "قبل {actor} اجتماع «{title}» الخاص بمشروع «{project}»."
+      },
+      "cancelled": {
+        "subject": "تم إلغاء الاجتماع: {title}",
+        "heading": "تم إلغاء الاجتماع",
+        "body": "ألغى {actor} اجتماع «{title}» الخاص بمشروع «{project}»."
+      },
+      "calendarAttached": "افتح الملف المرفق meeting.ics لإضافة الاجتماع إلى تقويمك أو تحديثه فيه.",
+      "reminder": {
+        "subject": "تذكير: موعد «{title}» يقترب",
+        "heading": "تذكير: «{title}»",
+        "body": "موعد اجتماعك في مشروع «{project}» يقترب:"
+      }
+    },
+    "proposal": {
+      "subject": "عرضك لمشروع «{project}»",
+      "heading": "عرض مشروعك جاهز",
+      "body": "إليك عرضي لمشروع «{project}»: النطاق والجدول الزمني والسعر، بناءً على التفاصيل التي أرسلتها.",
+      "portal": "يمكنك الموافقة عليه أو طلب تعديلات أو رفضه من صفحة العرض. وعند الموافقة تُنشأ مساحة خاصة بمشروعك في بوابة العملاء.",
+      "total": "الإجمالي: {total}",
+      "cta": "مراجعة العرض",
+      "validity": "هذا العرض صالح حتى {date}."
+    },
+    "proposalResponse": {
+      "accepted": {
+        "subject": "تمت الموافقة على عرض «{project}» من قِبل {client}",
+        "heading": "تمت الموافقة على العرض",
+        "body": "تمت موافقة {client} على الإصدار {version} ({total}). تم إنشاء المشروع ومراحله ومنح العميل حق الوصول إلى البوابة.",
+        "cta": "فتح المشروع"
+      },
+      "changes": {
+        "subject": "طلب تعديلات على «{project}» من {client}",
+        "heading": "طلب تعديلات",
+        "body": "طلب تعديلات من {client} على الإصدار {version} من العرض:",
+        "cta": "تعديل العرض"
+      },
+      "declined": {
+        "subject": "تم رفض عرض «{project}» من قِبل {client}",
+        "heading": "تم رفض العرض",
+        "body": "تم رفض الإصدار {version} من العرض من قِبل {client}. أصبحت حالة الطلب «خاسر».",
+        "cta": "فتح العرض"
+      }
+    },
+    "review": {
+      "subject": "يرجى مراجعة «{milestone}» ({project})",
+      "heading": "«{milestone}» جاهزة لموافقتك",
+      "body": "أنهيتُ «{milestone}» في مشروع «{project}». يرجى الاطلاع عليها، ثم الموافقة أو إخباري بما يجب تغييره.",
+      "cta": "المراجعة والموافقة"
+    },
+    "reviewResponse": {
+      "approved": {
+        "subject": "تمت الموافقة على «{milestone}» من قِبل {client} ({project})",
+        "heading": "تمت الموافقة على المرحلة",
+        "body": "تمت موافقة {client} على «{milestone}» في مشروع «{project}». أصبحت مكتملة."
+      },
+      "changes": {
+        "subject": "طلب تعديلات على «{milestone}» من {client} ({project})",
+        "heading": "طلب تعديلات",
+        "body": "طلب تعديلات من {client} على «{milestone}» في مشروع «{project}»:"
+      },
+      "cta": "فتح المشروع"
+    }
+  }
+}

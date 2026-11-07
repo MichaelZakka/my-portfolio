@@ -1,0 +1,130 @@
+.timeline {
+  position: relative;
+  list-style: none;
+  display: grid;
+  gap: var(--s-5);
+  padding-inline-start: var(--s-7);
+}
+
+/* Accent line fading out toward the oldest role */
+.timeline::before {
+  content: '';
+  position: absolute;
+  inset-block: 8px 8px;
+  inset-inline-start: 11px;
+  width: 2px;
+  background: linear-gradient(180deg, var(--accent) 0%, var(--accent-line) 60%, transparent 100%);
+}
+
+.item {
+  position: relative;
+}
+
+.dot {
+  position: absolute;
+  inset-block-start: 28px;
+  inset-inline-start: calc(var(--s-7) * -1 + 5px);
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--bg);
+  border: 3px solid var(--accent);
+  box-shadow: 0 0 0 4px var(--accent-soft);
+}
+
+.card {
+  padding: var(--s-6);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--s-4);
+  flex-wrap: wrap;
+  margin-block-end: var(--s-4);
+}
+
+.role {
+  font-size: 20px;
+}
+
+.company {
+  margin-block-start: var(--s-1);
+  font-weight: 600;
+  color: var(--accent-text);
+}
+
+.company a {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.company a:hover {
+  color: var(--accent-hover);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.location {
+  font-weight: 400;
+  color: var(--text-dim);
+}
+
+.duration {
+  flex-shrink: 0;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent-text);
+}
+
+.note {
+  margin-block-end: var(--s-4);
+  font-size: 14px;
+  color: var(--text-dim);
+}
+
+.result {
+  color: var(--accent-text);
+  font-weight: 500;
+}
+
+.achievements {
+  display: grid;
+  gap: var(--s-2);
+  color: var(--text-muted);
+  font-size: 15px;
+}
+
+.achievements li {
+  position: relative;
+  padding-inline-start: var(--s-5);
+}
+
+.achievements li::before {
+  content: '';
+  position: absolute;
+  inset-inline-start: 4px;
+  inset-block-start: 0.7em;
+  width: 6px;
+  height: 2px;
+  background: var(--accent);
+}
+
+@media (max-width: 599px) {
+  .timeline {
+    padding-inline-start: var(--s-6);
+  }
+
+  .dot {
+    inset-inline-start: calc(var(--s-6) * -1 + 5px);
+  }
+
+  .card {
+    padding: var(--s-5);
+  }
+}

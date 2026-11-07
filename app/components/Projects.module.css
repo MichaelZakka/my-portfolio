@@ -1,0 +1,151 @@
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--s-5);
+}
+
+.item {
+  display: flex;
+}
+
+.card {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.media {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  background: var(--bg-elevated-2);
+  border-start-start-radius: var(--radius-lg);
+  border-start-end-radius: var(--radius-lg);
+  border-block-end: 1px solid var(--border);
+}
+
+.image {
+  object-fit: cover;
+  object-position: top center;
+  transition: transform 0.6s var(--ease-out);
+}
+
+.card:hover .image {
+  transform: scale(1.04);
+}
+
+.emoji {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  font-size: 48px;
+}
+
+.badge {
+  position: absolute;
+  inset-block-start: var(--s-3);
+  inset-inline-start: var(--s-3);
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  background: rgba(10, 22, 40, 0.85);
+  border: 1px solid var(--border-strong);
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+  padding: var(--s-5);
+  flex: 1;
+}
+
+.title {
+  font-size: 19px;
+}
+
+.titleLink {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-1);
+}
+
+/* Whole card is clickable; inner links sit above this layer */
+.titleLink::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+.arrow {
+  color: var(--text-dim);
+  transition:
+    transform 0.25s var(--ease-out),
+    color 0.25s ease;
+}
+
+.card:hover .arrow {
+  color: var(--accent-text);
+  transform: translate(2px, -2px);
+}
+
+[dir='rtl'] .arrow {
+  transform: scaleX(-1);
+}
+
+[dir='rtl'] .card:hover .arrow {
+  transform: scaleX(-1) translate(2px, -2px);
+}
+
+.summary {
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.role {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.roleLabel {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.stack {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-block-start: var(--s-1);
+}
+
+.stack li {
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--accent-line);
+  background: var(--accent-soft);
+  font-size: 12px;
+  font-weight: 500;
+  color: #dbe7ff;
+}
+
+.footer {
+  margin-block-start: auto;
+  padding-block-start: var(--s-4);
+}
+
+@media (max-width: 1023px) {
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 599px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}

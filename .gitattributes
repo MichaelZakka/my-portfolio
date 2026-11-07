@@ -1,0 +1,2 @@
+# Git hooks run under sh on every platform: keep them LF even with core.autocrlf=true.
+.githooks/* text eol=lf

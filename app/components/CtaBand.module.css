@@ -1,0 +1,45 @@
+.band {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  padding-block: clamp(64px, 9vw, 104px);
+  text-align: center;
+  border-block: 1px solid var(--border);
+  background: transparent;
+}
+
+.bg {
+  object-fit: cover;
+  z-index: -2;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(26, 115, 255, 0.18), transparent 60%),
+    linear-gradient(180deg, rgba(10, 22, 40, 0.5), rgba(10, 22, 40, 0.35));
+}
+
+.inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.title {
+  font-size: clamp(1.75rem, 3.6vw, 2.5rem);
+}
+
+.text {
+  margin-block: var(--s-4) var(--s-6);
+  color: var(--text-muted);
+  font-size: 17px;
+}
+
+@media (max-width: 599px) {
+  .text br {
+    display: none;
+  }
+}

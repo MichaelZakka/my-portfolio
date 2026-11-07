@@ -1,0 +1,190 @@
+/* Proposal page (client) and its admin preview. Builds on portal.module.css. */
+
+.page {
+  min-height: 100dvh;
+  width: 100%;
+  max-width: 860px;
+  margin-inline: auto;
+  padding: var(--s-5) var(--gutter) var(--s-8);
+}
+
+/* globals.css lazily renders every <section>; these must always render. */
+.page section,
+.document section {
+  content-visibility: visible;
+}
+
+.top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+  margin-block-end: var(--s-6);
+}
+
+.document {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-5);
+}
+
+.kicker {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent-text);
+  margin-block-end: var(--s-2);
+}
+
+:lang(ar) .kicker {
+  letter-spacing: 0;
+}
+
+.facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: var(--s-4);
+  margin-block-start: var(--s-5);
+}
+
+.facts > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.prose {
+  color: var(--text-muted);
+  white-space: pre-line;
+  line-height: 1.7;
+}
+
+.scope {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--s-5);
+}
+
+.subTitle {
+  font-size: 1rem;
+  margin-block-end: var(--s-3);
+}
+
+.list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+
+.list li {
+  position: relative;
+  padding-inline-start: 26px;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+.list li::before {
+  content: '';
+  position: absolute;
+  inset-inline-start: 4px;
+  inset-block-start: 0.6em;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--success);
+}
+
+.list[data-tone='excluded'] li::before {
+  background: transparent;
+  border: 2px solid var(--text-dim);
+}
+
+.list[data-tone='client'] li::before {
+  background: var(--accent);
+}
+
+.phaseNumber {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.total {
+  font-family: var(--font-heading);
+  font-size: clamp(1.75rem, 4vw, 2.4rem);
+  font-weight: 700;
+  margin-block-end: var(--s-4);
+}
+
+.terms {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+}
+
+.terms > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.response {
+  border-color: var(--accent-line);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+  margin-block: var(--s-3) var(--s-5);
+}
+
+.actionButton {
+  min-height: 40px;
+  padding-inline: var(--s-4);
+  border-radius: 999px;
+  border: 1px solid var(--border-strong);
+  color: var(--text-muted);
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.actionButton:hover {
+  color: var(--text);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.actionButton[aria-pressed='true'] {
+  color: var(--text);
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+
+.checkbox {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s-2);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.checkbox input {
+  margin-block-start: 4px;
+  width: 18px;
+  height: 18px;
+  flex: none;
+  accent-color: var(--accent);
+}
+
+.previewBanner {
+  margin-block-end: var(--s-5);
+}
+
+@media print {
+  .top,
+  .response,
+  .previewBanner {
+    display: none;
+  }
+}

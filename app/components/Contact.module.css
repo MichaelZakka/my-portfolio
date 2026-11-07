@@ -1,0 +1,172 @@
+.description {
+  max-width: 56ch;
+  margin: var(--s-5) auto 0;
+  color: var(--text-muted);
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+  gap: var(--s-6);
+  align-items: start;
+}
+
+.channels {
+  display: grid;
+  gap: var(--s-4);
+}
+
+.item {
+  display: flex;
+}
+
+.channel {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+  padding: var(--s-5);
+}
+
+.icon {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius);
+  background: var(--accent-soft);
+  color: var(--accent-text);
+}
+
+.label {
+  display: block;
+  font-weight: 600;
+}
+
+.value {
+  display: block;
+  color: var(--text-muted);
+  font-size: 15px;
+  overflow-wrap: anywhere;
+  text-align: start;
+}
+
+.channel:hover .value {
+  color: var(--text);
+}
+
+/* Form */
+.formCard {
+  display: grid;
+  gap: var(--s-4);
+  padding: var(--s-6);
+}
+
+.formTitle {
+  font-size: 20px;
+}
+
+.formHint {
+  color: var(--text-muted);
+}
+
+.formRow {
+  display: grid;
+  gap: var(--s-2);
+}
+
+.formRow label {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* Border kept at ≥3:1 against the card for WCAG non-text contrast */
+.field {
+  width: 100%;
+  height: 48px;
+  padding-inline: var(--s-4);
+  border-radius: var(--radius-sm);
+  border: 1px solid #66779a;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.textarea {
+  height: auto;
+  min-height: 140px;
+  padding-block: var(--s-3);
+  resize: vertical;
+}
+
+.field:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.field[aria-invalid='true'] {
+  border-color: #ff7a7a;
+}
+
+.fieldError,
+.formStatus {
+  font-size: 14px;
+  color: #ff9b9b;
+}
+
+.formStatus:empty {
+  display: none;
+}
+
+.honeypot {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+
+.formCard :global(.btn) {
+  justify-self: start;
+}
+
+.spin {
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.success {
+  justify-items: center;
+  text-align: center;
+  padding-block: var(--s-7);
+}
+
+.successIcon {
+  color: #34d399;
+}
+
+@media (max-width: 899px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .formCard {
+    padding: var(--s-5);
+  }
+
+  .formCard :global(.btn) {
+    justify-self: stretch;
+  }
+}

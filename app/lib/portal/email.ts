@@ -1,0 +1,498 @@
+import { Resend } from 'resend';
+import { createTranslator } from 'next-intl';
+import enMessages from '../../../messages/en.json';
+import arMessages from '../../../messages/ar.json';
+import { getResendConfig, type EmailSendResult } from '../email';
+import { getSiteUrl } from '../site';
+import {
+  PASSWORD_RESET_TTL_MINUTES,
+  isPortalLocale,
+  isProjectStatus,
+  type PortalLocale,
+} from './constants';
+import { formatDate, formatDateTime } from './format';
+
+/**
+ * Portal emails (Resend). Each send returns { sent, error } so callers can
+ * record emailSent/emailError the same way Lead does. Without RESEND_API_KEY
+ * nothing is sent: in development invitation and reset links are printed to
+ * the server console instead, so the flow still works locally.
+ */
+
+const NOT_CONFIGURED = 'RESEND_API_KEY is not configured.';
+const MESSAGES = { en: enMessages, ar: arMessages } as const;
+
+/** Links in emails always use the configured site URL, never the request Host header. */
+export function portalUrl(path: string): string {
+  return `${getSiteUrl()}${path}`;
+}
+
+function translator(locale: string) {
+  const lang: PortalLocale = isPortalLocale(locale) ? locale : 'en';
+  return {
+    lang,
+    t: createTranslator({ locale: lang, messages: MESSAGES[lang], namespace: 'portalEmail' }),
+    status: createTranslator({ locale: lang, messages: MESSAGES[lang], namespace: 'portal.status' }),
+  };
+}
+
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+type EmailContent = {
+  heading: string;
+  paragraphs: string[];
+  quote?: string;
+  cta?: { label: string; url: string };
+  notes?: string[];
+  footer: string;
+};
+
+/** Minimal table layout with inline styles (email clients ignore CSS variables). */
+function renderEmail(lang: PortalLocale, content: EmailContent): { html: string; text: string } {
+  const dir = lang === 'ar' ? 'rtl' : 'ltr';
+  const align = dir === 'rtl' ? 'right' : 'left';
+  const p = (text: string, style = 'margin:0 0 14px;font-size:15px;line-height:1.6;color:#1f2a3d') =>
+    `<p style="${style}">${escapeHtml(text)}</p>`;
+
+  const html = `<!doctype html>
+<html lang="${lang}" dir="${dir}">
+<body style="margin:0;padding:0;background:#f2f4f8">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f2f4f8">
+<tr><td align="center" style="padding:28px 14px">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" dir="${dir}" style="max-width:560px;background:#ffffff;border-radius:12px;border:1px solid #e3e8f0">
+<tr><td style="padding:30px 28px;text-align:${align};font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Tahoma,Arial,sans-serif">
+<h1 style="margin:0 0 18px;font-size:20px;line-height:1.35;color:#0a1628">${escapeHtml(content.heading)}</h1>
+${content.paragraphs.map((text) => p(text)).join('\n')}
+${
+  content.quote
+    ? `<div dir="auto" style="margin:0 0 18px;padding:12px 16px;background:#f5f7fb;border-${align === 'left' ? 'left' : 'right'}:3px solid #1668e8;border-radius:6px;font-size:14px;line-height:1.6;color:#1f2a3d;white-space:pre-wrap">${escapeHtml(content.quote)}</div>`
+    : ''
+}
+${
+  content.cta
+    ? `<p style="margin:22px 0 10px"><a href="${escapeHtml(content.cta.url)}" style="display:inline-block;background:#1668e8;color:#ffffff;text-decoration:none;padding:12px 20px;border-radius:8px;font-size:15px;font-weight:600">${escapeHtml(content.cta.label)}</a></p>
+<p style="margin:0 0 18px;font-size:12px;line-height:1.5;color:#5b6b85;word-break:break-all" dir="ltr">${escapeHtml(content.cta.url)}</p>`
+    : ''
+}
+${(content.notes ?? []).map((text) => p(text, 'margin:0 0 10px;font-size:13px;line-height:1.6;color:#5b6b85')).join('\n')}
+<hr style="border:0;border-top:1px solid #e3e8f0;margin:22px 0 14px">
+${p(content.footer, 'margin:0;font-size:12px;line-height:1.6;color:#7d8ba3')}
+</td></tr></table>
+</td></tr></table>
+</body>
+</html>`;
+
+  const text = [
+    content.heading,
+    '',
+    ...content.paragraphs,
+    ...(content.quote ? ['', content.quote] : []),
+    ...(content.cta ? ['', `${content.cta.label}: ${content.cta.url}`] : []),
+    ...(content.notes?.length ? ['', ...content.notes] : []),
+    '',
+    '—',
+    content.footer,
+  ].join('\n');
+
+  return { html, text };
+}
+
+type Attachment = { filename: string; content: string; contentType: string };
+
+async function deliver(message: {
+  to: string;
+  subject: string;
+  html: string;
+  text: string;
+  replyTo?: string;
+  attachments?: Attachment[];
+}): Promise<EmailSendResult> {
+  const { configured, apiKey, from } = getResendConfig();
+  if (!configured) return { sent: false, error: NOT_CONFIGURED };
+
+  try {
+    const resend = new Resend(apiKey);
+    const { data, error } = await resend.emails.send({ from, ...message });
+    if (error) return { sent: false, error: error.message || 'Resend rejected the request.' };
+    if (!data?.id) return { sent: false, error: 'Resend returned no message id.' };
+    return { sent: true };
+  } catch (err) {
+    return { sent: false, error: err instanceof Error ? err.message : 'Unknown email error.' };
+  }
+}
+
+/** Dev fallback: print the link so invitations and resets can be completed without Resend. */
+function logLinkFallback(kind: string, to: string, url: string) {
+  if (process.env.NODE_ENV === 'production') {
+    console.warn(`[portal] ${NOT_CONFIGURED} ${kind} email to ${to} was not sent.`);
+  } else {
+    console.info(`[portal] ${NOT_CONFIGURED} ${kind} link for ${to}:\n  ${url}`);
+  }
+}
+
+/** "requestAccepted" tells the person who sent a project request that it was accepted. */
+export type InvitationEmailKind = 'invite' | 'requestAccepted';
+
+export async function sendInvitationEmail(input: {
+  to: string;
+  name: string;
+  projectName: string;
+  inviteUrl: string;
+  expiresAt: Date;
+  locale: string;
+  kind?: InvitationEmailKind;
+}): Promise<EmailSendResult> {
+  if (!getResendConfig().configured) {
+    logLinkFallback('Invitation', input.to, input.inviteUrl);
+    return { sent: false, error: NOT_CONFIGURED };
+  }
+  const { lang, t } = translator(input.locale);
+  const project = input.projectName;
+  const accepted = input.kind === 'requestAccepted';
+  const content = renderEmail(lang, {
+    heading: accepted ? t('accepted.heading') : t('invite.heading'),
+    paragraphs: [
+      input.name ? t('greeting', { name: input.name }) : t('greetingNoName'),
+      ...(accepted ? [t('accepted.body', { project }), t('accepted.portal')] : [t('invite.body', { project })]),
+    ],
+    cta: { label: accepted ? t('accepted.cta') : t('invite.cta'), url: input.inviteUrl },
+    notes: [
+      t('invite.expiry', { date: formatDate(input.expiresAt, lang) }),
+      ...(accepted ? [] : [t('invite.ignore')]),
+    ],
+    footer: t('footer'),
+  });
+  const subject = accepted ? t('accepted.subject', { project }) : t('invite.subject', { project });
+  return deliver({ to: input.to, subject, ...content });
+}
+
+export async function sendPasswordResetEmail(input: {
+  to: string;
+  name: string;
+  resetUrl: string;
+  locale: string;
+}): Promise<EmailSendResult> {
+  if (!getResendConfig().configured) {
+    logLinkFallback('Password reset', input.to, input.resetUrl);
+    return { sent: false, error: NOT_CONFIGURED };
+  }
+  const { lang, t } = translator(input.locale);
+  const content = renderEmail(lang, {
+    heading: t('reset.heading'),
+    paragraphs: [
+      input.name ? t('greeting', { name: input.name }) : t('greetingNoName'),
+      t('reset.body'),
+    ],
+    cta: { label: t('reset.cta'), url: input.resetUrl },
+    notes: [t('reset.expiry', { minutes: String(PASSWORD_RESET_TTL_MINUTES) }), t('reset.ignore')],
+    footer: t('footer'),
+  });
+  return deliver({ to: input.to, subject: t('reset.subject'), ...content });
+}
+
+const EXCERPT_LENGTH = 600;
+
+function excerpt(content: string): string {
+  return content.length > EXCERPT_LENGTH ? `${content.slice(0, EXCERPT_LENGTH).trimEnd()}…` : content;
+}
+
+/** Where client-side events (a client's message) notify the admin. */
+export function adminNotifyAddress(): string {
+  return process.env.PORTAL_NOTIFY_EMAIL?.trim() || getResendConfig().to;
+}
+
+/** `count`: the recipient's unread messages in this conversation (one email covers the batch). */
+export async function sendNewMessageEmail(input: {
+  to: string;
+  locale: string;
+  projectName: string;
+  senderName: string;
+  content: string;
+  count: number;
+  attachments: number;
+  url: string;
+  replyTo?: string;
+}): Promise<EmailSendResult> {
+  if (!getResendConfig().configured) {
+    console.info(`[portal] ${NOT_CONFIGURED} New-message email to ${input.to} was not sent.`);
+    return { sent: false, error: NOT_CONFIGURED };
+  }
+  const { lang, t } = translator(input.locale);
+  const values = { sender: input.senderName, project: input.projectName, count: input.count };
+  const many = input.count > 1;
+  const content = renderEmail(lang, {
+    heading: many ? t('message.headingMany', values) : t('message.heading', values),
+    paragraphs: [many ? t('message.bodyMany', values) : t('message.body', values)],
+    quote: input.content ? excerpt(input.content) : t('message.attachmentOnly'),
+    cta: { label: t('message.cta'), url: input.url },
+    notes: input.attachments > 0 ? [t('message.attachments', { count: input.attachments })] : undefined,
+    footer: t('footer'),
+  });
+  return deliver({
+    to: input.to,
+    subject: many ? t('message.subjectMany', values) : t('message.subject', values),
+    replyTo: input.replyTo,
+    ...content,
+  });
+}
+
+export async function sendStatusChangedEmail(input: {
+  to: string;
+  locale: string;
+  projectName: string;
+  fromStatus: string;
+  toStatus: string;
+  phase: string;
+  url: string;
+}): Promise<EmailSendResult> {
+  if (!getResendConfig().configured) {
+    console.info(`[portal] ${NOT_CONFIGURED} Status-change email to ${input.to} was not sent.`);
+    return { sent: false, error: NOT_CONFIGURED };
+  }
+  const { lang, t, status } = translator(input.locale);
+  const label = (value: string) => (isProjectStatus(value) ? status(value) : value);
+  const toLabel = label(input.toStatus);
+  const content = renderEmail(lang, {
+    heading: t('status.heading'),
+    paragraphs: [
+      t('status.body', { project: input.projectName, from: label(input.fromStatus), to: toLabel }),
+      ...(input.phase ? [t('status.phase', { phase: input.phase })] : []),
+    ],
+    cta: { label: t('status.cta'), url: input.url },
+    footer: t('footer'),
+  });
+  return deliver({
+    to: input.to,
+    subject: t('status.subject', { project: input.projectName, status: toLabel }),
+    ...content,
+  });
+}
+
+export async function sendClientJoinedEmail(input: {
+  to: string;
+  clientName: string;
+  clientEmail: string;
+  projectName: string;
+  url: string;
+}): Promise<EmailSendResult> {
+  if (!getResendConfig().configured) {
+    console.info(`[portal] ${NOT_CONFIGURED} Client-joined email to ${input.to} was not sent.`);
+    return { sent: false, error: NOT_CONFIGURED };
+  }
+  // Goes to the admin, whose dashboard is English.
+  const { lang, t } = translator('en');
+  const client = input.clientName || input.clientEmail;
+  const content = renderEmail(lang, {
+    heading: t('joined.heading', { client }),
+    paragraphs: [t('joined.body', { client, email: input.clientEmail, project: input.projectName })],
+    cta: { label: t('joined.cta'), url: input.url },
+    footer: t('footer'),
+  });
+  return deliver({
+    to: input.to,
+    subject: t('joined.subject', { client, project: input.projectName }),
+    replyTo: input.clientEmail,
+    ...content,
+  });
+}
+
+export type MeetingEmailEvent = 'proposed' | 'rescheduled' | 'confirmed' | 'cancelled' | 'reminder';
+
+export async function sendMeetingEmail(input: {
+  to: string;
+  locale: string;
+  /** The recipient's zone: the time in the email is theirs. */
+  timeZone: string;
+  event: MeetingEmailEvent;
+  actorName: string;
+  projectName: string;
+  meeting: { title: string; startsAt: Date; durationMinutes: number; location: string; milestoneTitle: string | null };
+  url: string;
+  replyTo?: string;
+  /** An .ics for "Add to calendar" (confirmations and cancellations). */
+  calendar?: { content: string; contentType: string };
+}): Promise<EmailSendResult> {
+  if (!getResendConfig().configured) {
+    console.info(`[portal] ${NOT_CONFIGURED} Meeting email to ${input.to} was not sent.`);
+    return { sent: false, error: NOT_CONFIGURED };
+  }
+  const { lang, t } = translator(input.locale);
+  const { meeting } = input;
+  const values = { actor: input.actorName, title: meeting.title, project: input.projectName };
+  const details = [
+    t('meeting.when', {
+      when: formatDateTime(meeting.startsAt, lang, input.timeZone),
+      minutes: String(meeting.durationMinutes),
+    }),
+    ...(meeting.location ? [t('meeting.where', { location: meeting.location })] : []),
+    ...(meeting.milestoneTitle ? [t('meeting.milestone', { milestone: meeting.milestoneTitle })] : []),
+  ];
+  const content = renderEmail(lang, {
+    heading: t(`meeting.${input.event}.heading`, values),
+    paragraphs: [t(`meeting.${input.event}.body`, values)],
+    quote: details.join('\n'),
+    cta: {
+      label: input.event === 'proposed' || input.event === 'rescheduled' ? t('meeting.ctaRespond') : t('meeting.ctaView'),
+      url: input.url,
+    },
+    ...(input.calendar ? { notes: [t('meeting.calendarAttached')] } : {}),
+    footer: t('footer'),
+  });
+  return deliver({
+    to: input.to,
+    subject: t(`meeting.${input.event}.subject`, values),
+    replyTo: input.replyTo,
+    ...content,
+    ...(input.calendar
+      ? { attachments: [{ filename: 'meeting.ics', content: input.calendar.content, contentType: input.calendar.contentType }] }
+      : {}),
+  });
+}
+
+export async function sendProposalEmail(input: {
+  to: string;
+  name: string;
+  locale: string;
+  title: string;
+  total: string;
+  url: string;
+  validUntil: Date;
+}): Promise<EmailSendResult> {
+  if (!getResendConfig().configured) {
+    logLinkFallback('Proposal', input.to, input.url);
+    return { sent: false, error: NOT_CONFIGURED };
+  }
+  const { lang, t } = translator(input.locale);
+  const content = renderEmail(lang, {
+    heading: t('proposal.heading'),
+    paragraphs: [
+      input.name ? t('greeting', { name: input.name }) : t('greetingNoName'),
+      t('proposal.body', { project: input.title }),
+      t('proposal.portal'),
+    ],
+    quote: t('proposal.total', { total: input.total }),
+    cta: { label: t('proposal.cta'), url: input.url },
+    notes: [t('proposal.validity', { date: formatDate(input.validUntil, lang) })],
+    footer: t('footer'),
+  });
+  return deliver({ to: input.to, subject: t('proposal.subject', { project: input.title }), ...content });
+}
+
+export type ProposalResponseKind = 'accepted' | 'changes' | 'declined';
+
+/** Tells the admin how the client answered a proposal. */
+export async function sendProposalResponseEmail(input: {
+  to: string;
+  kind: ProposalResponseKind;
+  clientName: string;
+  clientEmail: string;
+  title: string;
+  version: number;
+  total: string;
+  note: string;
+  url: string;
+}): Promise<EmailSendResult> {
+  if (!getResendConfig().configured) {
+    console.info(`[portal] ${NOT_CONFIGURED} Proposal response email to ${input.to} was not sent.`);
+    return { sent: false, error: NOT_CONFIGURED };
+  }
+  // Goes to the admin, whose dashboard is English.
+  const { lang, t } = translator('en');
+  const values = {
+    client: input.clientName || input.clientEmail,
+    project: input.title,
+    version: String(input.version),
+    total: input.total,
+  };
+  const content = renderEmail(lang, {
+    heading: t(`proposalResponse.${input.kind}.heading`, values),
+    paragraphs: [t(`proposalResponse.${input.kind}.body`, values)],
+    quote: input.note ? excerpt(input.note) : undefined,
+    cta: { label: t(`proposalResponse.${input.kind}.cta`), url: input.url },
+    footer: t('footer'),
+  });
+  return deliver({
+    to: input.to,
+    subject: t(`proposalResponse.${input.kind}.subject`, values),
+    replyTo: input.clientEmail,
+    ...content,
+  });
+}
+
+/** Asks a client to approve a milestone. */
+export async function sendReviewRequestEmail(input: {
+  to: string;
+  locale: string;
+  projectName: string;
+  milestoneTitle: string;
+  note: string;
+  link: string;
+  url: string;
+}): Promise<EmailSendResult> {
+  if (!getResendConfig().configured) {
+    console.info(`[portal] ${NOT_CONFIGURED} Approval request email to ${input.to} was not sent.`);
+    return { sent: false, error: NOT_CONFIGURED };
+  }
+  const { lang, t } = translator(input.locale);
+  const values = { milestone: input.milestoneTitle, project: input.projectName };
+  const content = renderEmail(lang, {
+    heading: t('review.heading', values),
+    paragraphs: [t('review.body', values)],
+    quote: [input.note, input.link].filter(Boolean).join('\n\n') || undefined,
+    cta: { label: t('review.cta'), url: input.url },
+    footer: t('footer'),
+  });
+  return deliver({ to: input.to, subject: t('review.subject', values), ...content });
+}
+
+/** Tells the admin how a client answered an approval request. */
+export async function sendReviewResponseEmail(input: {
+  to: string;
+  kind: 'approved' | 'changes';
+  clientName: string;
+  clientEmail: string;
+  projectName: string;
+  milestoneTitle: string;
+  comment: string;
+  url: string;
+}): Promise<EmailSendResult> {
+  if (!getResendConfig().configured) {
+    console.info(`[portal] ${NOT_CONFIGURED} Approval response email to ${input.to} was not sent.`);
+    return { sent: false, error: NOT_CONFIGURED };
+  }
+  // Goes to the admin, whose dashboard is English.
+  const { lang, t } = translator('en');
+  const values = { client: input.clientName, milestone: input.milestoneTitle, project: input.projectName };
+  const content = renderEmail(lang, {
+    heading: t(`reviewResponse.${input.kind}.heading`, values),
+    paragraphs: [t(`reviewResponse.${input.kind}.body`, values)],
+    quote: input.comment ? excerpt(input.comment) : undefined,
+    cta: { label: t('reviewResponse.cta'), url: input.url },
+    footer: t('footer'),
+  });
+  return deliver({
+    to: input.to,
+    subject: t(`reviewResponse.${input.kind}.subject`, values),
+    replyTo: input.clientEmail,
+    ...content,
+  });
+}
+
+/** Folds per-recipient results into one { sent, error } for the record (recipients named only when several). */
+export function combineResults(results: { to: string; result: EmailSendResult }[]): EmailSendResult {
+  if (results.length === 0) return { sent: false, error: 'No recipients.' };
+  const failures = results.filter((r) => !r.result.sent);
+  if (failures.length === 0) return { sent: true };
+  if (results.length === 1) return { sent: false, error: failures[0].result.error ?? 'failed' };
+  return {
+    sent: false,
+    error: failures.map((f) => `${f.to}: ${f.result.error ?? 'failed'}`).join('; ').slice(0, 1000),
+  };
+}

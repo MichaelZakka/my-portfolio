@@ -1,0 +1,76 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+# This repository is public: anything committed here is published, and stays in
+# git history even after it is deleted. Secrets live in .env (see .env.example).
+
+# --- dependencies -----------------------------------------------------------
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# --- build output -------------------------------------------------------------
+/.next/
+/out/
+/build/
+/dist/
+/coverage/
+.vercel
+*.tsbuildinfo
+next-env.d.ts
+
+# --- secrets: env files, keys and certificates -----------------------------------
+# Only the template with placeholder values is committed.
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+
+# --- data: databases, dumps and backups -------------------------------------------
+*.sql
+*.sqlite
+*.sqlite3
+*.db
+*.db-journal
+*.dump
+*.bak
+/backups/
+/prisma/backups/
+# Prisma migrations are SQL files that MUST stay in git: Vercel applies them on
+# deploy (`prisma migrate deploy`), so re-include them after the *.sql rule.
+!/prisma/migrations/**/*.sql
+!/prisma/migrations-sqlite/**/*.sql
+
+# --- user uploads, storage and logs -------------------------------------------------
+# Anchored to the repo root on purpose: in the App Router, folder names are URL
+# segments, and an unanchored `logs/` would also hide e.g. app/admin/logs/.
+/.uploads/
+/uploads/
+/storage/
+/logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# --- editors and IDEs ------------------------------------------------------------------
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.claude/settings.local.json
+
+# --- OS files ---------------------------------------------------------------------------
+.DS_Store
+Thumbs.db
+ehthumbs.db
+desktop.ini
+$RECYCLE.BIN/

@@ -1,0 +1,150 @@
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--s-5);
+}
+
+.item {
+  display: flex;
+}
+
+@property --beam-angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+
+.card {
+  position: relative;
+  flex: 1;
+  padding: var(--s-6);
+}
+
+/* Electric border: a light beam orbiting the card edge */
+.card::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  padding: 1px;
+  border-radius: inherit;
+  background: conic-gradient(
+    from var(--beam-angle),
+    transparent 0deg,
+    transparent 250deg,
+    var(--accent) 310deg,
+    #cfe2ff 350deg,
+    transparent 360deg
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+/* Soft inner glow from the top */
+.card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(26, 115, 255, 0.14), transparent 70%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  background: var(--bg-elevated-2);
+  border-color: transparent;
+  box-shadow:
+    var(--shadow-hover),
+    0 0 30px rgba(26, 115, 255, 0.15);
+}
+
+.card:hover::before {
+  opacity: 1;
+  animation: orbit 2.4s linear infinite;
+}
+
+.card:hover::after {
+  opacity: 1;
+}
+
+@keyframes orbit {
+  to {
+    --beam-angle: 360deg;
+  }
+}
+
+.card > * {
+  position: relative;
+  z-index: 1;
+}
+
+.card:hover .title {
+  color: #cfe2ff;
+}
+
+.title {
+  transition: color 0.3s ease;
+}
+
+.title {
+  font-size: 18px;
+  margin-block-end: var(--s-4);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+}
+
+.chip {
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--border-strong);
+  background: rgba(255, 255, 255, 0.02);
+  font-size: 14px;
+  color: var(--text-muted);
+  transition:
+    border-color 0.2s ease,
+    color 0.2s ease,
+    background-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+/* Chips light up in a cascade when the card is hovered */
+.card:hover .chip {
+  border-color: var(--accent-line);
+  background: var(--accent-soft);
+  color: var(--text);
+  transition-delay: calc(var(--i) * 45ms);
+}
+
+.chip:hover {
+  border-color: var(--accent-line);
+  background: var(--accent-soft);
+  color: var(--text);
+}
+
+@media (max-width: 1023px) {
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 767px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .card {
+    padding: var(--s-5);
+  }
+}

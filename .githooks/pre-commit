@@ -1,0 +1,52 @@
+#!/bin/sh
+# Pre-commit secret guard. This repository is public: whatever is committed is
+# published, and stays in git history even after it is deleted.
+#
+#   1. Refuses env files, keys, databases, dumps, backups and upload/log folders,
+#      even when they were force-added past .gitignore.
+#   2. Scans the staged changes with gitleaks (rules: .gitleaks.toml).
+#
+# Enable once per clone:  npm run hooks:install
+#                   (or:  git config core.hooksPath .githooks)
+# Needs gitleaks:         winget install Gitleaks.Gitleaks   (macOS: brew install gitleaks)
+# Verified false positive: add a `gitleaks:allow` comment on that line.
+# Never bypass with --no-verify to commit a real secret.
+
+staged=$(git diff --cached --name-only --diff-filter=ACMR)
+
+blocked=$(printf '%s\n' "$staged" | grep -E \
+  -e '(^|/)\.env($|\.)' \
+  -e '\.(pem|key|p12|pfx|sqlite|sqlite3|db|db-journal|dump|bak)$' \
+  -e '^(uploads|storage|logs|backups|\.uploads)/' \
+  -e '^prisma/backups/' |
+  grep -v -E '(^|/)\.env\.example$')
+# SQL is only allowed as Prisma migrations, never as dumps.
+sql=$(printf '%s\n' "$staged" | grep -E '\.sql$' | grep -v -E '^prisma/migrations(-sqlite)?/')
+
+if [ -n "$blocked$sql" ]; then
+  echo "pre-commit: refusing to commit files that may hold secrets or private data:" >&2
+  printf '%s\n%s\n' "$blocked" "$sql" | sed '/^$/d; s/^/  /' >&2
+  echo "Unstage them with: git restore --staged <file>" >&2
+  exit 1
+fi
+
+# Find gitleaks. Editors started before it was installed may not have the new
+# PATH yet, so also look where winget puts it.
+GITLEAKS=${GITLEAKS:-gitleaks}
+if ! command -v "$GITLEAKS" >/dev/null 2>&1; then
+  for candidate in "$HOME"/AppData/Local/Microsoft/WinGet/Packages/Gitleaks.Gitleaks_*/gitleaks.exe \
+                   "$HOME"/AppData/Local/Microsoft/WinGet/Links/gitleaks.exe; do
+    if [ -x "$candidate" ]; then GITLEAKS=$candidate; break; fi
+  done
+fi
+if ! command -v "$GITLEAKS" >/dev/null 2>&1 && [ ! -x "$GITLEAKS" ]; then
+  echo "pre-commit: gitleaks is not installed, so the staged changes were NOT scanned for secrets." >&2
+  echo "Install it (winget install Gitleaks.Gitleaks, or brew install gitleaks) and commit again." >&2
+  exit 1
+fi
+
+if ! "$GITLEAKS" git --pre-commit --staged --redact --no-banner --verbose; then
+  echo "pre-commit: commit aborted, gitleaks flagged the staged changes (details above, values redacted)." >&2
+  echo "Remove the secret and keep it in .env instead. If it was ever pushed, rotate it." >&2
+  exit 1
+fi

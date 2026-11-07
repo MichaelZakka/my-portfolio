@@ -1,0 +1,43 @@
+.main {
+  width: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+.section {
+  padding: 7.5rem 2rem 6rem;
+  background:
+    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(26, 115, 255, 0.14), transparent 55%),
+    rgba(6, 14, 28, 0.55);
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.surveyFallback {
+  min-height: 32rem;
+  border-radius: 20px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+}
+
+@media (max-width: 968px) {
+  .section {
+    padding: 6.5rem 1.5rem 5rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .section {
+    padding: 5.5rem 1rem 4rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .section {
+    padding: 5rem 0.75rem 3rem;
+  }
+}
