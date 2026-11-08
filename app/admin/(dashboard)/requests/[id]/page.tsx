@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
@@ -20,6 +21,13 @@ export const dynamic = 'force-dynamic';
 const WHATSAPP_NUMBER = '963992833739';
 
 type Params = { params: Promise<{ id: string }> };
+
+export async function generateMetadata({ params }: Params): Promise<Metadata> {
+  await requireAdminSession();
+  const { id } = await params;
+  const lead = await prisma.lead.findUnique({ where: { id }, select: { projectTitle: true } });
+  return { title: lead ? `Request: ${lead.projectTitle}` : 'Request' };
+}
 
 export default async function AdminRequestDetailPage({ params }: Params) {
   await requireAdminSession();

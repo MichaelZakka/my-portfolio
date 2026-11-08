@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import {
   CheckCircle2,
   AlertTriangle,
@@ -162,6 +163,8 @@ async function getProblems(): Promise<Problem[]> {
     alerted: event.alertedAt ? formatDateTime(event.alertedAt, 'en') : null,
   }));
 }
+
+export const metadata: Metadata = { title: 'Site' };
 
 export default async function AdminSitePage() {
   await requireAdminSession();

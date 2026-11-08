@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import { prisma } from '../../../../lib/db';
@@ -10,6 +11,8 @@ import projectStyles from '../projects.module.css';
 export const dynamic = 'force-dynamic';
 
 /** Blank project, or "Convert to project" from a request (?requestId=…), prefilled from the lead. */
+export const metadata: Metadata = { title: 'New project' };
+
 export default async function NewProjectPage({
   searchParams,
 }: {

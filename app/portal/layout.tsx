@@ -9,7 +9,7 @@ import { getPortalLocale, getPortalTranslations } from '../lib/portal/locale';
 export async function generateMetadata(): Promise<Metadata> {
   const { t } = await getPortalTranslations('portal.meta');
   return {
-    title: { default: t('title'), template: `%s · ${t('title')}` },
+    title: { default: t('title'), template: `%s | ${t('suffix')}` },
     robots: { index: false, follow: false },
     referrer: 'no-referrer',
   };

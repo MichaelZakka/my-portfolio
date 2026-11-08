@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { getPortalTranslations } from '../../lib/portal/locale';
 import { getPortalUser, isPortalAuthConfigured } from '../../lib/portal/session';
+import { localizedPath } from '../../../i18n/paths';
 import AuthCard from '../_components/AuthCard';
 import LoginForm from './LoginForm';
 import styles from '../portal.module.css';
@@ -17,7 +18,7 @@ export default async function PortalLoginPage({ searchParams }: Props) {
   if (await getPortalUser()) redirect('/portal');
 
   const { from, expired } = await searchParams;
-  const { t } = await getPortalTranslations('portal.auth');
+  const { t, locale } = await getPortalTranslations('portal.auth');
   const configured = isPortalAuthConfigured();
 
   return (
@@ -33,6 +34,17 @@ export default async function PortalLoginPage({ searchParams }: Props) {
         </p>
       )}
       {configured && <LoginForm from={from} />}
+      {configured && (
+        <p className={styles.authNote}>
+          {t.rich('invitationOnly', {
+            link: (chunks) => (
+              <a href={localizedPath(locale, '/work-with-me')} className={styles.textLink}>
+                {chunks}
+              </a>
+            ),
+          })}
+        </p>
+      )}
     </AuthCard>
   );
 }

@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { prisma } from '../../lib/db';
 import { requireAdminSession } from '../../lib/session';
@@ -60,6 +61,8 @@ async function getData() {
     recentLeads,
   };
 }
+
+export const metadata: Metadata = { title: 'Overview' };
 
 export default async function AdminOverviewPage() {
   await requireAdminSession();

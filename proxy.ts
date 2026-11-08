@@ -14,6 +14,7 @@ const PUBLIC_ADMIN_PATHS = new Set(['/admin/login', '/api/admin/login']);
 
 // Client portal pages and APIs that must work without a session.
 const PUBLIC_PORTAL_PATHS = new Set([
+  '/portal/enter',
   '/portal/login',
   '/portal/forgot-password',
   '/api/portal/auth/login',

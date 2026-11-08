@@ -20,6 +20,8 @@
     "contact": "Contact",
     "resume": "Resume",
     "workWithMe": "Work with me",
+    "workWithMeHintTitle": "Have a project in mind?",
+    "workWithMeHintText": "Go here and fill out the survey, and I'll reply as soon as possible.",
     "openMenu": "Open menu",
     "closeMenu": "Close menu"
   },
@@ -157,7 +159,8 @@
     "rights": "© {year} Michael Zakka. All rights reserved.",
     "builtWith": "Built with Next.js & TypeScript",
     "viewSource": "view source",
-    "social": "Social links"
+    "social": "Social links",
+    "clientLogin": "Client login"
   },
   "blog": {
     "metaTitle": "Notes",
@@ -181,7 +184,8 @@
   },
   "portal": {
     "meta": {
-      "title": "Michael Zakka · Client portal",
+      "title": "Client portal | Michael Zakka",
+      "suffix": "Client portal",
       "signIn": "Sign in",
       "forgot": "Forgot password",
       "reset": "Choose a new password",
@@ -216,6 +220,7 @@
       "signIn": "Sign in",
       "signingIn": "Signing in…",
       "forgotLink": "Forgot your password?",
+      "invitationOnly": "Not a client yet? <link>Fill out the survey</link> and wait for your invitation link.",
       "sessionExpired": "Your session has ended. Please sign in again.",
       "notConfigured": "Portal sign-in isn’t set up on this site yet.",
       "forgotTitle": "Reset your password",

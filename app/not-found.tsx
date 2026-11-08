@@ -1,5 +1,8 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import HtmlDocument from './components/HtmlDocument';
+
+export const metadata: Metadata = { title: 'Page not found | Michael Zakka' };
 
 /** Fallback 404 for paths outside any locale (e.g. an unknown locale prefix). */
 export default function GlobalNotFound() {

@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
@@ -15,6 +16,14 @@ import projectStyles from '../../projects/projects.module.css';
 export const dynamic = 'force-dynamic';
 
 type Params = { params: Promise<{ proposalId: string }> };
+
+export async function generateMetadata({ params }: Params): Promise<Metadata> {
+  await requireAdminSession();
+  const { proposalId } = await params;
+  if (!idSchema.safeParse(proposalId).success) return { title: 'Proposal' };
+  const proposal = await prisma.proposal.findUnique({ where: { id: proposalId }, select: { title: true } });
+  return { title: proposal ? `Proposal: ${proposal.title}` : 'Proposal' };
+}
 
 export default async function AdminProposalPage({ params }: Params) {
   await requireAdminSession();

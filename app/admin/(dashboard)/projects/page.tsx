@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import type { Prisma } from '@prisma/client';
 import { Plus } from 'lucide-react';
@@ -15,6 +16,8 @@ export const dynamic = 'force-dynamic';
 
 const VIEWS = { active: 'Active', archived: 'Archived', all: 'All' } as const;
 type View = keyof typeof VIEWS;
+
+export const metadata: Metadata = { title: 'Projects' };
 
 export default async function AdminProjectsPage({
   searchParams,

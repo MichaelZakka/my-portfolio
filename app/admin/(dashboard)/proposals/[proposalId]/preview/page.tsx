@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
@@ -14,6 +15,14 @@ import proposalStyles from '../../../../../portal/_components/proposal.module.cs
 export const dynamic = 'force-dynamic';
 
 type Params = { params: Promise<{ proposalId: string }> };
+
+export async function generateMetadata({ params }: Params): Promise<Metadata> {
+  await requireAdminSession();
+  const { proposalId } = await params;
+  if (!idSchema.safeParse(proposalId).success) return { title: 'Proposal preview' };
+  const proposal = await prisma.proposal.findUnique({ where: { id: proposalId }, select: { title: true } });
+  return { title: proposal ? `Preview: ${proposal.title}` : 'Proposal preview' };
+}
 
 /** The proposal exactly as the client will read it, in its own language (the answer form is left out). */
 export default async function AdminProposalPreviewPage({ params }: Params) {

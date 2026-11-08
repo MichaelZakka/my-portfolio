@@ -49,10 +49,36 @@
   text-underline-offset: 3px;
 }
 
+/* Wraps so the 1fr columns can't overflow on narrow desktop widths. */
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--s-2);
+}
+
 .links {
   display: flex;
   gap: var(--s-2);
-  justify-content: flex-end;
+}
+
+.portalLink {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  min-height: 40px;
+  padding-inline: var(--s-3);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-strong);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-muted);
+  white-space: nowrap;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
 }
 
 .socialLink {
@@ -69,6 +95,7 @@
     color 0.2s ease;
 }
 
+.portalLink:hover,
 .socialLink:hover {
   background: var(--accent);
   border-color: var(--accent);
@@ -83,7 +110,7 @@
     padding-block: var(--s-6);
   }
 
-  .links {
+  .actions {
     justify-content: center;
   }
 

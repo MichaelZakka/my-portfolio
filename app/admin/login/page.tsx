@@ -4,7 +4,7 @@ import LoginForm from './LoginForm';
 import styles from './page.module.css';
 
 export const metadata: Metadata = {
-  title: 'Admin login',
+  title: 'Sign in',
   robots: { index: false, follow: false },
 };
 

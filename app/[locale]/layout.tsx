@@ -23,7 +23,7 @@ export async function generateMetadata({ params }: Omit<Props, 'children'>): Pro
   const t = await getTranslations({ locale, namespace: 'meta' });
   return {
     ...buildPageMetadata({ locale, title: t('title'), description: t('description'), absoluteTitle: true }),
-    title: { default: t('title'), template: '%s | Michael Zakka' },
+    title: { default: t('title'), template: `%s | ${locale === 'ar' ? 'ميشيل زكا' : 'Michael Zakka'}` },
   };
 }
 

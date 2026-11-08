@@ -11,6 +11,11 @@ import { localizedPath } from '../../i18n/paths';
 const NAV_ITEMS = ['hero', 'about', 'projects', 'experience', 'contact'] as const;
 const LABEL_KEY = { hero: 'home', about: 'about', projects: 'projects', experience: 'experience', contact: 'contact' } as const;
 
+const HINT_ID = 'work-with-me-hint';
+const HINT_SEEN_KEY = 'work-with-me-hint-seen';
+const HINT_DELAY_MS = 1500;
+const HINT_VISIBLE_MS = 9000;
+
 export default function Navigation() {
   const t = useTranslations();
   const locale = useLocale();
@@ -19,7 +24,9 @@ export default function Navigation() {
   const pathname = usePathname();
   const isHome = pathname === '/';
   const home = localizedPath(locale, '/');
+  const onSurveyPage = pathname === '/work-with-me';
 
+  const [hintState, setHintState] = useState<'idle' | 'open' | 'dismissed'>('idle');
   const [isScrolled, setIsScrolled] = useState(false);
   const [activeSection, setActiveSection] = useState<string>(isHome ? 'hero' : '');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -39,6 +46,61 @@ export default function Navigation() {
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  // Desktop: point out "Work with me" once per tab session, after the intro has finished.
+  // On phones the button lives in the menu, where the message is always shown beside it.
+  useEffect(() => {
+    if (onSurveyPage || !window.matchMedia('(min-width: 900px)').matches) return;
+    try {
+      if (sessionStorage.getItem(HINT_SEEN_KEY)) return;
+    } catch {
+      return;
+    }
+
+    let showTimer: number | undefined;
+    let hideTimer: number | undefined;
+    const schedule = () => {
+      showTimer = window.setTimeout(() => {
+        try {
+          sessionStorage.setItem(HINT_SEEN_KEY, '1');
+        } catch {}
+        setHintState('open');
+        hideTimer = window.setTimeout(
+          () => setHintState((state) => (state === 'open' ? 'idle' : state)),
+          HINT_VISIBLE_MS
+        );
+      }, HINT_DELAY_MS);
+    };
+
+    const root = document.documentElement;
+    const introRunning = () => root.dataset.intro === 'play' || root.dataset.intro === 'leave';
+    let observer: MutationObserver | undefined;
+    if (introRunning()) {
+      observer = new MutationObserver(() => {
+        if (introRunning()) return;
+        observer?.disconnect();
+        schedule();
+      });
+      observer.observe(root, { attributes: true, attributeFilter: ['data-intro'] });
+    } else {
+      schedule();
+    }
+
+    return () => {
+      observer?.disconnect();
+      window.clearTimeout(showTimer);
+      window.clearTimeout(hideTimer);
+    };
+  }, [onSurveyPage]);
+
+  // Escape hides the message, even while the pointer is over the button
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setHintState('dismissed');
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
   }, []);
 
   // Active link: whichever tracked section crosses a band near the top of the viewport
@@ -149,11 +211,16 @@ export default function Navigation() {
               </a>
             </li>
           ))}
-          <li className={styles.ctaItem}>
+          <li
+            className={`${styles.ctaItem} ${hintState === 'open' ? styles.hintOpen : ''} ${hintState === 'dismissed' ? styles.hintDismissed : ''}`}
+            onMouseLeave={() => setHintState((state) => (state === 'dismissed' ? 'idle' : state))}
+            onBlur={() => setHintState((state) => (state === 'dismissed' ? 'idle' : state))}
+          >
             <Link
               href="/work-with-me"
               className={`btn btn-primary ${styles.cta}`}
-              aria-current={pathname === '/work-with-me' ? 'page' : undefined}
+              aria-current={onSurveyPage ? 'page' : undefined}
+              aria-describedby={onSurveyPage ? undefined : HINT_ID}
               onClick={() => {
                 trackEvent('cta_click', { label: 'work-with-me' });
                 setIsMobileMenuOpen(false);
@@ -161,6 +228,12 @@ export default function Navigation() {
             >
               {t('nav.workWithMe')}
             </Link>
+            {!onSurveyPage && (
+              <span id={HINT_ID} role="tooltip" className={styles.hint}>
+                <strong className={styles.hintTitle}>{t('nav.workWithMeHintTitle')}</strong>
+                {t('nav.workWithMeHintText')}
+              </span>
+            )}
           </li>
         </ul>
 

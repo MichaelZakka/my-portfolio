@@ -1,6 +1,12 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { getPortalTranslations } from '../../lib/portal/locale';
 import styles from '../portal.module.css';
+
+export async function generateMetadata(): Promise<Metadata> {
+  const { t } = await getPortalTranslations('portal.meta');
+  return { title: t('forbidden') };
+}
 
 /** Rendered (with HTTP 403) when a client opens a project they are not a member of. */
 export default async function PortalForbidden() {

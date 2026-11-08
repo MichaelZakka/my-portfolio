@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import type { Prisma } from '@prisma/client';
 import { prisma } from '../../../lib/db';
@@ -65,6 +66,8 @@ function formatProjectTypes(raw: string): string {
   if (types.length === 0) return '—';
   return types.map((id) => PROJECT_TYPE_LABELS[id] ?? id).join(', ');
 }
+
+export const metadata: Metadata = { title: 'Requests' };
 
 export default async function AdminRequestsPage({
   searchParams,

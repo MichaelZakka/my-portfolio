@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import {
   getDailySeries,
   getDeviceBreakdown,
@@ -31,6 +32,8 @@ async function getUtmSources(days: number) {
     .filter((r) => r.utmSource)
     .map((r) => ({ label: r.utmSource as string, value: r._count.utmSource }));
 }
+
+export const metadata: Metadata = { title: 'Visitors' };
 
 export default async function AdminVisitorsPage() {
   await requireAdminSession();
