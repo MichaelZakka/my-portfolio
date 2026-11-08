@@ -10,7 +10,7 @@ import { buildContactEmailHtml, buildContactEmailText, buildContactSubject } fro
 
 export type EmailSendResult = { sent: boolean; error?: string };
 
-const DEFAULT_FROM = 'Your Name <hello@yourdomain.com>';
+const DEFAULT_FROM = 'Michael Zakka <hello@michael-zakka.com>';
 
 export function getResendConfig() {
   const apiKey = process.env.RESEND_API_KEY?.trim() || '';
