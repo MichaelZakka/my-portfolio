@@ -80,7 +80,8 @@ uploads in Blob automatically (or set `STORAGE_DRIVER=vercel-blob`).
 - Verify your domain in Resend and set `RESEND_FROM_EMAIL` to an address on it.
   Without a verified domain, Resend's test sender only delivers to your own
   Resend account address (that is why earlier test invitations failed).
-- Set `NEXT_PUBLIC_SITE_URL` to the canonical production URL. Invitation and
+- Set `NEXT_PUBLIC_SITE_URL` to the canonical production URL, `https://michael-zakka.com`
+  (apex, no www; this is also the fallback in `app/lib/site.ts`). Invitation and
   password-reset links are built from it, never from the request's Host header.
 - `PORTAL_NOTIFY_EMAIL` is where a client's new message is sent (defaults to the
   inbox in `app/lib/projectBrief.ts`). Your messages and status changes are
@@ -122,7 +123,7 @@ uploads in Blob automatically (or set `STORAGE_DRIVER=vercel-blob`).
 | `DATABASE_URL`, `DATABASE_URL_UNPOOLED` | everything | pooled and direct Postgres URLs (see step 1) |
 | `AUTH_SECRET` | admin + portal | 32+ random characters |
 | `ADMIN_EMAIL`, `ADMIN_PASSWORD_HASH` | admin | unchanged; the admin also authors portal messages |
-| `NEXT_PUBLIC_SITE_URL` | portal emails | canonical URL used in invite/reset links |
+| `NEXT_PUBLIC_SITE_URL` | SEO + portal emails | `https://michael-zakka.com`: canonical URL for SEO and invite/reset links |
 | `RESEND_API_KEY`, `RESEND_FROM_EMAIL` | portal emails | verified domain sender |
 | `PORTAL_NOTIFY_EMAIL` | optional | where clients' messages are emailed |
 | `PORTAL_TIME_ZONE` | recommended | your IANA zone (e.g. `Asia/Damascus`): admin screens and your emails. Clients see their own browser's zone; this is only their fallback. Default `UTC` |

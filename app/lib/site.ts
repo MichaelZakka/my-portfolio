@@ -1,25 +1,14 @@
+/** Production origin (apex domain, no www). Single source of truth for the site URL. */
+export const SITE_URL = 'https://michael-zakka.com';
+
 /**
- * Canonical site origin for SEO (robots, sitemap, metadataBase).
- * Prefer NEXT_PUBLIC_SITE_URL in production (e.g. https://yourdomain.com).
+ * Canonical site origin for SEO (robots, sitemap, metadataBase, JSON-LD) and portal email links.
+ * NEXT_PUBLIC_SITE_URL overrides it (e.g. http://localhost:3000 for local portal testing);
+ * otherwise every environment, including Vercel previews, uses SITE_URL.
  */
 export function getSiteUrl(): string {
   const fromEnv = process.env.NEXT_PUBLIC_SITE_URL?.trim();
-  if (fromEnv) {
-    return fromEnv.replace(/\/$/, '');
-  }
-
-  // Vercel provides these when NEXT_PUBLIC_SITE_URL is not set yet
-  const vercelProduction = process.env.VERCEL_PROJECT_PRODUCTION_URL?.trim();
-  if (vercelProduction) {
-    return `https://${vercelProduction.replace(/^https?:\/\//, '')}`;
-  }
-
-  const vercelUrl = process.env.VERCEL_URL?.trim();
-  if (vercelUrl) {
-    return `https://${vercelUrl.replace(/^https?:\/\//, '')}`;
-  }
-
-  return 'http://localhost:3000';
+  return fromEnv ? fromEnv.replace(/\/$/, '') : SITE_URL;
 }
 
 /** English job title for JSON-LD; the UI reads meta.jobTitle from messages/<locale>.json. */

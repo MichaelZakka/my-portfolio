@@ -55,7 +55,7 @@ const REQUIRED: Rule[] = [
 
 /** Not needed to start, but a production site without them is missing a feature. */
 const RECOMMENDED_IN_PRODUCTION: Rule[] = [
-  { name: 'NEXT_PUBLIC_SITE_URL', hint: 'portal invite and reset links fall back to the Vercel URL' },
+  { name: 'NEXT_PUBLIC_SITE_URL', hint: 'site URL falls back to https://michael-zakka.com' },
   { name: 'RESEND_API_KEY', hint: 'no emails are sent (leads are still saved)' },
   { name: 'CRON_SECRET', hint: 'meeting reminders are disabled' },
   { name: 'BLOB_READ_WRITE_TOKEN', hint: 'portal file uploads are refused on Vercel' },
