@@ -1,3 +1,4 @@
+import { C, FONT, MONO, escapeHtml, formatReceived, textDir } from './emailTheme';
 import {
   getBriefColorApproachLabel,
   getBriefDomainsLabel,
@@ -5,261 +6,237 @@ import {
   type ProjectBriefPayload,
 } from './projectBrief';
 
-function escapeHtml(value: string): string {
-  return value
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
-}
+/** Email sent to the inbox when someone submits the "Work with me" survey. */
 
-function display(value: string, fallback = 'Not provided'): string {
+const NOT_PROVIDED = `<span style="color:${C.dim};">Not provided</span>`;
+
+function display(value: string): string {
   const trimmed = value.trim();
-  return trimmed ? escapeHtml(trimmed) : fallback;
+  return trimmed ? escapeHtml(trimmed) : NOT_PROVIDED;
 }
 
 function multilines(value: string): string {
   const trimmed = value.trim();
-  if (!trimmed) return 'Not provided';
-  return escapeHtml(trimmed).replace(/\n/g, '<br />');
+  return trimmed ? escapeHtml(trimmed).replace(/\r?\n/g, '<br />') : NOT_PROVIDED;
 }
 
 function isSafeHex(value: string): boolean {
   return /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/.test(value.trim());
 }
 
-function row(label: string, valueHtml: string): string {
+function label(text: string): string {
+  return `<span style="font-family:${FONT};font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:${C.dim};">${text}</span>`;
+}
+
+/** `source` is the client's own text, when there is any: Arabic answers then read right to left. */
+function row(name: string, valueHtml: string, source = ''): string {
+  const dir = textDir(source);
   return `
-    <tr>
-      <td style="padding:0 0 14px 0;vertical-align:top;width:132px;">
-        <span style="display:inline-block;font-family:'Segoe UI',Helvetica,Arial,sans-serif;font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#8a8a8a;">
-          ${label}
-        </span>
-      </td>
-      <td style="padding:0 0 14px 0;vertical-align:top;">
-        <span style="font-family:'Segoe UI',Helvetica,Arial,sans-serif;font-size:15px;line-height:1.55;color:#ececec;">
-          ${valueHtml}
-        </span>
-      </td>
-    </tr>`;
+                <tr>
+                  <td width="104" valign="top" style="width:104px;padding:3px 12px 16px 0;">${label(name)}</td>
+                  <td valign="top" dir="${dir}" style="padding:0 0 16px 0;font-family:${FONT};font-size:15px;line-height:1.6;color:${C.muted};text-align:${dir === 'rtl' ? 'right' : 'left'};word-break:break-word;">${valueHtml}</td>
+                </tr>`;
 }
 
 function section(title: string, bodyHtml: string): string {
   return `
-    <tr>
-      <td style="padding:0 0 22px 0;">
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#141414;border:1px solid #2a2a2a;border-radius:16px;">
           <tr>
-            <td style="padding:22px 24px 8px 24px;border-bottom:1px solid #222;">
-              <p style="margin:0;font-family:Georgia,'Times New Roman',serif;font-size:20px;line-height:1.3;color:#f3f3f3;">
-                ${title}
-              </p>
-            </td>
-          </tr>
-          <tr>
-            <td style="padding:20px 24px 8px 24px;">
-              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-                ${bodyHtml}
+            <td style="padding:0 0 16px 0;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:${C.card};border:1px solid ${C.border};border-radius:14px;">
+                <tr>
+                  <td style="padding:22px 24px 6px 24px;">
+                    <p style="margin:0 0 16px 0;font-family:${MONO};font-size:12px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:${C.accentText};">${title}</p>
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">${bodyHtml}
+                    </table>
+                  </td>
+                </tr>
               </table>
             </td>
-          </tr>
-        </table>
-      </td>
-    </tr>`;
+          </tr>`;
 }
 
-function colorSwatch(label: string, color: string): string {
-  const safe = isSafeHex(color) ? color.trim() : '#333333';
-  const shown = escapeHtml(color.trim() || 'N/A');
+function stat(name: string, value: string, source: string, last = false): string {
+  // Left aligned whatever the language, so the three labels and values stay lined up.
   return `
-    <td align="center" style="padding:4px;width:33.33%;">
-      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#0f0f0f;border:1px solid #2a2a2a;border-radius:12px;">
-        <tr>
-          <td style="height:56px;background:${safe};border-radius:12px 12px 0 0;font-size:0;line-height:0;">&nbsp;</td>
-        </tr>
-        <tr>
-          <td style="padding:10px 8px 12px 8px;text-align:center;">
-            <div style="font-family:'Segoe UI',Helvetica,Arial,sans-serif;font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#9a9a9a;">
-              ${label}
-            </div>
-            <div style="margin-top:4px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;color:#e8e8e8;">
-              ${shown}
-            </div>
-          </td>
-        </tr>
-      </table>
-    </td>`;
+                <td width="33%" valign="top" style="width:33%;padding:16px 14px;text-align:left;${last ? '' : `border-right:1px solid ${C.border};`}">
+                  <div>${label(name)}</div>
+                  <div dir="${textDir(source)}" style="margin-top:6px;font-family:${FONT};font-size:14px;line-height:1.45;font-weight:600;color:${C.text};text-align:left;word-break:break-word;">${value}</div>
+                </td>`;
 }
 
+/** The client's colors are their data, so each swatch keeps its own color rather than the theme's. */
+function colorSwatch(name: string, color: string): string {
+  const safe = isSafeHex(color) ? color.trim() : C.cardInner;
+  return `
+                        <td width="33%" valign="top" style="width:33%;padding:4px;">
+                          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:${C.cardInner};border:1px solid ${C.border};border-radius:10px;">
+                            <tr>
+                              <td height="52" style="height:52px;background:${safe};border-radius:9px 9px 0 0;font-size:0;line-height:0;">&nbsp;</td>
+                            </tr>
+                            <tr>
+                              <td align="center" style="padding:10px 6px 12px 6px;">
+                                <div>${label(name)}</div>
+                                <div style="margin-top:4px;font-family:${MONO};font-size:12px;color:${C.text};">${escapeHtml(color.trim() || 'N/A')}</div>
+                              </td>
+                            </tr>
+                          </table>
+                        </td>`;
+}
+
+/** Same look as the tech chips in the site's hero. */
 function chip(text: string): string {
-  return `
-    <span style="display:inline-block;margin:0 6px 6px 0;padding:6px 10px;background:#1c1c1c;border:1px solid #333;border-radius:999px;font-family:'Segoe UI',Helvetica,Arial,sans-serif;font-size:12px;color:#e8e8e8;">
-      ${escapeHtml(text)}
-    </span>`;
+  return `<span style="display:inline-block;margin:0 6px 6px 0;padding:5px 10px;background:${C.cardInner};border:1px solid ${C.border};border-radius:6px;font-family:${MONO};font-size:12px;color:${C.text};">${escapeHtml(text)}</span>`;
 }
 
-export function buildBriefEmailHtml(data: ProjectBriefPayload): string {
+export function buildBriefEmailHtml(data: ProjectBriefPayload, received = new Date()): string {
   const title = data.projectTitle.trim() || 'Untitled project';
+  const titleDir = textDir(title);
+  const name = escapeHtml(data.clientName);
+  const email = escapeHtml(data.clientEmail);
+  const company = data.company.trim();
+  const initial = escapeHtml(Array.from(data.clientName.trim())[0]?.toUpperCase() || '?');
   const types = getBriefProjectTypesLabel(data);
   const domains = getBriefDomainsLabel(data);
   const colorApproach = getBriefColorApproachLabel(data);
-  const personalityHtml =
-    data.personalities.length > 0
-      ? data.personalities.map((trait) => chip(trait)).join('')
-      : '<span style="color:#9a9a9a;">Not provided</span>';
+  const personalityHtml = data.personalities.length > 0 ? data.personalities.map(chip).join('') : NOT_PROVIDED;
   const replyHref = `mailto:${encodeURIComponent(data.clientEmail)}?subject=${encodeURIComponent(`Re: ${title}`)}`;
+  const firstName = escapeHtml(data.clientName.trim().split(/\s+/)[0] || 'client');
   const logoUrl = data.logoUrl.trim();
-  const logoIsSafe = /^https?:\/\//i.test(logoUrl);
-  const logoHtml = logoIsSafe
-    ? `<a href="${escapeHtml(logoUrl)}" style="color:#f87171;text-decoration:none;word-break:break-all;">${escapeHtml(logoUrl)}</a>`
-    : logoUrl
-      ? escapeHtml(logoUrl)
-      : 'Not provided';
+  const logoHtml = /^https?:\/\//i.test(logoUrl)
+    ? `<a href="${escapeHtml(logoUrl)}" style="color:${C.accentText};text-decoration:none;word-break:break-all;">${escapeHtml(logoUrl)}</a>`
+    : display(logoUrl);
 
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="color-scheme" content="dark" />
-  <meta name="supported-color-schemes" content="dark" />
-  <title>New project brief</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="color-scheme" content="dark" />
+<meta name="supported-color-schemes" content="dark" />
+<title>New project brief</title>
 </head>
-<body style="margin:0;padding:0;background:#050505;color:#ececec;">
-  <div style="display:none;max-height:0;overflow:hidden;opacity:0;">
-    New brief from ${escapeHtml(data.clientName)} — ${escapeHtml(title)}
-  </div>
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#050505;padding:28px 12px;">
+<body style="margin:0;padding:0;background:${C.page};">
+  <!-- Inbox preview text -->
+  <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:${C.page};">New brief from ${name}: ${escapeHtml(title)}</div>
+
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:${C.page};">
     <tr>
-      <td align="center">
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:640px;width:100%;">
+      <td align="center" style="padding:32px 16px;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:640px;">
+
+          <!-- Header -->
           <tr>
-            <td style="padding:0 0 18px 0;">
+            <td style="padding:0 4px 18px 4px;">
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
                 <tr>
-                  <td style="font-family:Georgia,'Times New Roman',serif;font-size:18px;color:#f5f5f5;">
-                    Michael Zakka
+                  <td style="font-family:${FONT};font-size:18px;font-weight:700;color:${C.text};">
+                    Michael <span style="color:${C.accentText};">Zakka</span>
                   </td>
-                  <td align="right" style="font-family:'Segoe UI',Helvetica,Arial,sans-serif;font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#dc2626;">
-                    Portfolio intake
+                  <td align="right" style="font-family:${MONO};font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:${C.dim};">
+                    Work with me
                   </td>
                 </tr>
               </table>
             </td>
           </tr>
 
+          <!-- Summary -->
           <tr>
-            <td style="padding:0 0 22px 0;">
-              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:linear-gradient(180deg,#1a0f0f 0%,#121212 100%);border:1px solid #3a1f1f;border-radius:20px;overflow:hidden;">
+            <td style="padding:0 0 16px 0;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:${C.card};border:1px solid ${C.border};border-radius:14px;">
                 <tr>
-                  <td style="height:4px;background:linear-gradient(90deg,#dc2626,#b91c1c);font-size:0;line-height:0;">&nbsp;</td>
+                  <td style="height:4px;background:${C.accent};border-radius:13px 13px 0 0;font-size:0;line-height:0;">&nbsp;</td>
                 </tr>
                 <tr>
-                  <td style="padding:28px 28px 30px 28px;">
-                    <p style="margin:0 0 10px 0;font-family:'Segoe UI',Helvetica,Arial,sans-serif;font-size:12px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#f87171;">
+                  <td style="padding:28px 24px 0 24px;">
+                    <p style="margin:0 0 6px 0;font-family:${MONO};font-size:12px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:${C.accentText};">
                       New project brief
                     </p>
-                    <h1 style="margin:0 0 12px 0;font-family:Georgia,'Times New Roman',serif;font-size:32px;line-height:1.2;font-weight:700;color:#ffffff;">
+                    <h1 dir="${titleDir}" style="margin:0;font-family:${FONT};font-size:26px;line-height:1.3;font-weight:700;color:${C.text};text-align:${titleDir === 'rtl' ? 'right' : 'left'};">
                       ${escapeHtml(title)}
                     </h1>
-                    <p style="margin:0;font-family:'Segoe UI',Helvetica,Arial,sans-serif;font-size:15px;line-height:1.6;color:#b8b8b8;">
-                      Submitted by <strong style="color:#f0f0f0;">${escapeHtml(data.clientName)}</strong>
-                      ${data.company.trim() ? ` · ${escapeHtml(data.company.trim())}` : ''}
-                    </p>
                   </td>
                 </tr>
-              </table>
-            </td>
-          </tr>
 
-          <tr>
-            <td style="padding:0 0 22px 0;">
-              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#141414;border:1px solid #2a2a2a;border-radius:16px;">
+                <!-- Sender -->
                 <tr>
-                  <td style="padding:18px 20px;width:33.33%;border-right:1px solid #222;">
-                    <div style="font-family:'Segoe UI',Helvetica,Arial,sans-serif;font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#8a8a8a;">Budget</div>
-                    <div style="margin-top:6px;font-family:'Segoe UI',Helvetica,Arial,sans-serif;font-size:15px;color:#f0f0f0;">${display(data.budget)}</div>
+                  <td style="padding:20px 24px 0 24px;">
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:${C.cardInner};border:1px solid ${C.border};border-radius:10px;">
+                      <tr>
+                        <td width="64" valign="middle" style="padding:16px 0 16px 16px;">
+                          <div style="width:44px;height:44px;line-height:44px;border-radius:50%;background:${C.accent};text-align:center;font-family:${FONT};font-size:18px;font-weight:700;color:#ffffff;">
+                            ${initial}
+                          </div>
+                        </td>
+                        <td valign="middle" style="padding:16px 16px 16px 4px;">
+                          <div style="font-family:${FONT};font-size:16px;font-weight:600;color:${C.text};">${name}${company ? `<span style="font-weight:400;color:${C.muted};"> · ${escapeHtml(company)}</span>` : ''}</div>
+                          <a href="mailto:${email}" style="font-family:${FONT};font-size:14px;color:${C.accentText};text-decoration:none;word-break:break-all;">${email}</a>
+                        </td>
+                      </tr>
+                    </table>
                   </td>
-                  <td style="padding:18px 20px;width:33.33%;border-right:1px solid #222;">
-                    <div style="font-family:'Segoe UI',Helvetica,Arial,sans-serif;font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#8a8a8a;">Timeline</div>
-                    <div style="margin-top:6px;font-family:'Segoe UI',Helvetica,Arial,sans-serif;font-size:15px;color:#f0f0f0;">${display(data.timeline)}</div>
+                </tr>
+
+                <!-- At a glance -->
+                <tr>
+                  <td style="padding:12px 24px 24px 24px;">
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:${C.cardInner};border:1px solid ${C.border};border-radius:10px;">
+                      <tr>${stat('Budget', display(data.budget), data.budget)}${stat('Timeline', display(data.timeline), data.timeline)}${stat('Type', escapeHtml(types), types, true)}
+                      </tr>
+                    </table>
                   </td>
-                  <td style="padding:18px 20px;width:33.33%;">
-                    <div style="font-family:'Segoe UI',Helvetica,Arial,sans-serif;font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#8a8a8a;">Type</div>
-                    <div style="margin-top:6px;font-family:'Segoe UI',Helvetica,Arial,sans-serif;font-size:15px;color:#f0f0f0;">${escapeHtml(types)}</div>
+                </tr>
+              </table>
+            </td>
+          </tr>
+${section(
+  'Project overview',
+  `${row('Description', multilines(data.projectDescription), data.projectDescription)}${row('Domain', escapeHtml(domains), domains)}`
+)}
+${section(
+  'Client',
+  `${row('Name', display(data.clientName), data.clientName)}${row(
+    'Email',
+    `<a href="mailto:${email}" style="color:${C.accentText};text-decoration:none;">${email}</a>`
+  )}${row('Company', display(data.company), data.company)}${row('Phone', display(data.phone))}`
+)}
+${section(
+  'Brand identity',
+  `${row('Existing brand', display(data.hasBrand), data.hasBrand)}${row('Brand name', display(data.brandName), data.brandName)}${row('Tagline', display(data.tagline), data.tagline)}${row('Personality', personalityHtml)}${row('References', multilines(data.references), data.references)}${row('Logo / assets', logoHtml)}`
+)}
+${section(
+  'Colors &amp; visual direction',
+  `
+                <tr>
+                  <td colspan="2" style="padding:0 0 14px 0;">
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                      <tr>${colorSwatch('Primary', data.primaryColor)}${colorSwatch('Secondary', data.secondaryColor)}${colorSwatch('Accent', data.accentColor)}
+                      </tr>
+                    </table>
+                  </td>
+                </tr>${row('Mood', display(data.mood), data.mood)}${row('Color approach', colorApproach === 'N/A' ? NOT_PROVIDED : escapeHtml(colorApproach))}${row('Visual notes', multilines(data.visualNotes), data.visualNotes)}`
+)}
+
+          <!-- Reply button -->
+          <tr>
+            <td align="center" style="padding:8px 0 0 0;">
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td style="background:${C.button};border-radius:6px;">
+                    <a href="${replyHref}" style="display:inline-block;padding:13px 24px;font-family:${FONT};font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;">
+                      Reply to ${firstName} &rarr;
+                    </a>
                   </td>
                 </tr>
               </table>
             </td>
           </tr>
 
-          ${section(
-            'Project overview',
-            `
-              ${row('Description', multilines(data.projectDescription))}
-              ${row('Domain', escapeHtml(domains))}
-            `
-          )}
-
-          ${section(
-            'Client',
-            `
-              ${row('Name', display(data.clientName))}
-              ${row(
-                'Email',
-                `<a href="mailto:${escapeHtml(data.clientEmail)}" style="color:#f87171;text-decoration:none;">${escapeHtml(data.clientEmail)}</a>`
-              )}
-              ${row('Company', display(data.company))}
-              ${row('Phone', display(data.phone))}
-            `
-          )}
-
-          ${section(
-            'Brand identity',
-            `
-              ${row('Existing brand', display(data.hasBrand))}
-              ${row('Brand name', display(data.brandName))}
-              ${row('Tagline', display(data.tagline))}
-              ${row('Personality', personalityHtml)}
-              ${row('References', multilines(data.references))}
-              ${row('Logo / assets', logoHtml)}
-            `
-          )}
-
-          ${section(
-            'Colors & visual direction',
-            `
-              <tr>
-                <td colspan="2" style="padding:0 0 16px 0;">
-                  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-                    <tr>
-                      ${colorSwatch('Primary', data.primaryColor)}
-                      ${colorSwatch('Secondary', data.secondaryColor)}
-                      ${colorSwatch('Accent', data.accentColor)}
-                    </tr>
-                  </table>
-                </td>
-              </tr>
-              ${row('Mood', display(data.mood))}
-              ${row('Color approach', escapeHtml(colorApproach))}
-              ${row('Visual notes', multilines(data.visualNotes))}
-            `
-          )}
-
+          <!-- Footer -->
           <tr>
-            <td style="padding:4px 0 28px 0;" align="center">
-              <a href="${replyHref}" style="display:inline-block;padding:14px 28px;background:#dc2626;border-radius:999px;font-family:'Segoe UI',Helvetica,Arial,sans-serif;font-size:14px;font-weight:700;color:#ffffff;text-decoration:none;">
-                Reply to ${escapeHtml(data.clientName.split(' ')[0] || 'client')}
-              </a>
-            </td>
-          </tr>
-
-          <tr>
-            <td style="padding:0 8px 8px 8px;text-align:center;">
-              <p style="margin:0;font-family:'Segoe UI',Helvetica,Arial,sans-serif;font-size:12px;line-height:1.6;color:#6e6e6e;">
-                Sent from your portfolio intake survey · Reply goes directly to the client.
-              </p>
+            <td align="center" style="padding:20px 4px 0 4px;font-family:${FONT};font-size:12px;line-height:1.6;color:${C.dim};">
+              Received ${escapeHtml(formatReceived(received))}<br />
+              Sent from the survey on your portfolio. Replies go straight to the client.
             </td>
           </tr>
         </table>
