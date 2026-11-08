@@ -1,5 +1,23 @@
-<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect width="32" height="32" rx="6" fill="#411B5E"/>
-  <text x="16" y="22" font-family="Arial, sans-serif" font-size="20" font-weight="700" fill="#B8AEBF" text-anchor="middle" dominant-baseline="middle">M</text>
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#13284a"/>
+      <stop offset="1" stop-color="#07122a"/>
+    </linearGradient>
+    <linearGradient id="m" x1="14" y1="16" x2="46" y2="48" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#5c9dff"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="32" cy="30" r="30" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#1a73ff" stop-opacity="0.35"/>
+      <stop offset="1" stop-color="#1a73ff" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="64" height="64" rx="14" fill="url(#bg)"/>
+  <rect width="64" height="64" rx="14" fill="url(#glow)"/>
+  <rect x="1" y="1" width="62" height="62" rx="13" stroke="#5c9dff" stroke-opacity="0.35" stroke-width="2"/>
+  <!-- Geometric M -->
+  <path d="M15 46V18l15 16 15-16v28" stroke="url(#m)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Terminal cursor -->
+  <rect x="50" y="39" width="6" height="9" rx="1.5" fill="#1a73ff"/>
 </svg>
-

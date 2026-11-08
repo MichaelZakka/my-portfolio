@@ -37,7 +37,7 @@ export const EXPERIENCE: Role[] = [
   {
     id: 'freelance',
     company: 'Freelance',
-    role: 'Web Developer',
+    role: 'Fullstack Developer',
     duration: '2024 – Present',
     location: 'Remote',
     achievements: [

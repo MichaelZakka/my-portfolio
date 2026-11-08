@@ -6,6 +6,7 @@ import {
   type ProjectBriefPayload,
 } from './projectBrief';
 import { buildBriefEmailHtml } from './briefEmailHtml';
+import { buildContactEmailHtml, buildContactEmailText, buildContactSubject } from './contactEmailHtml';
 
 export type EmailSendResult = { sent: boolean; error?: string };
 
@@ -53,9 +54,6 @@ export async function sendProjectBriefEmail(
   }
 }
 
-const escapeHtml = (value: string) =>
-  value.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!);
-
 /** Sends a homepage contact-form message to the inbox (override with CONTACT_TO_EMAIL). */
 export async function sendContactEmail(data: {
   name: string;
@@ -74,9 +72,9 @@ export async function sendContactEmail(data: {
       from,
       to,
       replyTo: data.email,
-      subject: `Portfolio contact: ${data.name}`,
-      text: `From: ${data.name} <${data.email}>\n\n${data.message}`,
-      html: `<p><strong>From:</strong> ${escapeHtml(data.name)} &lt;${escapeHtml(data.email)}&gt;</p><p style="white-space:pre-wrap">${escapeHtml(data.message)}</p>`,
+      subject: buildContactSubject(data),
+      text: buildContactEmailText(data),
+      html: buildContactEmailHtml(data),
     });
     if (error) return { sent: false, error: error.message || 'Resend rejected the request.' };
     if (!result?.id) return { sent: false, error: 'Resend returned no message id.' };
