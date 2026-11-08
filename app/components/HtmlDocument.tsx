@@ -47,6 +47,8 @@ export default function HtmlDocument({
       lang={lang}
       dir={dir}
       className={`${spaceGrotesk.variable} ${inter.variable} ${plexArabic.variable}`}
+      // IntroScreen's boot script sets data-intro on <html> before hydration
+      suppressHydrationWarning
     >
       <body>
         {/* Scroll-reveal hides content until JS runs; without JS, show everything */}

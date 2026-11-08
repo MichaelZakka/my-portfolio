@@ -22,7 +22,7 @@ export default function SignOutButton() {
   return (
     <button type="button" className={styles.ghostButton} onClick={handleClick} disabled={pending}>
       <LogOut size={16} strokeWidth={2} aria-hidden="true" className="flip-rtl" />
-      {pending ? t('signingOut') : t('signOut')}
+      <span className={styles.compactLabel}>{pending ? t('signingOut') : t('signOut')}</span>
     </button>
   );
 }

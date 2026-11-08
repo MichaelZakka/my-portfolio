@@ -143,7 +143,7 @@ export default function AccountForms({
         <fieldset className={styles.field} style={{ border: 0, padding: 0, margin: 0 }}>
           <legend className={styles.hint}>{t('languageHint')}</legend>
           {(['en', 'ar'] as const).map((value) => (
-            <label key={value} className={styles.label} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <label key={value} className={`${styles.label} ${styles.choice}`}>
               <input
                 type="radio"
                 name="account-language"

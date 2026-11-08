@@ -1,0 +1,423 @@
+/* ============================================================
+   Intro screen: a console that prints the name, then lifts away.
+   Visibility is driven by <html data-intro> (see IntroScreen.tsx).
+
+   Timeline (s):
+   0.00  window opens
+   0.20  $ whoami        typed 0.30 → 0.60
+   0.70  name builds up  (30ms per letter)
+   0.95  role
+   1.15  $ npm run portfolio   typed 1.22 → 1.64
+   1.72  log lines + progress bar → 2.28
+   2.32  ✓ ready
+   2.65  curtain lifts (EXIT_AT_MS in IntroScreen.tsx)
+   ============================================================ */
+
+@property --intro-pct {
+  syntax: '<integer>';
+  inherits: false;
+  initial-value: 0;
+}
+
+.intro {
+  display: none;
+}
+
+:global(html[data-intro='play']) .intro,
+:global(html[data-intro='leave']) .intro {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--gutter);
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse 55% 45% at 50% 46%, rgba(26, 115, 255, 0.18), transparent 70%),
+    #07122a;
+}
+
+/* Faint blueprint grid, fading out toward the edges */
+.intro::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px) 0 0 / 100% 36px,
+    linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px) 0 0 / 36px 100%;
+  -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 50%, #000 30%, transparent 80%);
+  mask-image: radial-gradient(ellipse 70% 60% at 50% 50%, #000 30%, transparent 80%);
+}
+
+/* Glowing edge that leads the curtain as it lifts */
+.intro::after {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  inset-block-end: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--accent-hover) 20%, var(--accent-hover) 80%, transparent);
+  box-shadow: 0 0 28px 3px rgba(26, 115, 255, 0.7);
+  opacity: 0;
+}
+
+:global(html[data-intro='leave']) .intro {
+  pointer-events: none;
+  animation: lift 0.8s cubic-bezier(0.76, 0, 0.24, 1) forwards;
+}
+
+:global(html[data-intro='leave']) .intro::after {
+  opacity: 1;
+}
+
+@keyframes lift {
+  to {
+    transform: translateY(-100%);
+  }
+}
+
+/* ---------- Terminal window ---------- */
+.window {
+  width: min(100%, 600px);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-lg);
+  background: linear-gradient(180deg, rgba(19, 40, 74, 0.88), rgba(10, 22, 40, 0.94));
+  box-shadow:
+    0 30px 80px rgba(0, 0, 0, 0.55),
+    0 0 70px rgba(26, 115, 255, 0.16);
+  overflow: hidden;
+  font-family: var(--font-code);
+  text-align: left;
+  animation: windowIn 0.45s var(--ease-out) both;
+}
+
+:global(html[data-intro='leave']) .window {
+  animation: windowOut 0.5s ease-in forwards;
+}
+
+@keyframes windowIn {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.97);
+  }
+}
+
+@keyframes windowOut {
+  to {
+    opacity: 0.2;
+    transform: translateY(-24px) scale(0.97);
+  }
+}
+
+.bar {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  padding: 10px var(--s-4);
+  border-block-end: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.dots {
+  display: flex;
+  gap: 6px;
+}
+
+.dots i {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--border-strong);
+}
+
+.dots i:first-child {
+  background: var(--accent);
+  box-shadow: 0 0 8px rgba(26, 115, 255, 0.8);
+}
+
+.barTitle {
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.body {
+  padding: 18px 22px 22px;
+  font-size: 14px;
+  line-height: 1.75;
+  color: var(--text-muted);
+}
+
+/* ---------- Command lines ---------- */
+.line {
+  white-space: nowrap;
+  animation: appear 0.15s var(--at, 0s) both;
+}
+
+.cmd1 {
+  --at: 0.2s;
+  --type-at: 0.3s;
+  --type-dur: 0.3s;
+  --caret-off: 0.7s;
+}
+
+.cmd2 {
+  --at: 1.15s;
+  --type-at: 1.22s;
+  --type-dur: 0.42s;
+  --caret-off: 1.72s;
+  margin-block-start: var(--s-3);
+}
+
+.sign {
+  margin-inline-end: 1ch;
+  color: var(--accent-text);
+}
+
+.typed {
+  display: inline-block;
+  width: 0;
+  overflow: hidden;
+  vertical-align: bottom;
+  color: #dbe7ff;
+  animation: type var(--type-dur) steps(var(--n), end) var(--type-at) forwards;
+}
+
+@keyframes type {
+  to {
+    width: calc(var(--n) * 1ch);
+  }
+}
+
+.caret {
+  display: inline-block;
+  width: 0.6em;
+  height: 1.15em;
+  margin-inline-start: 2px;
+  vertical-align: -0.2em;
+  background: var(--accent-text);
+  animation: caretOff 0.01s var(--caret-off) forwards;
+}
+
+@keyframes caretOff {
+  to {
+    opacity: 0;
+  }
+}
+
+.caretIdle {
+  margin-inline-start: 1ch;
+  animation: blink 1s step-end infinite;
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+/* ---------- whoami output ---------- */
+.name {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: 0.28em;
+  margin-block: 4px 2px;
+  font-family: var(--font-heading);
+  font-size: clamp(2rem, 9vw, 3.4rem);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  color: #fff;
+  text-shadow:
+    0 0 14px rgba(61, 139, 255, 0.6),
+    0 0 40px rgba(26, 115, 255, 0.4);
+}
+
+/* The terminal is LTR: keep an Arabic name on the left edge like the other output lines */
+.name[dir='rtl'] {
+  justify-content: flex-end;
+}
+
+.name:lang(ar) {
+  letter-spacing: 0;
+  line-height: 1.35;
+}
+
+.word {
+  display: inline-flex;
+  white-space: nowrap;
+}
+
+.char {
+  display: inline-block;
+  animation: charIn 0.5s var(--ease-out) calc(0.7s + var(--i) * 30ms) both;
+}
+
+@keyframes charIn {
+  from {
+    opacity: 0;
+    transform: translateY(0.45em);
+    filter: blur(8px);
+  }
+}
+
+.role {
+  font-family: var(--font-heading);
+  font-size: 15px;
+  font-weight: 500;
+  text-align: left;
+  color: var(--accent-text);
+  animation: rise 0.4s var(--ease-out) 0.95s both;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+/* ---------- npm run portfolio output ---------- */
+.log {
+  font-size: 13px;
+  color: var(--text-dim);
+}
+
+.log li {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-2);
+  animation: appear 0.2s calc(1.72s + var(--i) * 0.12s) both;
+}
+
+.arrow {
+  color: var(--accent-text);
+}
+
+.leader {
+  flex: 1;
+  min-width: 2ch;
+  border-block-end: 1px dotted var(--border-strong);
+}
+
+.ok {
+  color: var(--success);
+}
+
+.progress {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  margin-block-start: var(--s-2);
+  animation: appear 0.2s 1.72s both;
+}
+
+.track {
+  flex: 1;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+.fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--accent), var(--accent-hover));
+  transform-origin: left center;
+  animation: fill 0.56s cubic-bezier(0.65, 0, 0.35, 1) 1.72s both;
+}
+
+@keyframes fill {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+/* Percentage counts up via the registered --intro-pct integer */
+.pct {
+  min-width: 4ch;
+  font-size: 12px;
+  text-align: right;
+  color: var(--text-muted);
+  counter-reset: pct var(--intro-pct);
+  animation: count 0.56s cubic-bezier(0.65, 0, 0.35, 1) 1.72s both;
+}
+
+.pct::after {
+  content: counter(pct) '%';
+}
+
+@keyframes count {
+  from {
+    --intro-pct: 0;
+  }
+  to {
+    --intro-pct: 100;
+  }
+}
+
+.ready {
+  --at: 2.32s;
+  margin-block-start: var(--s-2);
+  color: var(--text);
+}
+
+.check {
+  color: var(--success);
+}
+
+@keyframes appear {
+  from {
+    opacity: 0;
+  }
+}
+
+/* ---------- Skip hint ---------- */
+.skip {
+  position: absolute;
+  inset-block-end: max(var(--s-6), env(safe-area-inset-bottom));
+  inset-inline: var(--gutter);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-align: center;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  animation: appear 0.4s 0.6s both;
+}
+
+.skip:lang(ar) {
+  font-size: 13px;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.skipTouch {
+  display: none;
+}
+
+@media (hover: none) {
+  .skipPointer {
+    display: none;
+  }
+  .skipTouch {
+    display: inline;
+  }
+}
+
+@media (max-width: 480px) {
+  .body {
+    padding: 14px 16px 18px;
+    font-size: 13px;
+  }
+}
+
+@media print {
+  .intro {
+    display: none !important;
+  }
+}

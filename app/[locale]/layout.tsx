@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { NextIntlClientProvider, hasLocale } from 'next-intl';
 import { getMessages, getTranslations, setRequestLocale } from 'next-intl/server';
 import HtmlDocument from '../components/HtmlDocument';
+import IntroScreen from '../components/IntroScreen';
 import { routing, dirFor } from '../../i18n/routing';
 import { buildPageMetadata } from '../lib/seo';
 
@@ -36,6 +37,7 @@ export default async function LocaleLayout({ children, params }: Props) {
 
   return (
     <HtmlDocument lang={locale} dir={dirFor(locale)}>
+      <IntroScreen locale={locale} dir={dirFor(locale)} />
       <a href="#main" className="skip-link">
         {t('skipToContent')}
       </a>

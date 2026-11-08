@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { LayoutGrid, UserRound } from 'lucide-react';
 import { redirect } from 'next/navigation';
 import { getPortalTranslations } from '../../lib/portal/locale';
 import { getPortalUser } from '../../lib/portal/session';
@@ -27,10 +28,12 @@ export default async function PortalAppLayout({ children }: { children: React.Re
           </Link>
           <nav aria-label={t('primaryNav')} className={styles.headerNav}>
             <Link href="/portal" className={styles.navLink}>
-              {t('projects')}
+              <LayoutGrid size={18} strokeWidth={2} aria-hidden="true" className={styles.navIcon} />
+              <span className={styles.compactLabel}>{t('projects')}</span>
             </Link>
             <Link href="/portal/account" className={styles.navLink}>
-              {t('account')}
+              <UserRound size={18} strokeWidth={2} aria-hidden="true" className={styles.navIcon} />
+              <span className={styles.compactLabel}>{t('account')}</span>
             </Link>
           </nav>
           <div className={styles.headerActions}>

@@ -8,6 +8,12 @@
   background: transparent;
 }
 
+/* Hold the entrance animations while the intro screen covers the page, so they play
+   as it lifts (see IntroScreen.tsx). Paused animations wait at their first frame. */
+:global(html[data-intro='play']) .hero * {
+  animation-play-state: paused;
+}
+
 .bgImage {
   object-fit: cover;
   z-index: -2;

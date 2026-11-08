@@ -124,14 +124,61 @@
   content-visibility: visible;
 }
 
+.navIcon {
+  display: none;
+}
+
 @media (max-width: 640px) {
-  .userEmail {
+  .userEmail,
+  .brandSub {
     display: none;
   }
 
+  /* One row on phones: Projects, Account and Sign out become 40px icon
+     buttons. Their text stays in the accessibility tree (visually hidden). */
   .headerInner {
     padding-block: var(--s-2);
-    gap: var(--s-2);
+    gap: var(--s-1);
+    flex-wrap: nowrap;
+  }
+
+  .brand {
+    min-width: 0;
+    margin-inline-end: auto;
+  }
+
+  .brandName {
+    font-size: 15px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .headerNav,
+  .headerActions {
+    gap: var(--s-1);
+    margin-inline-start: 0;
+  }
+
+  .navIcon {
+    display: block;
+  }
+
+  .header .navLink,
+  .header .ghostButton {
+    min-width: 40px;
+    padding-inline: var(--s-2);
+    justify-content: center;
+  }
+
+  .header .compactLabel {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
   }
 
   .main {
@@ -139,16 +186,6 @@
   }
 }
 
-@media (max-width: 400px) {
-  .brandSub {
-    display: none;
-  }
-
-  .navLink,
-  .ghostButton {
-    padding-inline: var(--s-2);
-  }
-}
 
 /* ---------- Auth pages (sign in, reset, invitation) ---------- */
 
@@ -274,6 +311,22 @@
 
 .submit {
   width: 100%;
+}
+
+/* Radio / checkbox row with a full 44px tap target */
+.choice {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  min-height: 44px;
+  cursor: pointer;
+}
+
+.choice input {
+  width: 18px;
+  height: 18px;
+  flex: none;
+  accent-color: var(--accent);
 }
 
 .formRow {
@@ -1106,8 +1159,27 @@
     max-inline-size: 92%;
   }
 
+  /* Fill most of the phone screen (minus header, title and composer) rather than a fixed 420px */
   .thread {
-    max-block-size: 420px;
+    max-block-size: max(320px, calc(100dvh - 280px));
+  }
+
+  /* Give the message box back the width that nested padding takes */
+  .thread {
+    padding-inline: var(--s-2);
+  }
+
+  .composer {
+    padding-inline: var(--s-2);
+  }
+
+  .composerBar {
+    padding-inline-start: 10px;
+    gap: 4px;
+  }
+
+  .composerFoot {
+    margin-inline: 10px;
   }
 }
 
@@ -1515,7 +1587,7 @@
 
 .meetingFields {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
   gap: var(--s-3);
 }
 
@@ -1612,6 +1684,15 @@
   .meetingDay {
     font-size: 15px;
   }
+
+  /* Status badge above the title so the title gets the full width */
+  .meetingHead {
+    flex-direction: column-reverse;
+  }
+
+  .meetingHead .badge {
+    margin-inline-start: 0;
+  }
 }
 
 /* ---------- Phone ---------- */
@@ -1682,6 +1763,24 @@
   overflow-x: auto;
   scrollbar-width: none;
   scroll-margin-block-start: 80px;
+  /* Edge fades, switched on by ProjectTabs when tabs are hidden past that edge */
+  --fade-left: 0px;
+  --fade-right: 0px;
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    #000 var(--fade-left),
+    #000 calc(100% - var(--fade-right)),
+    transparent
+  );
+}
+
+.tabList[data-fade-left] {
+  --fade-left: 40px;
+}
+
+.tabList[data-fade-right] {
+  --fade-right: 40px;
 }
 
 .tabList::-webkit-scrollbar {

@@ -15,8 +15,17 @@ import { useLive } from './LiveSections';
 import { isProjectTab, PROJECT_TABS, type ProjectTab } from './tabs';
 import styles from '../../../portal.module.css';
 
+/** Scrolls the tab strip sideways only (scrollIntoView could also move the page). */
+function revealTab(list: HTMLElement | null, tab: HTMLElement | null | undefined) {
+  if (!list || !tab) return;
+  const margin = 32; // clear the edge fade
+  const box = list.getBoundingClientRect();
+  const rect = tab.getBoundingClientRect();
+  if (rect.left < box.left + margin) list.scrollBy({ left: rect.left - box.left - margin });
+  else if (rect.right > box.right - margin) list.scrollBy({ left: rect.right - box.right + margin });
+}
 
-type Tabs = { active: ProjectTab; select: (tab: ProjectTab) => void };
+type Tabs ={ active: ProjectTab; select: (tab: ProjectTab) => void };
 const TabsContext = createContext<Tabs | null>(null);
 
 /** The open tab, or null outside <ProjectTabs> (sections still work on their own). */
@@ -58,9 +67,32 @@ export default function ProjectTabs({
     window.history.replaceState(window.history.state, '', url);
     const button = tabRefs.current[tab];
     if (focus) button?.focus();
-    button?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    revealTab(listRef.current, button);
     if (scroll) listRef.current?.scrollIntoView({ block: 'start', behavior: 'smooth' });
   }, []);
+
+  // On phones the tabs scroll sideways: bring the open tab into view and fade
+  // whichever edge still has tabs past it, so it is clear the strip scrolls.
+  useEffect(() => {
+    const list = listRef.current;
+    if (!list) return;
+    revealTab(list, tabRefs.current[initialTab]);
+    const update = () => {
+      const max = list.scrollWidth - list.clientWidth;
+      // scrollLeft runs 0 → max in LTR and 0 → -max in RTL
+      const fromLeft = getComputedStyle(list).direction === 'rtl' ? max + list.scrollLeft : list.scrollLeft;
+      list.toggleAttribute('data-fade-left', fromLeft > 1);
+      list.toggleAttribute('data-fade-right', fromLeft < max - 1);
+    };
+    update();
+    list.addEventListener('scroll', update, { passive: true });
+    const resize = new ResizeObserver(update);
+    resize.observe(list);
+    return () => {
+      list.removeEventListener('scroll', update);
+      resize.disconnect();
+    };
+  }, [initialTab]);
 
   // Links from emails and older bookmarks use #meetings, #messages, …
   // The hash never reaches the server, so it is read once the page is up

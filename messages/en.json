@@ -23,6 +23,10 @@
     "openMenu": "Open menu",
     "closeMenu": "Close menu"
   },
+  "intro": {
+    "skip": "Press any key or click to skip",
+    "skipTouch": "Tap to skip"
+  },
   "hero": {
     "openTo": "Open to {list}",
     "openToRemote": "Remote",

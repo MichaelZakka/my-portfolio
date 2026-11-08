@@ -43,7 +43,7 @@
 
 .facts {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 160px), 1fr));
   gap: var(--s-4);
   margin-block-start: var(--s-5);
 }
@@ -62,7 +62,7 @@
 
 .scope {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
   gap: var(--s-5);
 }
 
