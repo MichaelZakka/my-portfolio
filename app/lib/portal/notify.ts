@@ -95,7 +95,7 @@ export async function notifyAboutMessage(input: {
           to,
           locale: 'en',
           count: Math.max(1, await countUnreadForAdmin(input.projectId, project.adminLastReadAt)),
-          url: portalUrl(`/admin/projects/${input.projectId}?tab=messages`),
+          url: portalUrl(`/admin-jfaygpory6/projects/${input.projectId}?tab=messages`),
           replyTo: input.senderEmail,
         });
         if (!result.sent) {
@@ -207,7 +207,7 @@ export async function notifyAboutClientJoined(input: {
     clientName: input.clientName,
     clientEmail: input.clientEmail,
     projectName: input.projectName,
-    url: portalUrl(`/admin/projects/${input.projectId}`),
+    url: portalUrl(`/admin-jfaygpory6/projects/${input.projectId}`),
   });
 
   await updateActivityMeta(input.activityId, { emailSent: result.sent, emailError: result.error ?? null });
@@ -262,7 +262,7 @@ export async function notifyAboutMeeting(input: {
   let outcome;
   if (input.actorRole === 'client') {
     const to = adminNotifyAddress();
-    const url = portalUrl(`/admin/projects/${input.projectId}?tab=meetings`);
+    const url = portalUrl(`/admin-jfaygpory6/projects/${input.projectId}?tab=meetings`);
     const result = await sendMeetingEmail({
       ...email,
       to,
@@ -347,7 +347,7 @@ export async function notifyAboutReviewResponse(input: {
 }) {
   const result = await sendReviewResponseEmail({
     to: adminNotifyAddress(),
-    url: portalUrl(`/admin/projects/${input.projectId}?tab=milestones`),
+    url: portalUrl(`/admin-jfaygpory6/projects/${input.projectId}?tab=milestones`),
     ...input,
   });
   if (!result.sent) await reportDeliveryFailure('Approval response email not sent', result.error);
@@ -425,7 +425,7 @@ export async function sendMeetingReminders(now = new Date()) {
             to,
             locale: 'en',
             timeZone: getPortalTimeZone(),
-            url: portalUrl(`/admin/projects/${meeting.projectId}?tab=meetings`),
+            url: portalUrl(`/admin-jfaygpory6/projects/${meeting.projectId}?tab=meetings`),
           }),
         };
       })(),

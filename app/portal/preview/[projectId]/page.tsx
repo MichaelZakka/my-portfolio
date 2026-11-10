@@ -64,7 +64,7 @@ export default async function ClientPreviewPage({ params, searchParams }: Props)
         </span>
         <div className={styles.headerActions}>
           <LanguageSwitch />
-          <Link href={`/admin/projects/${project.id}`} className={styles.ghostButton}>
+          <Link href={`/admin-jfaygpory6/projects/${project.id}`} className={styles.ghostButton}>
             <ArrowLeft size={16} strokeWidth={2} aria-hidden="true" />
             Back to admin
           </Link>

@@ -18,6 +18,6 @@ export async function GET(request: Request, { params }: RouteParams) {
     projectId: auth.project.id,
     projectName: auth.project.name,
     meetingId: id.data,
-    url: portalUrl(`/admin/projects/${auth.project.id}?tab=meetings`),
+    url: portalUrl(`/admin-jfaygpory6/projects/${auth.project.id}?tab=meetings`),
   });
 }

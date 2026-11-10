@@ -568,7 +568,7 @@ export async function answerProposal(input: {
 
 /** Emails the admin about the answer; runs after the response is sent. */
 export async function notifyAboutProposalAnswer(answer: ProposalAnswer) {
-  const url = portalUrl(answer.projectId ? `/admin/projects/${answer.projectId}` : `/admin/proposals/${answer.proposalId}`);
+  const url = portalUrl(answer.projectId ? `/admin-jfaygpory6/projects/${answer.projectId}` : `/admin-jfaygpory6/proposals/${answer.proposalId}`);
   const result = await sendProposalResponseEmail({ to: adminNotifyAddress(), url, ...answer });
   if (!result.sent) await reportDeliveryFailure('Proposal response email not sent', result.error);
 }

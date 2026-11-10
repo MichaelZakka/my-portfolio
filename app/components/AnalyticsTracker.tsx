@@ -10,7 +10,7 @@ export default function AnalyticsTracker() {
   const searchParams = useSearchParams();
 
   useEffect(() => {
-    if (pathname?.startsWith('/admin')) return;
+    if (pathname?.startsWith('/admin-jfaygpory6')) return;
     trackPageView(pathname ?? undefined);
   }, [pathname, searchParams]);
 
