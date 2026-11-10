@@ -196,11 +196,22 @@ export async function getClientReadState(projectId: string, userId: string) {
   return { lastReadAt, unread: await countUnreadForClient(projectId, userId, lastReadAt) };
 }
 
-/** Unread client messages per project, for the admin's lists (a count per project; there are few). */
+/**
+ * Unread client messages per project, for the admin's lists and sidebar badge.
+ * The same rule as countUnreadForAdmin, for every project in one grouped query
+ * (it runs on every dashboard navigation, so not one query per project).
+ * Projects with nothing unread are absent: read them as 0.
+ */
 export async function adminUnreadByProject(): Promise<Map<string, number>> {
-  const projects = await prisma.project.findMany({ select: { id: true, adminLastReadAt: true } });
-  const counts = await Promise.all(projects.map((p) => countUnreadForAdmin(p.id, p.adminLastReadAt)));
-  return new Map(projects.map((p, i) => [p.id, counts[i]]));
+  const rows = await prisma.$queryRaw<{ projectId: string; unread: number }[]>`
+    SELECT m."projectId", COUNT(*)::int AS unread
+    FROM "Message" m
+    JOIN "User" u ON u.id = m."senderId"
+    JOIN "Project" p ON p.id = m."projectId"
+    WHERE u.role = 'client'
+      AND (p."adminLastReadAt" IS NULL OR m."createdAt" > p."adminLastReadAt")
+    GROUP BY m."projectId"`;
+  return new Map(rows.map((row) => [row.projectId, row.unread]));
 }
 
 // --- Live updates ---------------------------------------------------------------

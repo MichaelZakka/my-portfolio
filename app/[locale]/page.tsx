@@ -14,6 +14,7 @@ import Footer from '../components/Footer';
 import JsonLd from '../components/JsonLd';
 import CircuitBackground from '../components/CircuitBackground';
 import { buildPageMetadata, homePageJsonLd, personJsonLd, websiteJsonLd } from '../lib/seo';
+import { getPortfolio } from '../lib/content/portfolio';
 
 type Props = { params: Promise<{ locale: string }> };
 
@@ -39,12 +40,18 @@ const Projects = dynamic(() => import('../components/Projects'), {
 export default async function Home({ params }: Props) {
   const { locale } = await params;
   setRequestLocale(locale);
+  const { profile, socials } = await getPortfolio(locale);
 
   return (
     <>
       <JsonLd
         data={[
-          personJsonLd(),
+          personJsonLd({
+            email: profile.email,
+            city: profile.city,
+            countryCode: profile.countryCode,
+            sameAs: socials.filter((s) => s.external).map((s) => s.url),
+          }),
           websiteJsonLd(),
           homePageJsonLd(locale),
         ]}

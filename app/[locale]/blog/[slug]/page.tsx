@@ -14,7 +14,9 @@ import styles from '../blog.module.css';
 
 type Params = { params: Promise<{ locale: string; slug: string }> };
 
-export const dynamicParams = false;
+// Not false: see app/[locale]/layout.tsx (revalidated pages must be able to rebuild).
+// Unknown slugs still 404 through getPost() below.
+export const dynamicParams = true;
 
 export function generateStaticParams() {
   return getPosts().map((p) => ({ slug: p.slug }));

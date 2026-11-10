@@ -11,7 +11,10 @@ export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
 }
 
-export const dynamicParams = false;
+// Not false: saving content in /admin/content revalidates every page, and on Next 16.1.1 a
+// revalidated page under dynamicParams = false fails with NoFallbackError (404/500) instead
+// of rebuilding. Unknown locales still 404 through the hasLocale check below.
+export const dynamicParams = true;
 
 /** Only these namespaces are used by client components; the rest stays on the server. */
 const CLIENT_NAMESPACES = ['common', 'nav', 'meta', 'hero', 'projects', 'contact'] as const;

@@ -5,7 +5,9 @@
   color: #8d9ab0;
   text-decoration: none;
   font-size: 0.83rem;
-  margin-bottom: 1rem;
+  /* Finger-sized hit area for touch screens; the negative margin keeps the layout */
+  padding-block: 0.55rem;
+  margin-block: -0.55rem 0.45rem;
 }
 
 .backLink:hover {
@@ -36,6 +38,8 @@
 
 .description {
   white-space: pre-wrap;
+  /* Long URLs (references) would otherwise run out of the card */
+  overflow-wrap: anywhere;
   color: #c9d2e0;
   font-size: 0.9rem;
   line-height: 1.6;

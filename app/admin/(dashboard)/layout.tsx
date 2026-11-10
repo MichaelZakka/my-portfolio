@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import AdminMain from '../_components/AdminMain';
 import Sidebar from '../_components/Sidebar';
 import styles from '../admin.module.css';
 
@@ -10,7 +11,7 @@ export default function AdminDashboardLayout({ children }: { children: React.Rea
   return (
     <div className={styles.shell}>
       <Sidebar />
-      <main className={styles.main}>{children}</main>
+      <AdminMain>{children}</AdminMain>
     </div>
   );
 }

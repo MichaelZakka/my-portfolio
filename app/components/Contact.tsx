@@ -1,18 +1,34 @@
-import { useTranslations } from 'next-intl';
-import { Github, Linkedin, Mail } from 'lucide-react';
+import { getLocale, getTranslations } from 'next-intl/server';
+import { Mail, MessageCircle, Phone, type LucideIcon } from 'lucide-react';
 import styles from './Contact.module.css';
 import Reveal from './motion/Reveal';
 import ContactForm from './ContactForm';
-import { EMAIL, GITHUB_URL, LINKEDIN_URL } from '../lib/site';
+import { getPortfolio } from '../lib/content/portfolio';
+import { SOCIAL_ICONS } from '../lib/content/icons';
 
-export default function Contact() {
-  const t = useTranslations('contact');
-  const channels = [
-    { icon: Mail, label: t('email'), value: EMAIL, href: `mailto:${EMAIL}` },
-    { icon: Linkedin, label: t('linkedin'), value: 'in/michael-zakka', href: LINKEDIN_URL },
-    ...(GITHUB_URL
-      ? [{ icon: Github, label: t('github'), value: GITHUB_URL.replace('https://', ''), href: GITHUB_URL }]
+type Channel = { key: string; icon: LucideIcon; label: string; value: string; href: string };
+
+export default async function Contact() {
+  const t = await getTranslations('contact');
+  const { profile, socials } = await getPortfolio(await getLocale());
+
+  const channels: Channel[] = [
+    ...(profile.email
+      ? [{ key: 'email', icon: Mail, label: t('email'), value: profile.email, href: `mailto:${profile.email}` }]
       : []),
+    ...(profile.telUrl ? [{ key: 'phone', icon: Phone, label: t('phone'), value: profile.phone, href: profile.telUrl }] : []),
+    ...(profile.whatsappUrl
+      ? [{ key: 'whatsapp', icon: MessageCircle, label: t('whatsapp'), value: profile.phone, href: profile.whatsappUrl }]
+      : []),
+    ...socials
+      .filter((s) => s.contact)
+      .map((s) => ({
+        key: s.id,
+        icon: SOCIAL_ICONS[s.platform],
+        label: s.platform === 'linkedin' ? t('linkedin') : s.platform === 'github' ? t('github') : s.name,
+        value: s.value,
+        href: s.url,
+      })),
   ];
 
   return (
@@ -29,8 +45,8 @@ export default function Contact() {
 
         <div className={styles.layout}>
           <ul className={styles.channels}>
-            {channels.map(({ icon: Icon, label, value, href }, idx) => (
-              <Reveal as="li" key={label} index={idx} className={styles.item}>
+            {channels.map(({ key, icon: Icon, label, value, href }, idx) => (
+              <Reveal as="li" key={key} index={idx} className={styles.item}>
                 <a
                   href={href}
                   className={`card card-interactive ${styles.channel}`}

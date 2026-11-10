@@ -51,6 +51,8 @@
 }
 
 .funnelFill {
+  /* A span: without display:block its width and height are ignored and no bar shows */
+  display: block;
   height: 100%;
   background: linear-gradient(90deg, #1668e8, #5c9dff);
   border-radius: 5px;

@@ -113,7 +113,17 @@ export function buildPageMetadata({
   };
 }
 
-export function personJsonLd() {
+/** Contact details from the admin's content (Profile & contact, Social links); PERSON is the fallback. */
+export type PersonContact = { email: string; city: string; countryCode: string; sameAs: string[] };
+
+export function personJsonLd(
+  contact: PersonContact = {
+    email: PERSON.email,
+    city: PERSON.addressLocality,
+    countryCode: PERSON.addressCountry,
+    sameAs: [...PERSON.sameAs],
+  }
+) {
   const siteUrl = getSiteUrl();
   return {
     '@context': 'https://schema.org',
@@ -123,13 +133,17 @@ export function personJsonLd() {
     url: siteUrl,
     image: `${siteUrl}/og-image.jpg`,
     jobTitle: PERSON.jobTitle,
-    email: `mailto:${PERSON.email}`,
-    address: {
-      '@type': 'PostalAddress',
-      addressLocality: PERSON.addressLocality,
-      addressCountry: PERSON.addressCountry,
-    },
-    sameAs: [...PERSON.sameAs],
+    ...(contact.email ? { email: `mailto:${contact.email}` } : {}),
+    ...(contact.city || contact.countryCode
+      ? {
+          address: {
+            '@type': 'PostalAddress',
+            ...(contact.city ? { addressLocality: contact.city } : {}),
+            ...(contact.countryCode ? { addressCountry: contact.countryCode.toUpperCase() } : {}),
+          },
+        }
+      : {}),
+    sameAs: contact.sameAs,
     knowsAbout: [
       'Web Development',
       'React',

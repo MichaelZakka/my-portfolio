@@ -249,7 +249,7 @@ export default function ProposalEditor({
                 </button>
               </div>
               <div className={projectStyles.itemMain}>
-                <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 96px', gap: '0.75rem' }}>
+                <div className={projectStyles.phaseFields}>
                   <div className={styles.filterField}>
                     <label className={styles.filterLabel} htmlFor={`phase-${phase.key}-title`}>
                       Phase {index + 1}

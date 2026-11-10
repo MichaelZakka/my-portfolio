@@ -1,14 +1,13 @@
-import { useMessages, useTranslations } from 'next-intl';
+import { getLocale, getTranslations } from 'next-intl/server';
 import { ArrowUpRight } from 'lucide-react';
 import styles from './Experience.module.css';
 import Reveal from './motion/Reveal';
-import { EXPERIENCE } from '../../data/experience';
 import { isTodo, showValue } from '../../data/todo';
-import { contentFrom, localizeRole } from '../lib/localizedContent';
+import { getPortfolio } from '../lib/content/portfolio';
 
-export default function Experience() {
-  const t = useTranslations('experience');
-  const content = contentFrom(useMessages());
+export default async function Experience() {
+  const t = await getTranslations('experience');
+  const { experience } = await getPortfolio(await getLocale());
 
   return (
     <section id="experience" className="section" aria-labelledby="experience-title">
@@ -20,8 +19,7 @@ export default function Experience() {
           </h2>
         </Reveal>
         <ol className={styles.timeline}>
-          {EXPERIENCE.map((raw, idx) => {
-            const exp = localizeRole(raw, content);
+          {experience.map((exp, idx) => {
             return (
             <Reveal as="li" key={exp.id} index={idx} className={styles.item}>
               <span className={styles.dot} aria-hidden="true" />
@@ -45,8 +43,8 @@ export default function Experience() {
                 </header>
                 {exp.companyNote && <p className={styles.note}>{exp.companyNote}</p>}
                 <ul className={styles.achievements}>
-                  {exp.achievements.map((a) => (
-                    <li key={a.text}>
+                  {exp.achievements.map((a, aIdx) => (
+                    <li key={aIdx}>
                       {a.text}
                       {showValue(a.result) && (
                         <>

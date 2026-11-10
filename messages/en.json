@@ -135,6 +135,8 @@
     "description": "Hiring for a web development role, or want to talk about a project? Send a message or reach me directly.",
     "email": "Email",
     "linkedin": "LinkedIn",
+    "phone": "Phone",
+    "whatsapp": "WhatsApp",
     "github": "GitHub",
     "form": {
       "title": "Send a message",

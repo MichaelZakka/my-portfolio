@@ -31,7 +31,8 @@ keywords = ["postgres"]
     '''://[^:/@]+:(?:PASSWORD|password|pass|secret|changeme|\*+|<[^>]*>)@''',
   ]
 
-# Neon role passwords (also the password part of Neon connection strings).
+# Neon role passwords (also the password part of Neon connection strings). Production
+# moved to Supabase, whose URLs the rule above covers; this stays for old credentials.
 [[rules]]
 id = "neon-password"
 description = "Neon database password"

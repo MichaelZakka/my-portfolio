@@ -1,12 +1,11 @@
-import { useMessages, useTranslations } from 'next-intl';
+import { getLocale, getTranslations } from 'next-intl/server';
 import styles from './Skills.module.css';
 import Reveal from './motion/Reveal';
-import { SKILL_GROUPS } from '../../data/skills';
-import { contentFrom, localizeSkill, localizeSkillGroup } from '../lib/localizedContent';
+import { getPortfolio } from '../lib/content/portfolio';
 
-export default function Skills() {
-  const t = useTranslations('skills');
-  const content = contentFrom(useMessages());
+export default async function Skills() {
+  const t = await getTranslations('skills');
+  const { skillGroups } = await getPortfolio(await getLocale());
 
   return (
     <section id="skills" className="section" aria-labelledby="skills-title">
@@ -18,20 +17,20 @@ export default function Skills() {
           </h2>
         </Reveal>
         <div className={styles.grid}>
-          {SKILL_GROUPS.map((category, idx) => (
+          {skillGroups.map((category, idx) => (
             <Reveal key={category.id} index={idx} className={styles.item}>
               <div className={`card ${styles.card}`}>
                 <h3 className={styles.title}>
-                  {localizeSkillGroup(category.id, category.title, content)}
+                  {category.title}
                 </h3>
                 <ul className={styles.chips}>
                   {category.skills.map((skill, sIdx) => (
                     <li
-                      key={skill}
+                      key={`${sIdx}-${skill}`}
                       className={styles.chip}
                       style={{ '--i': sIdx } as React.CSSProperties}
                     >
-                      {localizeSkill(skill, content)}
+                      {skill}
                     </li>
                   ))}
                 </ul>

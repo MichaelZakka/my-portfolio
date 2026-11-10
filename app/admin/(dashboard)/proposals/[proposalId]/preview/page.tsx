@@ -46,7 +46,7 @@ export default async function AdminProposalPreviewPage({ params }: Params) {
         <ArrowLeft size={15} strokeWidth={2} aria-hidden="true" />
         Back to the proposal
       </Link>
-      <div className={`${styles.bannerSuccess} ${proposalStyles.previewBanner}`} role="status">
+      <div className={`${styles.banner} ${styles.bannerSuccess} ${proposalStyles.previewBanner}`} role="status">
         Preview of version {proposal.version} as {proposal.recipientEmail ?? proposal.lead.clientEmail} will see it
         {proposal.status === 'draft' ? ' (last saved draft)' : ''}. On the real page the client can accept, ask for
         changes or decline below it.

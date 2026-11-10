@@ -1,20 +1,12 @@
-import { useMessages, useTranslations } from 'next-intl';
-import { Code2, Languages, Gauge, ShoppingBag } from 'lucide-react';
+import { getLocale, getTranslations } from 'next-intl/server';
 import styles from './Strengths.module.css';
 import Reveal from './motion/Reveal';
-import { STRENGTHS, type Strength } from '../../data/strengths';
-import { contentFrom, localizeStrength } from '../lib/localizedContent';
+import { getPortfolio } from '../lib/content/portfolio';
+import { STRENGTH_ICON_COMPONENTS } from '../lib/content/icons';
 
-const ICONS: Record<Strength['id'], typeof Code2> = {
-  nextjs: Code2,
-  rtl: Languages,
-  performance: Gauge,
-  shopify: ShoppingBag,
-};
-
-export default function Strengths() {
-  const t = useTranslations('strengths');
-  const content = contentFrom(useMessages());
+export default async function Strengths() {
+  const t = await getTranslations('strengths');
+  const { strengths } = await getPortfolio(await getLocale());
 
   return (
     <section id="strengths" className="section" aria-labelledby="strengths-title">
@@ -27,9 +19,8 @@ export default function Strengths() {
           <span className="accent-bar" aria-hidden="true" />
         </Reveal>
         <ul className={styles.grid}>
-          {STRENGTHS.map((raw, idx) => {
-            const item = localizeStrength(raw, content);
-            const Icon = ICONS[item.id];
+          {strengths.map((item, idx) => {
+            const Icon = STRENGTH_ICON_COMPONENTS[item.icon];
             return (
               <Reveal as="li" key={item.id} index={idx} className={styles.item}>
                 <div className={`card card-interactive ${styles.card}`}>

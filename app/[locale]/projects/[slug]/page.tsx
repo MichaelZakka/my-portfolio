@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
-import { getMessages, getTranslations, setRequestLocale } from 'next-intl/server';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import Navigation from '../../../components/Navigation';
 import Footer from '../../../components/Footer';
@@ -10,25 +10,27 @@ import JsonLd from '../../../components/JsonLd';
 import ProjectLinks from '../../../components/ProjectLinks';
 import { buildPageMetadata, projectJsonLd } from '../../../lib/seo';
 import { getSiteUrl } from '../../../lib/site';
-import { contentFrom, localizeProject } from '../../../lib/localizedContent';
-import { PUBLISHED_PROJECTS, getProject } from '../../../../data/projects';
+import { getPortfolio } from '../../../lib/content/portfolio';
 import { isTodo, showValue, visible } from '../../../../data/todo';
 import { Link } from '../../../../i18n/navigation';
 import styles from './page.module.css';
 
 type Params = { params: Promise<{ locale: string; slug: string }> };
 
-export const dynamicParams = false;
+// Projects published in the admin after a deploy render on first visit; unknown slugs 404
+export const dynamicParams = true;
 
-export function generateStaticParams() {
-  return PUBLISHED_PROJECTS.map((p) => ({ slug: p.slug }));
+export async function generateStaticParams() {
+  const { projects } = await getPortfolio('en');
+  return projects.map((p) => ({ slug: p.slug }));
 }
 
+/** The published project and its neighbours in display order. */
 async function load(locale: string, slug: string) {
-  const raw = getProject(slug);
-  if (!raw) return null;
-  const content = contentFrom(await getMessages({ locale }));
-  return { project: localizeProject(raw, content), content };
+  const { projects } = await getPortfolio(locale);
+  const index = projects.findIndex((p) => p.slug === slug);
+  if (index === -1) return null;
+  return { project: projects[index], projects, index };
 }
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
@@ -57,13 +59,12 @@ export default async function ProjectPage({ params }: Params) {
   setRequestLocale(locale);
   const loaded = await load(locale, slug);
   if (!loaded) notFound();
-  const { project, content } = loaded;
+  const { project, projects, index } = loaded;
   const t = await getTranslations('caseStudy');
 
-  const index = PUBLISHED_PROJECTS.findIndex((p) => p.slug === project.slug);
-  const total = PUBLISHED_PROJECTS.length;
-  const prev = localizeProject(PUBLISHED_PROJECTS[(index - 1 + total) % total], content);
-  const next = localizeProject(PUBLISHED_PROJECTS[(index + 1) % total], content);
+  const total = projects.length;
+  const prev = projects[(index - 1 + total) % total];
+  const next = projects[(index + 1) % total];
 
   const challenges = visible(project.challenges);
   const solutions = visible(project.solutions);
@@ -193,10 +194,14 @@ export default async function ProjectPage({ params }: Params) {
                     <dd>
                       {project.team}
                       {project.collaborators?.map((c) => (
-                        <span key={c.url} className={styles.collab}>
-                          <a href={c.url} target="_blank" rel="noopener noreferrer">
-                            {c.name}
-                          </a>
+                        <span key={c.name} className={styles.collab}>
+                          {c.url ? (
+                            <a href={c.url} target="_blank" rel="noopener noreferrer">
+                              {c.name}
+                            </a>
+                          ) : (
+                            c.name
+                          )}
                         </span>
                       ))}
                     </dd>
@@ -206,9 +211,13 @@ export default async function ProjectPage({ params }: Params) {
                   <div>
                     <dt>{t('builtAt')}</dt>
                     <dd>
-                      <a href={project.employer.url} target="_blank" rel="noopener noreferrer">
-                        {project.employer.name}
-                      </a>
+                      {project.employer.url ? (
+                        <a href={project.employer.url} target="_blank" rel="noopener noreferrer">
+                          {project.employer.name}
+                        </a>
+                      ) : (
+                        project.employer.name
+                      )}
                     </dd>
                   </div>
                 )}

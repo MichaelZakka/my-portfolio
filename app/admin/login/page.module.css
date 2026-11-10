@@ -79,12 +79,59 @@
   cursor: not-allowed;
 }
 
+/* Same design as the dashboard's error messages (admin.module.css .bannerError) */
 .error {
-  background: #3a1414;
-  color: #f5a3a3;
-  border: 1px solid #5c2020;
-  border-radius: 8px;
-  padding: 0.6rem 0.8rem;
-  font-size: 0.83rem;
+  position: relative;
   margin-bottom: 1rem;
+  padding: 0.75rem 1rem 0.75rem 3rem;
+  min-height: 2.9rem;
+  border-radius: 12px;
+  border: 1px solid rgb(229 72 77 / 0.35);
+  border-inline-start: 3px solid #e5484d;
+  background:
+    radial-gradient(140% 120% at 0% 0%, rgb(229 72 77 / 0.16), transparent 60%),
+    #0f1f38;
+  color: #ffb3b5;
+  font-size: 0.84rem;
+  line-height: 1.5;
+  box-shadow: 0 6px 20px -12px rgb(229 72 77 / 0.6);
+  animation: errorIn 0.32s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.error::before {
+  content: '!';
+  position: absolute;
+  inset-inline-start: 0.8rem;
+  top: 0.7rem;
+  display: grid;
+  place-items: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  background: #e5484d;
+  box-shadow: 0 0 0 4px rgb(229 72 77 / 0.2);
+  color: #fff;
+  font-weight: 800;
+  font-size: 0.85rem;
+  line-height: 1;
+}
+
+@keyframes errorIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .error {
+    animation: none;
+  }
+}
+
+/* 16px form text on phones: iOS Safari zooms the page into anything smaller on focus */
+@media (max-width: 640px) {
+  .input {
+    font-size: 16px;
+  }
 }

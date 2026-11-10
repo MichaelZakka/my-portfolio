@@ -30,7 +30,7 @@ In scope: the live site and this code, including `/admin`, `/portal` and the
 
 Out of scope: denial-of-service and volume testing, spam or social engineering,
 reports from automated scanners with no demonstrated impact, and vulnerabilities
-in third-party services themselves (Vercel, Neon, Resend).
+in third-party services themselves (Vercel, Supabase, Resend).
 
 ## Testing in good faith
 

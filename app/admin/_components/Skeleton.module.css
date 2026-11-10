@@ -1,0 +1,97 @@
+/* Loading placeholders for the dashboard.
+
+   The sweep is a transformed pseudo-element, which the browser animates on
+   the compositor thread: it keeps moving while the main thread is busy
+   rendering or hydrating the incoming screen. (A background-position
+   shimmer runs on the main thread and stalls exactly then.) */
+
+.region {
+  animation: appear 0.18s ease-out both;
+  pointer-events: none;
+}
+
+@keyframes appear {
+  from {
+    opacity: 0;
+  }
+}
+
+.bone {
+  position: relative;
+  display: inline-block;
+  vertical-align: middle;
+  max-width: 100%;
+  height: 0.8em;
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+  background: var(--bg-elevated-2);
+}
+
+.bone::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgb(92 157 255 / 0.14), transparent);
+  animation: sweep 1.8s ease-in-out infinite;
+}
+
+/* Sweep, then rest for a beat before the next pass. */
+@keyframes sweep {
+  65%,
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.block {
+  display: block;
+}
+
+.round {
+  border-radius: 999px;
+}
+
+/* Inputs and buttons (the width comes from --control-width) */
+.control {
+  width: var(--control-width, 100%);
+  height: 2.3rem;
+  border-radius: 8px;
+}
+
+.backLink {
+  font-size: 0.85rem;
+  margin-bottom: 1rem;
+}
+
+.subLine {
+  display: block;
+  font-size: 0.8rem;
+}
+
+.form {
+  display: grid;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.tab {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  min-height: 40px;
+  padding: 0 0.85rem;
+}
+
+@media (max-width: 640px) {
+  /* The real filter inputs stretch to their grid cell on phones */
+  .filterInput {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bone::after {
+    display: none;
+  }
+}

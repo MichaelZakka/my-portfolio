@@ -11,8 +11,8 @@ storage, email, and the auth secret. Everything below assumes Vercel.
 ### 1. Switch Prisma from SQLite to Postgres
 
 SQLite is a local file; Vercel's filesystem is read-only and per-instance, so
-production needs a managed Postgres (Neon, Supabase, or Postgres from the Vercel
-Marketplace). The schema was written for both providers (enum-like fields are
+production needs a managed Postgres (this project uses Supabase). The schema was
+written for both providers (enum-like fields are
 validated strings, list fields are JSON text), so only the provider changes.
 
 The schema is already on Postgres (`provider = "postgresql"`; the old SQLite
@@ -21,12 +21,19 @@ connection strings:
 
 | Variable | Value |
 | --- | --- |
-| `DATABASE_URL` | the **pooled** connection string (what the app uses) |
-| `DATABASE_URL_UNPOOLED` | the **direct** connection string (what migrations use; poolers break them) |
+| `DATABASE_URL` | Supabase **transaction pooler** (port 6543), with `&pgbouncer=true&connection_limit=1` added (what the app uses) |
+| `DATABASE_URL_UNPOOLED` | Supabase **session pooler** (port 5432) (what migrations use; transaction poolers break them) |
 
-Connecting a Neon database to the project in Vercel → **Storage** sets both,
-with exactly these names. With another host, copy both strings from its dashboard
-(if it has no pooler, use the same string twice).
+Copy both from Supabase → **Connect**, add `?sslmode=require`, and percent-encode
+any special characters in the password. Set them by hand in Vercel. Use the session
+pooler rather than the "direct connection" string, because `db.<ref>.supabase.co`
+is IPv6-only unless the project has the IPv4 add-on, and Vercel builds use IPv4.
+
+**Keep the Data API closed.** Supabase exposes the `public` schema over HTTP. The
+app only uses Prisma, so disable the Data API in Supabase → Project Settings → Data
+API. As a second layer, migration `20261109000000_enable_rls` turns on row-level
+security with no policies, which blocks the API roles but not Prisma. Any later
+migration that adds a table must enable RLS on it as well.
 
 **Applying migrations** (`npm run db:deploy`, i.e. `prisma migrate deploy`) must
 run against the production database, with both variables set. It is safe to

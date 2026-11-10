@@ -1,15 +1,12 @@
-import type { Metadata } from 'next';
 import { useTranslations } from 'next-intl';
-import { getTranslations } from 'next-intl/server';
 import Navigation from '../components/Navigation';
 import Footer from '../components/Footer';
 import { Link } from '../../i18n/navigation';
 
-export async function generateMetadata(): Promise<Metadata> {
-  const t = await getTranslations('notFound');
-  return { title: t('title') };
-}
-
+// No generateMetadata here: not-found metadata can't see the locale (no params), so
+// next-intl would read request headers, which fails ("static to dynamic") when a
+// project or blog page rebuilt after a content save calls notFound(). The tab keeps
+// the locale layout's title; the page itself says "Page not found".
 export default function LocaleNotFound() {
   const t = useTranslations('notFound');
   return (

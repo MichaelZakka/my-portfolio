@@ -1,0 +1,17 @@
+.chart {
+  display: grid;
+}
+
+.axis {
+  position: relative;
+}
+
+.tick {
+  position: absolute;
+  top: 2px;
+  transform: translateX(-50%);
+  font-size: 0.68rem;
+  color: #7d8ba3;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}

@@ -62,18 +62,40 @@ export default function NewProjectForm({ lead }: { lead: Lead | null }) {
       created.invite?.ok
         ? { email: inviteEmail, inviteUrl: created.invite.inviteUrl, delivery: created.invite.email }
         : null;
+    const statusLabel = PROJECT_STATUS_LABELS[status as keyof typeof PROJECT_STATUS_LABELS] ?? status;
     return (
-      <div className={styles.card}>
-        <div className={styles.bannerSuccess} role="status">
-          Project “{created.project.name}” created.
+      <div className={`${styles.card} ${projectStyles.created}`}>
+        <div className={projectStyles.createdHero} role="status">
+          <span className={projectStyles.createdCheck} aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="30" height="30">
+              <path d="M5 12.5l4.5 4.5L19 7.5" />
+            </svg>
+          </span>
+          <p className={projectStyles.createdKicker}>Project created</p>
+          <h2 className={projectStyles.createdTitle}>{created.project.name}</h2>
+          <ul className={projectStyles.createdFacts}>
+            <li>{statusLabel}</li>
+            {currentPhase && <li>Phase: {currentPhase}</li>}
+            {lead && <li>From request{markRequestWon ? ' · marked Won' : ''}</li>}
+            <li>{outcome ? `Client invited: ${outcome.email}` : 'No client invited yet'}</li>
+          </ul>
         </div>
+
         {outcome && <InviteResult outcome={outcome} />}
         {created.invite && !created.invite.ok && (
-          <div className={styles.bannerError}>The project was created, but the invitation failed: {created.invite.error}</div>
+          <div className={styles.bannerError} role="alert">
+            The project was created, but the invitation failed: {created.invite.error}
+          </div>
         )}
-        <Link href={`/admin/projects/${created.project.id}`} className={`${styles.button} ${styles.buttonPrimary}`}>
-          Open project
-        </Link>
+
+        <div className={projectStyles.createdActions}>
+          <Link href={`/admin/projects/${created.project.id}`} className={`${styles.button} ${styles.buttonPrimary}`}>
+            Open project
+          </Link>
+          <Link href="/admin/projects" className={`${styles.button} ${styles.buttonSecondary}`}>
+            All projects
+          </Link>
+        </div>
       </div>
     );
   }

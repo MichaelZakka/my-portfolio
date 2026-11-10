@@ -36,6 +36,22 @@
   transform: scale(1.04);
 }
 
+/* Shown in place of a screenshot when a project has none yet */
+.placeholder {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(120% 90% at 30% 20%, color-mix(in srgb, var(--accent) 35%, transparent), transparent 65%),
+    linear-gradient(160deg, var(--bg-elevated-2), var(--bg));
+  font-family: var(--font-heading);
+  font-size: clamp(2.5rem, 7vw, 3.5rem);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: color-mix(in srgb, var(--accent-text) 80%, white);
+}
+
 .emoji {
   display: grid;
   place-items: center;

@@ -16,9 +16,8 @@ import { alertChannels } from '../../../lib/monitoring';
 import { formatDateTime } from '../../../lib/portal/format';
 import ProblemsPanel, { type Problem } from './ProblemsPanel';
 import { requireAdminSession } from '../../../lib/session';
-import { PERSON } from '../../../lib/seo';
-import { STRENGTHS } from '../../../../data/strengths';
-import { PUBLISHED_PROJECTS } from '../../../../data/projects';
+import Link from 'next/link';
+import { readStoredContent, resolveDocs } from '../../../lib/content/store';
 import styles from '../../admin.module.css';
 import pageStyles from './page.module.css';
 
@@ -168,6 +167,8 @@ export const metadata: Metadata = { title: 'Site' };
 
 export default async function AdminSitePage() {
   await requireAdminSession();
+  const content = resolveDocs(await readStoredContent());
+  const publishedProjects = content.projects.filter((p) => p.published).length;
   const [health, problems] = await Promise.all([getHealthChecks(), getProblems()]);
   const okCount = health.filter((c) => c.tone === 'ok').length;
   const warnCount = health.filter((c) => c.tone === 'warn').length;
@@ -258,16 +259,21 @@ export default async function AdminSitePage() {
           </div>
           <div className={styles.detailGrid}>
             <div className={styles.detailField}>
-              <span className={styles.detailLabel}>Featured projects</span>
+              <span className={styles.detailLabel}>Published projects</span>
               <span className={styles.detailValue}>
-                {PUBLISHED_PROJECTS.length} —{' '}
-                <span className={pageStyles.fileLink}>data/projects.ts</span>
+                {publishedProjects} —{' '}
+                <Link href="/admin/content/projects" className={styles.link}>
+                  edit in Content
+                </Link>
               </span>
             </div>
             <div className={styles.detailField}>
               <span className={styles.detailLabel}>Strengths</span>
               <span className={styles.detailValue}>
-                {STRENGTHS.length} — <span className={pageStyles.fileLink}>data/strengths.ts</span>
+                {content.strengths.length} —{' '}
+                <Link href="/admin/content/strengths" className={styles.link}>
+                  edit in Content
+                </Link>
               </span>
             </div>
             <div className={styles.detailField}>
@@ -290,9 +296,9 @@ export default async function AdminSitePage() {
             <span className={styles.cardTitle}>Strengths</span>
           </div>
           <div className={styles.chipList}>
-            {STRENGTHS.map((item) => (
-              <span key={item.id} className={styles.chip} title={item.proof}>
-                {item.title}
+            {content.strengths.map((item) => (
+              <span key={item.id} className={styles.chip} title={item.proof.en}>
+                {item.title.en}
               </span>
             ))}
           </div>
@@ -302,21 +308,32 @@ export default async function AdminSitePage() {
       <div className={styles.card}>
         <div className={styles.cardHeader}>
           <span className={styles.cardTitle}>Contact channels</span>
+          <Link href="/admin/content/profile" className={styles.link}>
+            Edit
+          </Link>
         </div>
         <div className={pageStyles.contactList}>
           <div className={pageStyles.contactRow}>
             <span>Email</span>
-            <span>{PERSON.email}</span>
+            <span>{content.profile.email || '—'}</span>
           </div>
           <div className={pageStyles.contactRow}>
             <span>Phone / WhatsApp</span>
-            <span>{PERSON.telephone}</span>
+            <span>
+              {content.profile.phone || '—'}
+              {content.profile.phone &&
+                (content.profile.showPhone || content.profile.showWhatsApp ? ' · shown on the site' : ' · private')}
+            </span>
           </div>
           <div className={pageStyles.contactRow}>
             <span>Location</span>
             <span>
-              {PERSON.addressLocality}, {PERSON.addressCountry}
+              {[content.profile.city, content.profile.countryCode].filter(Boolean).join(', ') || '—'}
             </span>
+          </div>
+          <div className={pageStyles.contactRow}>
+            <span>Social links</span>
+            <span>{content.socials.map((link) => link.platform).join(', ') || '—'}</span>
           </div>
         </div>
       </div>

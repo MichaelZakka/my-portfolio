@@ -1,17 +1,16 @@
 import Image from 'next/image';
-import { useMessages, useTranslations } from 'next-intl';
+import { getLocale, getTranslations } from 'next-intl/server';
 import { ArrowUpRight } from 'lucide-react';
 import styles from './Projects.module.css';
 import Reveal from './motion/Reveal';
 import ProjectLinks from './ProjectLinks';
-import { PUBLISHED_PROJECTS } from '../../data/projects';
 import { isTodo, showValue } from '../../data/todo';
 import { Link } from '../../i18n/navigation';
-import { contentFrom, localizeProject } from '../lib/localizedContent';
+import { getPortfolio } from '../lib/content/portfolio';
 
-export default function Projects() {
-  const t = useTranslations('projects');
-  const content = contentFrom(useMessages());
+export default async function Projects() {
+  const t = await getTranslations('projects');
+  const { projects } = await getPortfolio(await getLocale());
 
   return (
     <section id="projects" className="section" aria-labelledby="projects-title">
@@ -24,14 +23,25 @@ export default function Projects() {
         </Reveal>
 
         <ul className={styles.grid}>
-          {PUBLISHED_PROJECTS.map((raw, idx) => {
-            const project = localizeProject(raw, content);
+          {projects.map((project, idx) => {
             const cover = project.images[0];
             const href = `/projects/${project.slug}`;
             return (
               <Reveal as="li" key={project.slug} index={idx % 3} className={styles.item}>
                 <article className={`card card-interactive ${styles.card}`}>
                   <div className={styles.media}>
+                    {!cover && (
+                      // No screenshots yet (e.g. a project added in the admin): a branded placeholder
+                      <span className={styles.placeholder} aria-hidden="true">
+                        {project.title
+                          .split(/\s+/)
+                          .filter(Boolean)
+                          .slice(0, 2)
+                          .map((word) => word[0])
+                          .join('')
+                          .toUpperCase()}
+                      </span>
+                    )}
                     {cover && (
                       <Image
                         src={cover}

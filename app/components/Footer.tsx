@@ -1,15 +1,20 @@
-import { useLocale, useTranslations } from 'next-intl';
+import { getLocale, getTranslations } from 'next-intl/server';
 import styles from './Footer.module.css';
-import { Github, Linkedin, LockKeyhole, Mail } from 'lucide-react';
-import { EMAIL, GITHUB_URL, LINKEDIN_URL, SOURCE_REPO_URL } from '../lib/site';
+import { LockKeyhole, Mail, type LucideIcon } from 'lucide-react';
+import { getPortfolio } from '../lib/content/portfolio';
+import { SOCIAL_ICONS } from '../lib/content/icons';
 
-export default function Footer() {
-  const t = useTranslations();
-  const locale = useLocale();
-  const socialLinks = [
-    ...(GITHUB_URL ? [{ name: 'GitHub', url: GITHUB_URL, icon: Github }] : []),
-    { name: 'LinkedIn', url: LINKEDIN_URL, icon: Linkedin },
-    { name: t('contact.email'), url: `mailto:${EMAIL}`, icon: Mail },
+type FooterLink = { key: string; name: string; url: string; icon: LucideIcon };
+
+export default async function Footer() {
+  const t = await getTranslations();
+  const locale = await getLocale();
+  const { profile, socials } = await getPortfolio(locale);
+  const socialLinks: FooterLink[] = [
+    ...socials
+      .filter((s) => s.footer)
+      .map((s) => ({ key: s.id, name: s.name, url: s.url, icon: SOCIAL_ICONS[s.platform] })),
+    ...(profile.email ? [{ key: 'email', name: t('contact.email'), url: `mailto:${profile.email}`, icon: Mail }] : []),
   ];
 
   return (
@@ -28,10 +33,10 @@ export default function Footer() {
           <p className={styles.copyright}>{t('footer.rights', { year: new Date().getFullYear() })}</p>
           <p className={styles.built}>
             {t('footer.builtWith')}
-            {SOURCE_REPO_URL && (
+            {profile.sourceRepoUrl && (
               <>
                 {', '}
-                <a href={SOURCE_REPO_URL} target="_blank" rel="noopener noreferrer">
+                <a href={profile.sourceRepoUrl} target="_blank" rel="noopener noreferrer">
                   {t('footer.viewSource')}
                 </a>
               </>
@@ -49,7 +54,7 @@ export default function Footer() {
             {socialLinks.map((link) => {
               const IconComponent = link.icon;
               return (
-                <li key={link.name}>
+                <li key={link.key}>
                   <a
                     href={link.url}
                     className={styles.socialLink}

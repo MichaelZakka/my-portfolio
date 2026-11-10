@@ -1,4 +1,6 @@
 .dialog {
+  /* Centred: the global reset's margin: 0 otherwise pins a modal dialog to the top-left */
+  margin: auto;
   width: min(440px, calc(100vw - 32px));
   padding: 0;
   border: 1px solid var(--border-strong);

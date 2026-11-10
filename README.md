@@ -26,7 +26,7 @@ A stunning, production-ready portfolio website built with Next.js 16, featuring 
 ### Prerequisites
 
 - Node.js 20.9+ and npm
-- A PostgreSQL database for development: a [Neon](https://neon.tech) branch, or a
+- A PostgreSQL database for development: a separate [Supabase](https://supabase.com) project, or a
   throwaway local one from `npx prisma dev`. **Never point your local `.env` at the
   production database**: migrations and the seed script write to it.
 - [gitleaks](https://github.com/gitleaks/gitleaks) for the pre-commit secret scan:
@@ -294,7 +294,7 @@ to receive notification emails.
   and all admin pages are `noindex`.
 - Auth is a lightweight signed-cookie session (no third-party auth
   dependency) — see `app/lib/auth.ts` and `proxy.ts`.
-- The database is Postgres (Neon in production); migrations live in
+- The database is Postgres (Supabase in production); migrations live in
   `prisma/migrations` and run on every Vercel deploy. See `DEPLOYMENT.md`.
 
 ## 🔒 Security

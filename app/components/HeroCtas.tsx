@@ -3,10 +3,10 @@
 import { ArrowRight, FileDown } from 'lucide-react';
 import styles from './Hero.module.css';
 import { trackEvent } from '../lib/analyticsClient';
-import { RESUME_URL } from '../lib/site';
 import { useTranslations } from 'next-intl';
 
-export default function HeroCtas() {
+/** The CV button is left out while no CV link is set (Admin → Content → Profile). */
+export default function HeroCtas({ resumeUrl }: { resumeUrl: string }) {
   const t = useTranslations('hero');
   const scrollToSection = (sectionId: string) => {
     const element = document.getElementById(sectionId);
@@ -30,15 +30,17 @@ export default function HeroCtas() {
         {t('viewProjects')}
         <ArrowRight size={18} aria-hidden className="flip-rtl" />
       </a>
-      <a
-        href={RESUME_URL}
-        download
-        className="btn btn-outline"
-        onClick={() => trackEvent('cta_click', { label: 'hero-resume' })}
-      >
-        <FileDown size={18} aria-hidden />
-        {t('downloadResume')}
-      </a>
+      {resumeUrl && (
+        <a
+          href={resumeUrl}
+          download
+          className="btn btn-outline"
+          onClick={() => trackEvent('cta_click', { label: 'hero-resume' })}
+        >
+          <FileDown size={18} aria-hidden />
+          {t('downloadResume')}
+        </a>
+      )}
     </div>
   );
 }

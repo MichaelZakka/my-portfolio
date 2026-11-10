@@ -1,12 +1,10 @@
 // Prisma schema for the portfolio admin dashboard and client portal.
 //
-// Local dev uses SQLite (zero setup, file-based). For production on Vercel,
-// switch the datasource below to `postgresql` and point DATABASE_URL at a
-// managed Postgres instance (Neon / Supabase / Vercel Postgres) — see
-// "Client portal in production" in DEPLOYMENT.md. Array-like fields
+// Production runs on Supabase Postgres, connected through its poolers — see
+// "Client portal in production" in DEPLOYMENT.md. New tables must enable row-level
+// security in their migration (see 20261109000000_enable_rls). Array-like fields
 // (projectTypes, personalities, etc.) are intentionally stored as JSON-text
-// strings, and enum-like fields as plain strings validated in app code, so
-// the schema and application code work unchanged on both providers.
+// strings, and enum-like fields as plain strings validated in app code.
 
 generator client {
   provider = "prisma-client-js"
@@ -471,4 +469,15 @@ model ErrorEvent {
   resolvedAt  DateTime?
 
   @@index([resolvedAt, lastSeenAt])
+}
+
+// Portfolio content edited in /admin/content: one JSON document per part
+// (profile, socials, projects, experience, strengths, skills, text.en, text.ar).
+// A part without a row uses the defaults in code (data/*.ts, messages/*.json,
+// app/lib/site.ts), so the site never depends on this table existing.
+// Shapes and validation live in app/lib/content/schema.ts.
+model SiteContent {
+  key       String   @id
+  data      String // JSON text
+  updatedAt DateTime @updatedAt
 }
