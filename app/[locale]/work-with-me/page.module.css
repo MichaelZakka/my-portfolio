@@ -17,6 +17,18 @@
   width: 100%;
 }
 
+/* "Brief sent": the section fills the screen and centres the message (no empty band under it) */
+.main:has([data-brief-sent]) {
+  display: flex;
+  flex-direction: column;
+}
+
+.section:has([data-brief-sent]) {
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
 .surveyFallback {
   min-height: 32rem;
   border-radius: 20px;

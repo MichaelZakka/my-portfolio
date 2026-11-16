@@ -276,7 +276,7 @@ export default function ProjectIntakeSurvey() {
 
   if (submitted) {
     return (
-      <div className={styles.success} role="status" aria-live="polite">
+      <div className={styles.success} role="status" aria-live="polite" data-brief-sent="">
         <div className={styles.successIcon} aria-hidden="true">
           <Check size={36} strokeWidth={2.5} />
         </div>

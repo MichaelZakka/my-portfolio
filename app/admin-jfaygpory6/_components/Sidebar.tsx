@@ -3,12 +3,13 @@
 import { useEffect, useRef, useState, type MouseEvent, type SyntheticEvent } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, Inbox, FolderKanban, LineChart, Globe, LogOut, Menu, PenLine, X } from 'lucide-react';
+import { LayoutDashboard, Bell, Inbox, FolderKanban, LineChart, Globe, LogOut, Menu, PenLine, X } from 'lucide-react';
 import styles from '../admin.module.css';
 import { useNavigationTarget } from './AdminMain';
 
 const NAV_ITEMS = [
   { href: '/admin-jfaygpory6', label: 'Overview', icon: LayoutDashboard, exact: true },
+  { href: '/admin-jfaygpory6/notifications', label: 'Notifications', icon: Bell },
   { href: '/admin-jfaygpory6/requests', label: 'Requests', icon: Inbox },
   { href: '/admin-jfaygpory6/projects', label: 'Projects', icon: FolderKanban },
   { href: '/admin-jfaygpory6/visitors', label: 'Analytics', icon: LineChart },
@@ -20,27 +21,36 @@ const DRAWER_ID = 'admin-nav-drawer';
 /** Matches the CSS breakpoint above which the sidebar replaces the drawer. */
 const WIDE_SCREEN = '(min-width: 901px)';
 
-type Badges = { messages: number; problems: number };
+/** What /api/admin/unread returns (see getAdminBadges in app/lib/notices.ts). */
+type Badges = { messages: number; problems: number; requests: number; updates: number; notices: number };
+const NO_BADGES: Badges = { messages: 0, problems: 0, requests: 0, updates: 0, notices: 0 };
 
-/** Unread client messages and open problems, refreshed every minute (and on navigation). */
+/** The sidebar numbers, refreshed every minute, on navigation, and by the 'admin-badges' event. */
 function useBadges(pathname: string | null): Badges {
-  const [badges, setBadges] = useState<Badges>({ messages: 0, problems: 0 });
+  const [badges, setBadges] = useState<Badges>(NO_BADGES);
   useEffect(() => {
     let stopped = false;
     const load = async () => {
       if (document.visibilityState !== 'visible') return;
       try {
         const response = await fetch('/api/admin/unread', { cache: 'no-store' });
-        if (response.ok && !stopped) setBadges((await response.json()) as Badges);
+        if (response.ok && !stopped) setBadges({ ...NO_BADGES, ...((await response.json()) as Badges) });
       } catch {
         // Offline: keep the last counts.
       }
     };
     void load();
     const timer = setInterval(load, 60_000);
+    // The notifications screen marks everything seen and pushes the new numbers here
+    const onFresh = (event: Event) => {
+      const detail = (event as CustomEvent<Badges>).detail;
+      if (detail && !stopped) setBadges({ ...NO_BADGES, ...detail });
+    };
+    window.addEventListener('admin-badges', onFresh);
     return () => {
       stopped = true;
       clearInterval(timer);
+      window.removeEventListener('admin-badges', onFresh);
     };
   }, [pathname]);
   return badges;
@@ -81,13 +91,21 @@ export default function Sidebar() {
   const isActive = (href: string, exact?: boolean) =>
     exact ? current === href : current === href || current?.startsWith(`${href}/`);
 
-  const badgeFor = (href: string) =>
-    href === '/admin-jfaygpory6/projects'
-      ? { value: badges.messages, label: 'unread client messages' }
-      : href === '/admin-jfaygpory6/site'
-        ? { value: badges.problems, label: 'open problems' }
-        : null;
-  const needsAttention = badges.messages + badges.problems;
+  const badgeFor = (href: string) => {
+    switch (href) {
+      case '/admin-jfaygpory6/notifications':
+        return { value: badges.notices, label: 'new notifications' };
+      case '/admin-jfaygpory6/requests':
+        return { value: badges.requests, label: 'new requests' };
+      case '/admin-jfaygpory6/projects':
+        return { value: badges.messages + badges.updates, label: 'unread messages and project updates' };
+      case '/admin-jfaygpory6/site':
+        return { value: badges.problems, label: 'open problems' };
+      default:
+        return null;
+    }
+  };
+  const needsAttention = badges.messages + badges.updates + badges.requests + badges.problems;
 
   // Back/forward (or any other route change) closes the drawer too
   useEffect(() => {

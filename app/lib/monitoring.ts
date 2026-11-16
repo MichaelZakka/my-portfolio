@@ -177,7 +177,8 @@ async function sendAlert(event: {
       const { error } = await new Resend(apiKey).emails.send({
         from,
         to: alertChannels().to,
-        subject: `Site problem: ${event.message.slice(0, 90)}`,
+        // One line: email providers reject subjects with line breaks, and Prisma's messages span several
+        subject: `Site problem: ${event.message.replace(/\s+/g, ' ').trim().slice(0, 90)}`,
         text: [...lines, '', ...(event.detail ? ['Details:', event.detail.slice(0, 2000)] : [])].join('\n'),
       });
       delivered ||= !error;

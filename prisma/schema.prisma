@@ -471,6 +471,15 @@ model ErrorEvent {
   @@index([resolvedAt, lastSeenAt])
 }
 
+// The admin dashboard's own state: when the notifications feed was last opened
+// (everything newer counts as "new" and is included in the bell badge).
+// A single row with id 1; no row yet means the feed was never opened.
+model AdminState {
+  id            Int      @id @default(1)
+  noticesSeenAt DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
 // Portfolio content edited in /admin/content: one JSON document per part
 // (profile, socials, projects, experience, strengths, skills, text.en, text.ar).
 // A part without a row uses the defaults in code (data/*.ts, messages/*.json,

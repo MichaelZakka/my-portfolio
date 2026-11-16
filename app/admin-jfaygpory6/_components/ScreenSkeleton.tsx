@@ -61,6 +61,8 @@ function pick(section?: string, id?: string, sub?: string): { label: string; scr
       return { label: 'Loading site status…', screen: <SiteSkeleton /> };
     case 'content':
       return { label: 'Loading content…', screen: <ContentSkeleton /> };
+    case 'notifications':
+      return { label: 'Loading notifications…', screen: <NotificationsSkeleton /> };
     default:
       return {
         label: 'Loading…',
@@ -485,6 +487,30 @@ function ContentSkeleton() {
       <CardSkeleton title="7em">
         <FormSkeleton fields={2} />
       </CardSkeleton>
+    </>
+  );
+}
+
+/** The notifications feed: a day heading and rows of icon + two lines. */
+function NotificationsSkeleton() {
+  return (
+    <>
+      <PageHeaderSkeleton title="Notifications" />
+      <div style={{ maxWidth: 860, display: 'grid', gap: '0.5rem' }}>
+        <Bone width="5em" />
+        {[0, 1, 2, 3, 4].map((i) => (
+          <div
+            key={i}
+            style={{ display: 'flex', gap: '0.8rem', padding: '0.8rem 1rem', border: '1px solid var(--border)', borderRadius: 12, background: 'var(--bg-elevated)' }}
+          >
+            <Bone block width={36} height={36} style={{ borderRadius: 10, flexShrink: 0 }} />
+            <div style={{ flex: 1, display: 'grid', gap: '0.35rem', alignContent: 'start' }}>
+              <Bone width={vary(9, i)} />
+              <Bone width={vary(10, i + 2)} />
+            </div>
+          </div>
+        ))}
+      </div>
     </>
   );
 }
