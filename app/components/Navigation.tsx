@@ -8,29 +8,8 @@ import { trackEvent } from '../lib/analyticsClient';
 import { Link, usePathname } from '../../i18n/navigation';
 import { localizedPath } from '../../i18n/paths';
 
-/** Every home page section, in page order. */
-const NAV_ITEMS = [
-  'hero',
-  'about',
-  'strengths',
-  'projects',
-  'experience',
-  'skills',
-  'education',
-  'volunteering',
-  'contact',
-] as const;
-const LABEL_KEY = {
-  hero: 'home',
-  about: 'about',
-  strengths: 'strengths',
-  projects: 'projects',
-  experience: 'experience',
-  skills: 'skills',
-  education: 'education',
-  volunteering: 'volunteering',
-  contact: 'contact',
-} as const;
+const NAV_ITEMS = ['hero', 'about', 'projects', 'experience', 'contact'] as const;
+const LABEL_KEY = { hero: 'home', about: 'about', projects: 'projects', experience: 'experience', contact: 'contact' } as const;
 
 const HINT_ID = 'work-with-me-hint';
 const HINT_SEEN_KEY = 'work-with-me-hint-seen';
@@ -72,7 +51,7 @@ export default function Navigation() {
   // Desktop: point out "Work with me" once per tab session, after the intro has finished.
   // On phones the button lives in the menu, where the message is always shown beside it.
   useEffect(() => {
-    if (onSurveyPage || !window.matchMedia('(min-width: 1280px)').matches) return;
+    if (onSurveyPage || !window.matchMedia('(min-width: 900px)').matches) return;
     try {
       if (sessionStorage.getItem(HINT_SEEN_KEY)) return;
     } catch {
