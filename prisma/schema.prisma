@@ -490,3 +490,17 @@ model SiteContent {
   data      String // JSON text
   updatedAt DateTime @updatedAt
 }
+
+// Messages sent from the portfolio's contact section (app/actions/contact.ts),
+// listed in /admin/messages. Stored even when the notification email fails.
+model ContactMessage {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  name      String
+  email     String
+  message   String
+  read      Boolean  @default(false)
+  emailSent Boolean  @default(false)
+
+  @@index([createdAt])
+}

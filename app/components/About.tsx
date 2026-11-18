@@ -56,13 +56,17 @@ export default async function About() {
                   <Icon size={22} aria-hidden className={styles.infoIcon} />
                   {label}
                 </dt>
-                <dd className={styles.infoValue} dir={ltr ? 'ltr' : undefined}>
+                <dd className={styles.infoValue}>
                   {href ? (
-                    <a href={href} {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}>
+                    <a
+                      href={href}
+                      dir={ltr ? 'ltr' : undefined}
+                      {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+                    >
                       {value}
                     </a>
                   ) : (
-                    value
+                    <span dir={ltr ? 'ltr' : undefined}>{value}</span>
                   )}
                 </dd>
               </div>

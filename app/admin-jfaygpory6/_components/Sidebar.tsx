@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, type MouseEvent, type SyntheticEvent } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, Bell, Inbox, FolderKanban, LineChart, Globe, LogOut, Menu, PenLine, X } from 'lucide-react';
+import { LayoutDashboard, Bell, Inbox, FolderKanban, LineChart, Globe, LogOut, Mail, Menu, PenLine, X } from 'lucide-react';
 import styles from '../admin.module.css';
 import { useNavigationTarget } from './AdminMain';
 
@@ -11,6 +11,7 @@ const NAV_ITEMS = [
   { href: '/admin-jfaygpory6', label: 'Overview', icon: LayoutDashboard, exact: true },
   { href: '/admin-jfaygpory6/notifications', label: 'Notifications', icon: Bell },
   { href: '/admin-jfaygpory6/requests', label: 'Requests', icon: Inbox },
+  { href: '/admin-jfaygpory6/messages', label: 'Messages', icon: Mail },
   { href: '/admin-jfaygpory6/projects', label: 'Projects', icon: FolderKanban },
   { href: '/admin-jfaygpory6/visitors', label: 'Analytics', icon: LineChart },
   { href: '/admin-jfaygpory6/content', label: 'Content', icon: PenLine },

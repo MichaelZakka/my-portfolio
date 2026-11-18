@@ -4,6 +4,7 @@ import { headers } from 'next/headers';
 import { validateContact, type ContactErrors } from '../lib/contact';
 import { sendContactEmail } from '../lib/email';
 import { rateLimit } from '../lib/rateLimit';
+import { prisma } from '../lib/db';
 
 export type ContactState =
   | { status: 'idle' }
@@ -33,10 +34,21 @@ export async function submitContact(_prev: ContactState, formData: FormData): Pr
     return { status: 'error', message: 'fixFields', fieldErrors };
   }
 
+  // Save first so the message reaches /admin/messages even if the email fails
+  let savedId: string | null = null;
+  try {
+    savedId = (await prisma.contactMessage.create({ data: input, select: { id: true } })).id;
+  } catch (error) {
+    console.error('Saving contact message failed:', error);
+  }
+
   const result = await sendContactEmail(input);
+  if (result.sent && savedId) {
+    await prisma.contactMessage.update({ where: { id: savedId }, data: { emailSent: true } }).catch(() => {});
+  }
   if (!result.sent) {
     console.error('Contact form email failed:', result.error);
-    return { status: 'error', message: 'sendFailed' };
+    if (!savedId) return { status: 'error', message: 'sendFailed' };
   }
   return { status: 'success' };
 }
