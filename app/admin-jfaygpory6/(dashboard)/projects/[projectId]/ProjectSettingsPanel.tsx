@@ -13,7 +13,10 @@ type Props = {
     name: string;
     summary: string;
     status: string;
+    /** Shown: the current milestone, or manualPhase when there are no milestones. */
     currentPhase: string;
+    manualPhase: string;
+    phaseFollowsMilestones: boolean;
     /** YYYY-MM-DD or "" */
     estimatedCompletion: string;
     archived: boolean;
@@ -22,17 +25,18 @@ type Props = {
 
 export default function ProjectSettingsPanel({ project }: Props) {
   const { run, pending, error } = useAdminAction();
-  const [form, setForm] = useState({
+  const initial = {
     name: project.name,
     summary: project.summary,
     status: project.status,
-    currentPhase: project.currentPhase,
+    currentPhase: project.manualPhase,
     estimatedCompletion: project.estimatedCompletion,
-  });
+  };
+  const [form, setForm] = useState(initial);
   const [saved, setSaved] = useState('');
 
   const changes = Object.fromEntries(
-    Object.entries(form).filter(([key, value]) => value !== project[key as keyof typeof form])
+    Object.entries(form).filter(([key, value]) => value !== initial[key as keyof typeof form])
   );
   const hasChanges = Object.keys(changes).length > 0;
   const update = (key: keyof typeof form) => (value: string) => {
@@ -113,13 +117,22 @@ export default function ProjectSettingsPanel({ project }: Props) {
           <label className={styles.filterLabel} htmlFor="settings-phase">
             Current phase
           </label>
-          <input
-            id="settings-phase"
-            className={styles.input}
-            maxLength={200}
-            value={form.currentPhase}
-            onChange={(e) => update('currentPhase')(e.target.value)}
-          />
+          {project.phaseFollowsMilestones ? (
+            <>
+              <input id="settings-phase" className={styles.input} value={project.currentPhase} readOnly aria-readonly />
+              <span className={projectStyles.muted}>
+                Follows the milestones: the first one not yet done. Update a milestone&rsquo;s status to move it on.
+              </span>
+            </>
+          ) : (
+            <input
+              id="settings-phase"
+              className={styles.input}
+              maxLength={200}
+              value={form.currentPhase}
+              onChange={(e) => update('currentPhase')(e.target.value)}
+            />
+          )}
         </div>
         <div className={styles.filterField}>
           <label className={styles.filterLabel} htmlFor="settings-eta">

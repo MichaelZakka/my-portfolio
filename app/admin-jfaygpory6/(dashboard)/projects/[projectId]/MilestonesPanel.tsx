@@ -2,33 +2,26 @@
 
 import { FormEvent, useState } from 'react';
 import { ArrowDown, ArrowUp, BadgeCheck, Trash2 } from 'lucide-react';
-import { WORK_STATUSES, WORK_STATUS_LABELS } from '../../../../lib/portal/constants';
+import { MILESTONE_ADMIN_STATUSES, WORK_STATUSES, WORK_STATUS_LABELS } from '../../../../lib/portal/constants';
 import { jsonInit, useAdminAction } from '../useAdminAction';
 import styles from '../../../admin.module.css';
 import projectStyles from '../projects.module.css';
 import { confirmDialog } from '../../../../components/confirmDialog';
+import type { AdminProjectView } from '../../../../lib/portal/adminView';
+import ChangeRequestAdmin from './ChangeRequestAdmin';
 
-export type AdminMilestone = {
-  id: string;
-  title: string;
-  description: string;
-  status: string;
-  /** YYYY-MM-DD or "" */
-  dueDate: string;
-  dueLabel: string | null;
-  completedLabel: string | null;
-  /** Whole days as a string ("" = no estimate): the milestone's weight in the progress bar. */
-  estimatedDays: string;
-  review: {
-    pending: { requested: string; note: string; link: string; emailSent: boolean; emailError: string | null } | null;
-    history: { id: string; approved: boolean; by: string; when: string | null; response: string | null }[];
-    changesRounds: number;
-  };
-};
+export type AdminMilestone = AdminProjectView['milestones'][number];
 
 type Action = ReturnType<typeof useAdminAction>;
 
 const daysValue = (value: string) => (value ? Number(value) : null);
+
+/** YYYY-MM-DD plus whole days, in UTC like the stored due dates. */
+function addDays(day: string, days: number): string {
+  const date = new Date(`${day}T00:00:00.000Z`);
+  date.setUTCDate(date.getUTCDate() + days);
+  return date.toISOString().slice(0, 10);
+}
 
 /** Sign-off: ask the client to approve, see the pending request, and the latest answer. */
 function ReviewSection({ milestone, url, action }: { milestone: AdminMilestone; url: string; action: Action }) {
@@ -39,7 +32,8 @@ function ReviewSection({ milestone, url, action }: { milestone: AdminMilestone; 
   const [link, setLink] = useState('');
   const busy = pending !== null;
   const latest = review.history[0];
-  const signedOff = milestone.status === 'done' && latest?.approved;
+  // Done means approved (or, for older milestones, marked done by hand): nothing left to ask.
+  const signedOff = milestone.status === 'done';
 
   const send = async (event: FormEvent) => {
     event.preventDefault();
@@ -83,15 +77,19 @@ function ReviewSection({ milestone, url, action }: { milestone: AdminMilestone; 
 
   return (
     <>
-      {latest && (
-        <span className={latest.approved ? projectStyles.successText : projectStyles.muted}>
-          {latest.approved ? `Approved by ${latest.by}` : `Changes requested by ${latest.by}`}
-          {latest.when ? ` on ${latest.when}` : ''}
-          {review.changesRounds > 0 &&
-            ` · ${review.changesRounds} revision round${review.changesRounds === 1 ? '' : 's'}`}
-        </span>
+      {review.changeRequest ? (
+        <ChangeRequestAdmin request={review.changeRequest} url={url} action={action} />
+      ) : (
+        latest && (
+          <span className={latest.approved ? projectStyles.successText : projectStyles.muted}>
+            {latest.approved ? `Approved by ${latest.by}` : `Changes requested by ${latest.by}`}
+            {latest.when ? ` on ${latest.when}` : ''}
+            {review.changesRounds > 0 &&
+              ` · ${review.changesRounds} revision round${review.changesRounds === 1 ? '' : 's'}`}
+          </span>
+        )
       )}
-      {latest && !latest.approved && latest.response && (
+      {!review.changeRequest && latest && !latest.approved && latest.response && (
         <span className={projectStyles.itemDescription} dir="auto">
           “{latest.response}”
         </span>
@@ -138,6 +136,7 @@ function ReviewSection({ milestone, url, action }: { milestone: AdminMilestone; 
               <BadgeCheck size={15} aria-hidden="true" />
               Request approval
             </button>
+            <span className={projectStyles.muted}> Marked done when the client approves it.</span>
           </div>
         )
       )}
@@ -145,7 +144,20 @@ function ReviewSection({ milestone, url, action }: { milestone: AdminMilestone; 
   );
 }
 
-function StatusSelect({ id, value, onChange, busy }: { id: string; value: string; onChange: (value: string) => void; busy?: boolean }) {
+function StatusSelect({
+  id,
+  value,
+  onChange,
+  busy,
+  statuses = WORK_STATUSES,
+}: {
+  id: string;
+  value: string;
+  onChange: (value: string) => void;
+  busy?: boolean;
+  /** The choices offered (tasks: all; milestones: never "done", see MilestoneStatusSelect). */
+  statuses?: readonly string[];
+}) {
   return (
     <select
       id={id}
@@ -154,9 +166,46 @@ function StatusSelect({ id, value, onChange, busy }: { id: string; value: string
       onChange={(e) => onChange(e.target.value)}
       aria-disabled={busy}
     >
-      {WORK_STATUSES.map((status) => (
+      {statuses.map((status) => (
         <option key={status} value={status}>
-          {WORK_STATUS_LABELS[status]}
+          {WORK_STATUS_LABELS[status as keyof typeof WORK_STATUS_LABELS] ?? status}
+        </option>
+      ))}
+    </select>
+  );
+}
+
+/**
+ * A milestone is done only when the client approves it, so "Done" is never a
+ * choice here. A done milestone shows it (read-only) and can be reopened.
+ */
+function MilestoneStatusSelect({
+  id,
+  value,
+  onChange,
+  busy,
+}: {
+  id: string;
+  value: string;
+  onChange: (value: string) => void;
+  busy?: boolean;
+}) {
+  return (
+    <select
+      id={id}
+      className={`${styles.select} ${projectStyles.compactSelect}`}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      aria-disabled={busy}
+    >
+      {value === 'done' && (
+        <option value="done" disabled>
+          Done · approved by client
+        </option>
+      )}
+      {MILESTONE_ADMIN_STATUSES.map((status) => (
+        <option key={status} value={status}>
+          {value === 'done' ? `Reopen: ${WORK_STATUS_LABELS[status]}` : WORK_STATUS_LABELS[status]}
         </option>
       ))}
     </select>
@@ -287,10 +336,22 @@ function MilestoneRow({
           <label className="visually-hidden" htmlFor={`milestone-status-${milestone.id}`}>
             Status of {milestone.title}
           </label>
-          <StatusSelect
+          <MilestoneStatusSelect
             id={`milestone-status-${milestone.id}`}
             value={milestone.status}
-            onChange={(status) => patch('status', { status })}
+            onChange={async (status) => {
+              if (
+                milestone.status === 'done' &&
+                !(await confirmDialog({
+                  title: 'Reopen milestone?',
+                  message: `“${milestone.title}” was approved by the client. Reopening it means it needs their approval again to be done.`,
+                  confirmLabel: 'Reopen',
+                  cancelLabel: 'Keep it done',
+                }))
+              )
+                return;
+              await patch('status', { status });
+            }}
             busy={busy}
           />
           <button type="button" className={`${styles.button} ${styles.buttonSecondary}`} onClick={() => setEditing(true)}>
@@ -311,26 +372,38 @@ function MilestoneRow({
   );
 }
 
-export default function MilestonesPanel({ projectId, milestones }: { projectId: string; milestones: AdminMilestone[] }) {
+export default function MilestonesPanel({
+  projectId,
+  milestones,
+  lastDue,
+}: {
+  projectId: string;
+  milestones: AdminMilestone[];
+  /** The latest due date so far: a new milestone must be due after it. */
+  lastDue: { value: string; label: string } | null;
+}) {
   const action = useAdminAction();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [dueDate, setDueDate] = useState('');
+  // Until the admin picks a date, it follows the previous milestone: its due date plus the estimated days (or one day).
+  const [dueDate, setDueDate] = useState<string | null>(null);
   const [estimatedDays, setEstimatedDays] = useState('');
   const [status, setStatus] = useState('todo');
   const base = `/api/admin/projects/${projectId}/milestones`;
+  const earliestDue = lastDue ? addDays(lastDue.value, 1) : undefined;
+  const dueValue = dueDate ?? (lastDue ? addDays(lastDue.value, Number(estimatedDays) || 1) : '');
 
   const handleAdd = async (event: FormEvent) => {
     event.preventDefault();
     const created = await action.run(
       'add',
       base,
-      jsonInit('POST', { title, description, status, dueDate: dueDate || null, estimatedDays: daysValue(estimatedDays) })
+      jsonInit('POST', { title, description, status, dueDate: dueValue || null, estimatedDays: daysValue(estimatedDays) })
     );
     if (created) {
       setTitle('');
       setDescription('');
-      setDueDate('');
+      setDueDate(null);
       setEstimatedDays('');
       setStatus('todo');
     }
@@ -403,9 +476,16 @@ export default function MilestonesPanel({ projectId, milestones }: { projectId: 
             id="milestone-due"
             type="date"
             className={styles.input}
-            value={dueDate}
+            min={earliestDue}
+            aria-describedby={lastDue ? 'milestone-due-hint' : undefined}
+            value={dueValue}
             onChange={(e) => setDueDate(e.target.value)}
           />
+          {lastDue && (
+            <span id="milestone-due-hint" className={projectStyles.muted}>
+              After the previous milestone ({lastDue.label})
+            </span>
+          )}
         </div>
         <div className={styles.filterField}>
           <label className={styles.filterLabel} htmlFor="milestone-days">
@@ -425,7 +505,7 @@ export default function MilestonesPanel({ projectId, milestones }: { projectId: 
           <label className={styles.filterLabel} htmlFor="milestone-status">
             Status
           </label>
-          <StatusSelect id="milestone-status" value={status} onChange={setStatus} />
+          <StatusSelect id="milestone-status" value={status} onChange={setStatus} statuses={MILESTONE_ADMIN_STATUSES} />
         </div>
         <div>
           <button type="submit" className={`${styles.button} ${styles.buttonPrimary}`} aria-disabled={action.pending !== null}>

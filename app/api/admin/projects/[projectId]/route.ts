@@ -3,6 +3,7 @@ import { prisma } from '../../../../lib/db';
 import { authorizeAdminProject, getAdminActor } from '../../../../lib/portal/access';
 import { logActivity, logAudit } from '../../../../lib/portal/activity';
 import { notFound, parseJsonBody } from '../../../../lib/portal/http';
+import { currentPhaseOf } from '../../../../lib/portal/constants';
 import { notifyAboutStatusChange } from '../../../../lib/portal/notify';
 import { getAdminProjectDetail } from '../../../../lib/portal/queries';
 import { projectUpdateSchema } from '../../../../lib/portal/validation';
@@ -29,7 +30,10 @@ export async function PATCH(request: Request, { params }: RouteParams) {
   if (!body.ok) return body.response;
   const { archived, ...changes } = body.data;
 
-  const current = await prisma.project.findUnique({ where: { id: auth.project.id } });
+  const current = await prisma.project.findUnique({
+    where: { id: auth.project.id },
+    include: { milestones: { orderBy: [{ order: 'asc' }, { createdAt: 'asc' }], select: { title: true, status: true } } },
+  });
   if (!current) return notFound('Project not found.');
 
   const now = new Date();
@@ -106,7 +110,7 @@ export async function PATCH(request: Request, { params }: RouteParams) {
         projectName: project.name,
         fromStatus: current.status,
         toStatus: project.status,
-        phase: project.currentPhase,
+        phase: currentPhaseOf(current.milestones, project.currentPhase),
       })
     );
   }

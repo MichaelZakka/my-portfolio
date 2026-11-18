@@ -1,6 +1,6 @@
 import type { Lead, LeadStatusEvent } from '@prisma/client';
 import type { ProjectBriefPayload } from './projectBrief';
-import type { PortalLocale } from './portal/constants';
+import { isPortalLocale, type PortalLocale } from './portal/constants';
 
 export const LEAD_STATUSES = [
   'new',
@@ -30,10 +30,14 @@ export function isLeadStatus(value: string): value is LeadStatus {
 
 const ARABIC_SCRIPT = /[؀-ۿ]/;
 
-/** Default language for emails to the client: Arabic if they arrived on /ar or wrote the brief in Arabic. */
+/**
+ * Language for everything sent to the client: the one they chose in the survey.
+ * Older requests have none, so guess: Arabic if they arrived on /ar or wrote the brief in Arabic.
+ */
 export function guessLeadLocale(
-  lead: Pick<Lead, 'landingPath' | 'projectTitle' | 'projectDescription'>
+  lead: Pick<Lead, 'contactLocale' | 'landingPath' | 'projectTitle' | 'projectDescription'>
 ): PortalLocale {
+  if (isPortalLocale(lead.contactLocale)) return lead.contactLocale;
   const path = lead.landingPath ?? '';
   if (path === '/ar' || path.startsWith('/ar/')) return 'ar';
   return ARABIC_SCRIPT.test(`${lead.projectTitle} ${lead.projectDescription}`) ? 'ar' : 'en';
@@ -86,6 +90,7 @@ export function briefToLeadCreateInput(
     clientEmail: data.clientEmail,
     company: data.company,
     phone: data.phone,
+    contactLocale: data.contactLocale || null,
     projectTypes: toJsonArray(data.projectTypes),
     projectTypeOther: data.projectTypeOther,
     businessDomains: toJsonArray(data.businessDomains),
@@ -128,6 +133,7 @@ export function leadToBriefPayload(lead: Lead | LeadWithParsedFields): ProjectBr
     clientEmail: lead.clientEmail,
     company: lead.company,
     phone: lead.phone,
+    contactLocale: isPortalLocale(lead.contactLocale) ? lead.contactLocale : '',
     projectTypes,
     projectTypeOther: lead.projectTypeOther,
     businessDomains,

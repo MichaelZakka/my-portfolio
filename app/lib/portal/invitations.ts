@@ -196,7 +196,7 @@ export async function findInvitationByToken(token: string) {
     where: { tokenHash: hashToken(token) },
     include: {
       project: { select: { id: true, name: true } },
-      user: { select: { id: true, name: true, role: true, passwordHash: true, emailVerifiedAt: true } },
+      user: { select: { id: true, name: true, role: true, passwordHash: true, emailVerifiedAt: true, locale: true } },
     },
   });
   if (!invitation) return null;

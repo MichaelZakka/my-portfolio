@@ -1,7 +1,7 @@
 import { NextResponse, after } from 'next/server';
 import { getClientIp, rateLimit } from '../../../../lib/rateLimit';
 import { apiError, parseJsonBody, rateLimited, rejectCrossOrigin } from '../../../../lib/portal/http';
-import { getPortalLocale } from '../../../../lib/portal/locale';
+import { PORTAL_LOCALE_COOKIE, getPortalLocaleCookie, localeCookieOptions } from '../../../../lib/portal/locale';
 import { acceptProposal, answerProposal, notifyAboutProposalAnswer } from '../../../../lib/portal/proposals';
 import { isPortalAuthConfigured, setPortalSessionCookie } from '../../../../lib/portal/session';
 import { proposalResponseSchema } from '../../../../lib/portal/validation';
@@ -40,12 +40,14 @@ export async function POST(request: Request) {
     password: input.password,
     ip,
     userAgent: request.headers.get('user-agent') ?? '',
-    locale: await getPortalLocale(),
+    pickedLocale: await getPortalLocaleCookie(),
   });
   if (!result.ok) return apiError(result.status, result.code, result.error);
   after(() => notifyAboutProposalAnswer(result.answer));
 
   const response = NextResponse.json({ success: true, redirectTo: `/portal/projects/${result.projectId}` });
   await setPortalSessionCookie(response, result.user);
+  // The portal opens in the language their emails use.
+  response.cookies.set(PORTAL_LOCALE_COOKIE, result.user.locale, localeCookieOptions());
   return response;
 }

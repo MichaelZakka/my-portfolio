@@ -1,6 +1,12 @@
 import { z } from 'zod';
 import {
+  ACTION_ITEM_OWNERS,
+  MILESTONE_ADMIN_STATUSES,
+  MEETING_ACTION_ITEMS_MAX,
+  MEETING_COMMENT_MAX_LENGTH,
   MEETING_DURATIONS,
+  MEETING_NOTES_MAX_LENGTH,
+  MESSAGE_MAX_ATTACHMENTS,
   MESSAGE_MAX_LENGTH,
   PORTAL_LOCALES,
   PROJECT_STATUSES,
@@ -63,9 +69,16 @@ export const passwordChangeSchema = z.object({
   newPassword: passwordInputSchema,
 });
 
-export const messageSchema = z.object({
-  content: z.string().trim().min(1).max(MESSAGE_MAX_LENGTH),
-});
+/** Text, and/or references to files the browser uploaded straight to Vercel Blob. */
+export const messageSchema = z
+  .object({
+    content: z.string().trim().max(MESSAGE_MAX_LENGTH).default(''),
+    uploads: z
+      .array(z.object({ pathname: z.string().min(1).max(300), filename: z.string().min(1).max(300) }))
+      .max(MESSAGE_MAX_ATTACHMENTS)
+      .default([]),
+  })
+  .refine((value) => value.content !== '' || value.uploads.length > 0, 'Write a message or attach a file.');
 
 /** "Read up to here": the createdAt of the newest message the screen showed. */
 export const readMarkSchema = z.object({
@@ -80,10 +93,22 @@ const meetingTimeSchema = z.iso
   .transform((value) => new Date(value))
   .refine((date) => date.getTime() > Date.now(), 'Pick a time in the future.');
 
+/** Meetings run on Google Meet: the link, or "" until the admin adds it. Stored in Meeting.location. */
+const meetLinkSchema = z
+  .string()
+  .trim()
+  .max(500)
+  .refine((value) => {
+    if (value === '') return true;
+    if (!URL.canParse(value)) return false;
+    const url = new URL(value);
+    return url.protocol === 'https:' && url.hostname === 'meet.google.com';
+  }, 'Use a Google Meet link (https://meet.google.com/…).');
+
 export const meetingCreateSchema = z.object({
   title: z.string().trim().min(1).max(200),
   agenda: z.string().trim().max(2000).default(''),
-  location: z.string().trim().max(500).default(''),
+  location: meetLinkSchema.default(''),
   startsAt: meetingTimeSchema,
   durationMinutes: z.union(MEETING_DURATIONS.map((d) => z.literal(d))).default(30),
   milestoneId: idSchema.nullable().default(null),
@@ -95,8 +120,81 @@ export const meetingActionSchema = z.discriminatedUnion('action', [
   z.object({ action: z.literal('cancel') }),
 ]);
 
+/**
+ * Changes to an upcoming meeting; fields left out stay as they are (the time
+ * goes through "reschedule"). Who may change what is decided in editMeeting():
+ * the details belong to the meeting's creator, the link to the admin.
+ */
+const meetingDetailEdits = {
+  action: z.literal('edit'),
+  title: z.string().trim().min(1).max(200).optional(),
+  agenda: z.string().trim().max(2000).optional(),
+  durationMinutes: z.union(MEETING_DURATIONS.map((d) => z.literal(d))).optional(),
+  milestoneId: idSchema.nullable().optional(),
+};
+
+export const meetingEditSchema = z.object({ ...meetingDetailEdits, location: meetLinkSchema.optional() });
+
+/** The client never sends a link: adding it is the admin's job. */
+const clientMeetingEditSchema = z.object(meetingDetailEdits);
+
+export const adminMeetingActionSchema = z.discriminatedUnion('action', [
+  ...meetingActionSchema.options,
+  meetingEditSchema,
+  // After the start time, when no notes were published: it did not take place.
+  z.object({ action: z.literal('no_show') }),
+]);
+
+export const clientMeetingActionSchema = z.discriminatedUnion('action', [
+  ...meetingActionSchema.options,
+  clientMeetingEditSchema,
+]);
+
 export type MeetingCreateInput = z.output<typeof meetingCreateSchema>;
 export type MeetingActionInput = z.output<typeof meetingActionSchema>;
+export type MeetingEditInput = z.output<typeof meetingEditSchema>;
+
+// --- Meeting notes ------------------------------------------------------------
+
+/**
+ * The admin's notes: the whole summary and action-item list each time (items
+ * keep their id, so ticks survive edits; items left out are removed).
+ * `publish` shares a draft with the client; once shared, every save is live.
+ */
+export const meetingNotesSchema = z.object({
+  summary: z.string().trim().max(MEETING_NOTES_MAX_LENGTH),
+  actionItems: z
+    .array(
+      z.object({
+        id: idSchema.optional(),
+        text: z.string().trim().min(1).max(500),
+        owner: z.enum(ACTION_ITEM_OWNERS),
+      })
+    )
+    .max(MEETING_ACTION_ITEMS_MAX)
+    .default([]),
+  publish: z.boolean().default(false),
+});
+
+const meetingFollowUps = [
+  z.object({ action: z.literal('comment'), body: z.string().trim().min(1).max(MEETING_COMMENT_MAX_LENGTH) }),
+  z.object({ action: z.literal('item'), itemId: idSchema, done: z.boolean() }),
+] as const;
+
+/** Under published notes: the admin replies and ticks any item. */
+export const adminMeetingFollowUpSchema = z.discriminatedUnion('action', [...meetingFollowUps]);
+
+/**
+ * A client also confirms the notes; `version` is the outputSavedAt they read,
+ * so a confirmation never covers notes changed after they looked.
+ */
+export const clientMeetingFollowUpSchema = z.discriminatedUnion('action', [
+  ...meetingFollowUps,
+  z.object({ action: z.literal('acknowledge'), version: z.iso.datetime() }),
+]);
+
+export type MeetingNotesInput = z.output<typeof meetingNotesSchema>;
+export type MeetingFollowUpInput = z.output<typeof clientMeetingFollowUpSchema>;
 
 // --- Proposals --------------------------------------------------------------
 
@@ -181,10 +279,15 @@ export const projectUpdateSchema = z
 /** A milestone's weight in the progress bar; null means "no estimate" (it weighs the average). */
 const estimatedDaysSchema = z.number().int().min(1).max(365).nullable();
 
+/** Never "done": that takes the client's approval (request it instead). */
+const milestoneStatusSchema = z.enum(MILESTONE_ADMIN_STATUSES, {
+  error: 'A milestone is marked done when the client approves it. Use “Request approval”.',
+});
+
 export const milestoneCreateSchema = z.object({
   title: z.string().trim().min(1).max(200),
   description: z.string().trim().max(2000).default(''),
-  status: z.enum(WORK_STATUSES).default('todo'),
+  status: milestoneStatusSchema.default('todo'),
   dueDate: dateOnlySchema.optional(),
   estimatedDays: estimatedDaysSchema.default(null),
 });
@@ -193,7 +296,7 @@ export const milestoneUpdateSchema = z
   .object({
     title: z.string().trim().min(1).max(200).optional(),
     description: z.string().trim().max(2000).optional(),
-    status: z.enum(WORK_STATUSES).optional(),
+    status: milestoneStatusSchema.optional(),
     dueDate: dateOnlySchema.optional(),
     estimatedDays: estimatedDaysSchema.optional(),
     move: moveSchema.optional(),
@@ -239,3 +342,9 @@ export const reviewResponseSchema = z.discriminatedUnion('action', [
   z.object({ action: z.literal('approve'), comment: z.string().trim().max(2000).default('') }),
   z.object({ action: z.literal('changes'), comment: z.string().trim().min(1).max(2000) }),
 ]);
+
+/** A reply under a change request (the latest answered round of the milestone). */
+export const changeReplySchema = z.object({
+  reviewId: idSchema,
+  body: z.string().trim().min(1).max(MEETING_COMMENT_MAX_LENGTH),
+});

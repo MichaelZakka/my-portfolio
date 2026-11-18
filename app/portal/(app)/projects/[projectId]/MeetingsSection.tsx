@@ -1,9 +1,10 @@
 'use client';
 
 import { FormEvent, useState } from 'react';
-import { useTranslations } from 'next-intl';
-import { CalendarClock, CalendarPlus, Check, Clock, Flag, MapPin, Video } from 'lucide-react';
-import { MEETING_DURATIONS } from '../../../../lib/portal/constants';
+import { useLocale, useTranslations } from 'next-intl';
+import { dirFor } from '../../../../../i18n/routing';
+import { CalendarClock, CalendarPlus, Check, CheckCircle2, Clock, Flag, Pencil, Send, Video } from 'lucide-react';
+import { MEETING_COMMENT_MAX_LENGTH, MEETING_DURATIONS, isMeetingFinished } from '../../../../lib/portal/constants';
 import { isoToLocalInput, localInputToIso } from '../../../../lib/portal/datetimeInput';
 import type { ClientMeeting } from '../../../../lib/portal/present';
 import { jsonRequest, readJson, useErrorMessage, type ApiErrorBody } from '../../../_components/useErrorMessage';
@@ -16,6 +17,8 @@ type Milestone = { id: string; title: string };
 /**
  * Meetings either side can propose. The side that did not make the pending
  * proposal can accept it; either side can suggest another time or cancel.
+ * Afterwards the project lead shares notes, which the client confirms,
+ * comments on, and whose action items the client ticks off.
  */
 export function MeetingsSection({
   projectId,
@@ -41,7 +44,7 @@ export function MeetingsSection({
   const [notice, setNotice] = useState('');
 
   /** Sends one meeting change; returns true on success. */
-  const send = async (key: string, url: string, method: string, body: unknown): Promise<boolean> => {
+  const send = async (key: string, url: string, method: string, body: unknown, done?: string): Promise<boolean> => {
     if (pending) return false;
     setPending(key);
     setError('');
@@ -53,7 +56,7 @@ export function MeetingsSection({
         return false;
       }
       await refresh(['meetings', 'activity']);
-      setNotice(t('meetingSent'));
+      setNotice(done ?? (key.startsWith('edit-') ? t('meetingSaved') : t('meetingSent')));
       return true;
     } catch {
       setError(errorMessage({ code: 'network' }));
@@ -92,7 +95,11 @@ export function MeetingsSection({
                     busy={pending !== null}
                     pendingKey={pending}
                     readOnly={readOnly}
+                    milestones={milestones}
                     onAction={(key, body) => send(`${key}-${meeting.id}`, `${base}/${meeting.id}`, 'PATCH', body)}
+                    onNotes={(key, body, done) =>
+                      send(`${key}-${meeting.id}`, `${base}/${meeting.id}/notes`, 'POST', body, done)
+                    }
                   />
                 ))}
               </ul>
@@ -124,19 +131,28 @@ function MeetingItem({
   busy,
   pendingKey,
   readOnly,
+  milestones,
   onAction,
+  onNotes,
 }: {
   meeting: ClientMeeting;
   busy: boolean;
   pendingKey: string | null;
   readOnly: boolean;
+  milestones: Milestone[];
   onAction: (key: string, body: unknown) => Promise<boolean>;
+  /** Confirms, comments on or ticks items in the meeting notes; `done` is the message shown after. */
+  onNotes: (key: string, body: unknown, done: string) => Promise<boolean>;
 }) {
   const t = useTranslations('portal.project');
+  const locale = useLocale();
   const status = useTranslations('portal.meetingStatus');
   const [rescheduling, setRescheduling] = useState(false);
+  const [editing, setEditing] = useState(false);
   const [newTime, setNewTime] = useState('');
-  const tone = meeting.past && meeting.status !== 'cancelled' ? 'past' : meeting.status;
+  // held / no_show say how it went; other meetings that are over just show "past".
+  const tone =
+    meeting.past && meeting.status !== 'cancelled' && !isMeetingFinished(meeting.status) ? 'past' : meeting.status;
 
   const reschedule = async (event: FormEvent) => {
     event.preventDefault();
@@ -154,10 +170,10 @@ function MeetingItem({
     if (ok) onAction('cancel', { action: 'cancel' });
   };
 
-  const awaitingYou = meeting.canAccept && !readOnly;
+  const awaitingYou = (meeting.canAccept || Boolean(meeting.notes?.canAcknowledge)) && !readOnly;
 
   return (
-    <li className={styles.meeting} data-status={tone} data-awaiting={awaitingYou || undefined}>
+    <li id={`meeting-${meeting.id}`} className={styles.meeting} data-status={tone} data-awaiting={awaitingYou || undefined}>
       <div className={styles.meetingDate} aria-hidden="true">
         <span className={styles.meetingMonth}>{meeting.date.month}</span>
         <span className={styles.meetingDay}>{meeting.date.day}</span>
@@ -184,21 +200,32 @@ function MeetingItem({
             <span aria-hidden="true">·</span>
             {t('meetingDuration', { minutes: meeting.durationMinutes })}
           </li>
-          {meeting.location && (
-            <li dir="auto">
+          {meeting.location ? (
+            // The row follows the portal language, not its content (dir="auto" would read the
+            // Latin URL and go left-to-right): in Arabic the icon sits on the right; the link stays LTR.
+            <li dir={dirFor(locale)}>
+              <Video size={14} strokeWidth={2} aria-hidden="true" />
               {meeting.locationUrl ? (
-                <Video size={14} strokeWidth={2} aria-hidden="true" />
-              ) : (
-                <MapPin size={14} strokeWidth={2} aria-hidden="true" />
-              )}
-              {meeting.locationUrl ? (
-                <a href={meeting.locationUrl} target="_blank" rel="noopener noreferrer" dir="ltr">
+                <a
+                  href={meeting.locationUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  dir="ltr"
+                  aria-label={`${t('meetingJoinLink')}: ${meeting.location}`}
+                >
                   {meeting.location}
                 </a>
               ) : (
                 meeting.location
               )}
             </li>
+          ) : (
+            meeting.canChange && (
+              <li dir="auto">
+                <Video size={14} strokeWidth={2} aria-hidden="true" />
+                {t('meetingLinkPending')}
+              </li>
+            )
           )}
           {meeting.milestone && (
             <li dir="auto">
@@ -221,7 +248,16 @@ function MeetingItem({
         )}
 
         {!readOnly && meeting.canChange && (
-          rescheduling ? (
+          editing ? (
+            <EditDetailsForm
+              meeting={meeting}
+              milestones={milestones}
+              busy={busy}
+              saving={pendingKey === `edit-${meeting.id}`}
+              onSave={(body) => onAction('edit', body)}
+              onClose={() => setEditing(false)}
+            />
+          ) : rescheduling ? (
             <form className={styles.meetingReschedule} onSubmit={reschedule}>
               <label className={styles.label} htmlFor={`new-time-${meeting.id}`}>
                 {t('meetingNewTime')}
@@ -274,6 +310,12 @@ function MeetingItem({
                 <CalendarClock size={16} strokeWidth={2} aria-hidden="true" />
                 {t('meetingSuggest')}
               </button>
+              {meeting.canEditDetails && (
+                <button type="button" className="btn btn-outline" aria-disabled={busy} onClick={() => setEditing(true)}>
+                  <Pencil size={16} strokeWidth={2} aria-hidden="true" />
+                  {t('meetingEditDetails')}
+                </button>
+              )}
               {meeting.calendarUrl && (
                 <a href={meeting.calendarUrl} className="btn btn-outline">
                   <CalendarPlus size={16} strokeWidth={2} aria-hidden="true" />
@@ -294,8 +336,282 @@ function MeetingItem({
             </a>
           </div>
         )}
+
+        {meeting.notes && (
+          <MeetingNotes
+            meetingId={meeting.id}
+            notes={meeting.notes}
+            readOnly={readOnly}
+            busy={busy}
+            pendingKey={pendingKey}
+            onNotes={onNotes}
+          />
+        )}
       </div>
     </li>
+  );
+}
+
+/**
+ * A name inside a translated sentence, as a bidi isolate: a Latin name next to
+ * a date in Arabic text would otherwise pull the date's digits out of order.
+ */
+const isolate = (name: string) => `⁨${name}⁩`;
+
+/** The notes the project lead shared after the meeting: summary, action items, confirmation, comments. */
+function MeetingNotes({
+  meetingId,
+  notes,
+  readOnly,
+  busy,
+  pendingKey,
+  onNotes,
+}: {
+  meetingId: string;
+  notes: NonNullable<ClientMeeting['notes']>;
+  readOnly: boolean;
+  busy: boolean;
+  pendingKey: string | null;
+  onNotes: (key: string, body: unknown, done: string) => Promise<boolean>;
+}) {
+  const t = useTranslations('portal.project');
+  const [comment, setComment] = useState('');
+  const commentId = `meeting-${meetingId}-comment`;
+  const titleId = `meeting-${meetingId}-notes`;
+
+  const sendComment = async (event: FormEvent) => {
+    event.preventDefault();
+    if (!comment.trim()) return;
+    if (await onNotes('comment', { action: 'comment', body: comment }, t('meetingCommentSent'))) setComment('');
+  };
+
+  return (
+    <section className={styles.meetingNotes} aria-labelledby={titleId}>
+      <div className={styles.meetingNotesHead}>
+        <h5 id={titleId} className={styles.meetingNotesTitle}>
+          {t('meetingNotesTitle')}
+        </h5>
+        {notes.publishedLabel && (
+          <span className={styles.meetingNotesMeta}>{t('meetingNotesShared', { when: notes.publishedLabel })}</span>
+        )}
+      </div>
+
+      <p className={styles.meetingNotesSummary} dir="auto">
+        {notes.summary}
+      </p>
+
+      {notes.items.length > 0 && (
+        <>
+          <h6 className={styles.meetingNotesSubtitle}>{t('meetingActionItemsTitle')}</h6>
+          <ul className={styles.actionList}>
+            {notes.items.map((item) => {
+              const interactive = item.canToggle && !readOnly;
+              return (
+                <li key={item.id} className={styles.actionItem} data-done={item.done || undefined}>
+                  <label className={styles.actionLabel} data-static={!interactive || undefined}>
+                    <input
+                      type="checkbox"
+                      checked={item.done}
+                      disabled={!interactive}
+                      aria-disabled={interactive && busy ? true : undefined}
+                      onChange={(e) => {
+                        if (busy) return;
+                        onNotes('item', { action: 'item', itemId: item.id, done: e.target.checked }, t('meetingSaved'));
+                      }}
+                    />
+                    <span dir="auto">{item.text}</span>
+                  </label>
+                  <span className={styles.actionOwner} data-owner={item.owner}>
+                    {item.owner === 'client' ? t('meetingActionOwnerYou') : t('meetingActionOwnerLead')}
+                  </span>
+                  {item.done && item.doneBy && item.doneLabel && (
+                    <span className={styles.actionDone}>
+                      {t('meetingActionDone', { name: isolate(item.doneBy), when: item.doneLabel })}
+                    </span>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        </>
+      )}
+
+      {notes.acknowledged ? (
+        <p className={styles.meetingAckDone}>
+          <CheckCircle2 size={16} strokeWidth={2} aria-hidden="true" />
+          {t('meetingNotesConfirmed', { name: isolate(notes.acknowledged.by ?? '—'), when: notes.acknowledged.label })}
+        </p>
+      ) : (
+        notes.canAcknowledge &&
+        !readOnly && (
+          <div className={styles.meetingAck}>
+            <p>{t('meetingNotesConfirmPrompt')}</p>
+            <button
+              type="button"
+              className="btn btn-primary"
+              aria-disabled={busy}
+              onClick={() =>
+                onNotes('ack', { action: 'acknowledge', version: notes.version }, t('meetingNotesConfirmedNotice'))
+              }
+            >
+              <Check size={16} strokeWidth={2} aria-hidden="true" />
+              {pendingKey === `ack-${meetingId}` ? t('meetingSending') : t('meetingNotesConfirm')}
+            </button>
+          </div>
+        )
+      )}
+
+      {notes.comments.length > 0 && (
+        <>
+          <h6 className={styles.meetingNotesSubtitle}>{t('meetingCommentsTitle')}</h6>
+          <ul className={styles.commentList}>
+            {notes.comments.map((c) => (
+              <li key={c.id} className={styles.comment} data-lead={c.fromLead || undefined}>
+                <span className={styles.commentMeta}>
+                  <strong dir="auto">{c.author ?? (c.fromLead ? t('projectLead') : '—')}</strong>
+                  {c.fromLead && c.author && <span className={styles.commentRole}>{t('projectLead')}</span>}
+                  <time dateTime={c.createdAt}>{c.timeLabel}</time>
+                </span>
+                <p className={styles.commentBody} dir="auto">
+                  {c.body}
+                </p>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+
+      {!readOnly && (
+        <form className={styles.commentForm} onSubmit={sendComment}>
+          <label className={styles.label} htmlFor={commentId}>
+            {t('meetingCommentLabel')}
+          </label>
+          <textarea
+            id={commentId}
+            className={styles.textarea}
+            dir="auto"
+            rows={2}
+            maxLength={MEETING_COMMENT_MAX_LENGTH}
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+          />
+          <div className={styles.meetingActions}>
+            <button type="submit" className="btn btn-outline" aria-disabled={busy}>
+              <Send size={16} strokeWidth={2} aria-hidden="true" />
+              {pendingKey === `comment-${meetingId}` ? t('meetingSending') : t('meetingCommentSend')}
+            </button>
+          </div>
+        </form>
+      )}
+    </section>
+  );
+}
+
+/** The details of a meeting the client created: topic, duration, milestone, agenda. The link is the project lead's. */
+function EditDetailsForm({
+  meeting,
+  milestones,
+  busy,
+  saving,
+  onSave,
+  onClose,
+}: {
+  meeting: ClientMeeting;
+  milestones: Milestone[];
+  busy: boolean;
+  saving: boolean;
+  onSave: (body: unknown) => Promise<boolean>;
+  onClose: () => void;
+}) {
+  const t = useTranslations('portal.project');
+  const [title, setTitle] = useState(meeting.title);
+  const [duration, setDuration] = useState(meeting.durationMinutes);
+  const [agenda, setAgenda] = useState(meeting.agenda);
+  const [milestoneId, setMilestoneId] = useState(meeting.milestone?.id ?? '');
+  const id = (field: string) => `meeting-${meeting.id}-${field}`;
+
+  const save = async (event: FormEvent) => {
+    event.preventDefault();
+    const body = { action: 'edit', title, durationMinutes: duration, agenda, milestoneId: milestoneId || null };
+    if (await onSave(body)) onClose();
+  };
+
+  return (
+    <form className={styles.form} onSubmit={save} style={{ marginTop: 'var(--s-3)' }}>
+      <div className={styles.field}>
+        <label className={styles.label} htmlFor={id('title')}>
+          {t('meetingTopic')}
+        </label>
+        <input
+          id={id('title')}
+          className={styles.input}
+          dir="auto"
+          required
+          maxLength={200}
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+        />
+      </div>
+      <div className={styles.field}>
+        <label className={styles.label} htmlFor={id('duration')}>
+          {t('meetingDurationLabel')}
+        </label>
+        <select
+          id={id('duration')}
+          className={styles.input}
+          value={duration}
+          onChange={(e) => setDuration(Number(e.target.value))}
+        >
+          {MEETING_DURATIONS.map((minutes) => (
+            <option key={minutes} value={minutes}>
+              {t('meetingDuration', { minutes })}
+            </option>
+          ))}
+        </select>
+      </div>
+      {milestones.length > 0 && (
+        <div className={styles.field}>
+          <label className={styles.label} htmlFor={id('milestone')}>
+            {t('meetingMilestoneLabel')}
+          </label>
+          <select
+            id={id('milestone')}
+            className={styles.input}
+            value={milestoneId}
+            onChange={(e) => setMilestoneId(e.target.value)}
+          >
+            <option value="">{t('meetingNoMilestone')}</option>
+            {milestones.map((m) => (
+              <option key={m.id} value={m.id}>
+                {m.title}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+      <div className={styles.field}>
+        <label className={styles.label} htmlFor={id('agenda')}>
+          {t('meetingAgenda')}
+        </label>
+        <textarea
+          id={id('agenda')}
+          className={styles.textarea}
+          dir="auto"
+          maxLength={2000}
+          value={agenda}
+          onChange={(e) => setAgenda(e.target.value)}
+        />
+      </div>
+      <p className={styles.hint}>{t('meetingEditTimeHint')}</p>
+      <div className={styles.meetingActions}>
+        <button type="submit" className="btn btn-primary" aria-disabled={busy}>
+          {saving ? t('meetingSending') : t('meetingSaveChanges')}
+        </button>
+        <button type="button" className="btn btn-outline" onClick={onClose}>
+          {t('meetingNeverMind')}
+        </button>
+      </div>
+    </form>
   );
 }
 
@@ -314,7 +630,6 @@ function ProposeForm({
   const [title, setTitle] = useState('');
   const [when, setWhen] = useState('');
   const [duration, setDuration] = useState(30);
-  const [location, setLocation] = useState('');
   const [agenda, setAgenda] = useState('');
   const [milestoneId, setMilestoneId] = useState('');
 
@@ -326,14 +641,12 @@ function ProposeForm({
       title,
       startsAt,
       durationMinutes: duration,
-      location,
       agenda,
       milestoneId: milestoneId || null,
     });
     if (ok) {
       setTitle('');
       setWhen('');
-      setLocation('');
       setAgenda('');
       setMilestoneId('');
     }
@@ -392,18 +705,7 @@ function ProposeForm({
             </select>
           </div>
         </div>
-        <div className={styles.field}>
-          <label className={styles.label} htmlFor="meeting-location">
-            {t('meetingLocation')}
-          </label>
-          <input
-            id="meeting-location"
-            className={styles.input}
-            maxLength={500}
-            value={location}
-            onChange={(e) => setLocation(e.target.value)}
-          />
-        </div>
+        <p className={styles.hint}>{t('meetingLinkLater')}</p>
         {milestones.length > 0 && (
           <div className={styles.field}>
             <label className={styles.label} htmlFor="meeting-milestone">

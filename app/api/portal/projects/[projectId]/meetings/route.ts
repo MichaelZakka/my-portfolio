@@ -41,7 +41,8 @@ export async function POST(request: Request, { params }: RouteParams) {
   const body = await parseJsonBody(request, meetingCreateSchema);
   if (!body.ok) return body.response;
 
-  const result = await createMeeting(project.id, { id: user.id, role: 'client' }, body.data);
+  // The Google Meet link is the admin's to add, so a client's proposal never carries one.
+  const result = await createMeeting(project.id, { id: user.id, role: 'client' }, { ...body.data, location: '' });
   if (!result.ok) return apiError(result.status, result.code, result.error);
 
   after(() =>

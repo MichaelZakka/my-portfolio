@@ -140,6 +140,7 @@ export async function createProposalDraft(leadId: string): Promise<{ ok: true; p
       id: true,
       projectTitle: true,
       projectDescription: true,
+      contactLocale: true,
       landingPath: true,
       projectTypes: true,
       hasBrand: true,
@@ -329,7 +330,7 @@ export async function findProposalAccount(email: string | null) {
   if (!email) return null;
   return prisma.user.findUnique({
     where: { email },
-    select: { id: true, name: true, role: true, passwordHash: true, emailVerifiedAt: true },
+    select: { id: true, name: true, role: true, passwordHash: true, emailVerifiedAt: true, locale: true },
   });
 }
 
@@ -352,9 +353,15 @@ export async function acceptProposal(input: {
   password: string;
   ip: string;
   userAgent: string;
-  locale: PortalLocale;
+  /** A language the client picked with the switch on the page; null when they never did. */
+  pickedLocale: PortalLocale | null;
 }): Promise<
-  | { ok: true; projectId: string; user: { id: string; sessionVersion: number }; answer: ProposalAnswer }
+  | {
+      ok: true;
+      projectId: string;
+      user: { id: string; sessionVersion: number; locale: string };
+      answer: ProposalAnswer;
+    }
   | Failure
 > {
   const found = await findProposalByToken(input.token);
@@ -382,6 +389,10 @@ export async function acceptProposal(input: {
     if (policyError) return fail(400, policyError, 'Password does not meet the requirements.');
     passwordHash = await hashPassword(input.password);
   }
+
+  // Their emails' language: one picked on the page, else an existing account's own,
+  // else the proposal's (the communication language from their request).
+  const locale = input.pickedLocale ?? (existing && isPortalLocale(existing.locale) ? existing.locale : content.locale);
 
   const actor = await getAdminActor();
   const now = new Date();
@@ -461,7 +472,7 @@ export async function acceptProposal(input: {
               // Opening the emailed link proves the address.
               emailVerifiedAt: existing.emailVerifiedAt ?? now,
               lastLoginAt: now,
-              locale: input.locale,
+              locale,
             },
           })
         : await tx.user.create({
@@ -472,7 +483,7 @@ export async function acceptProposal(input: {
               passwordHash,
               emailVerifiedAt: now,
               lastLoginAt: now,
-              locale: input.locale,
+              locale,
             },
           });
       await tx.projectMember.create({ data: { projectId: project.id, userId: user.id } });

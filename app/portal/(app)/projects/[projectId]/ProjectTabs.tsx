@@ -124,7 +124,8 @@ export default function ProjectTabs({
   };
 
   // `alert` counts need the client (and say why for screen readers); the others are plain totals.
-  const awaitingMeetings = data.meetings.filter((m) => m.canAccept).length;
+  // A proposal to answer, or shared meeting notes to confirm.
+  const awaitingMeetings = data.meetings.filter((m) => m.canAccept || m.notes?.canAcknowledge).length;
   const counts: Partial<Record<ProjectTab, { value: number; alert?: string }>> = {
     meetings: awaitingMeetings ? { value: awaitingMeetings, alert: t('meetingAwaitingYou') } : undefined,
     messages: unread ? { value: unread, alert: t('unreadLabel') } : undefined,

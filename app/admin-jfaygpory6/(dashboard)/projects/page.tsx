@@ -5,7 +5,7 @@ import type { Prisma } from '@prisma/client';
 import { Plus } from 'lucide-react';
 import { prisma } from '../../../lib/db';
 import { requireAdminSession } from '../../../lib/session';
-import { progressPercent } from '../../../lib/portal/constants';
+import { currentPhaseOf, progressPercent } from '../../../lib/portal/constants';
 import { adminUnreadByProject } from '../../../lib/portal/messages';
 import { PROGRESS_MILESTONE_SELECT } from '../../../lib/portal/queries';
 import { ArchivedBadge, ProjectStatusBadge } from '../../_components/ProjectBadges';
@@ -81,7 +81,10 @@ async function ProjectsTable({ view }: { view: View }) {
     where,
     orderBy: { updatedAt: 'desc' },
     include: {
-      milestones: { select: PROGRESS_MILESTONE_SELECT },
+      milestones: {
+        orderBy: [{ order: 'asc' }, { createdAt: 'asc' }],
+        select: { ...PROGRESS_MILESTONE_SELECT, title: true },
+      },
       members: { select: { user: { select: { name: true, email: true } } } },
       invitations: {
         where: { acceptedAt: null, revokedAt: null, expiresAt: { gt: new Date() } },
@@ -149,7 +152,7 @@ async function ProjectsTable({ view }: { view: View }) {
                     <td data-label="Status">
                       <ProjectStatusBadge status={project.status} />
                     </td>
-                    <td data-label="Phase">{project.currentPhase || '—'}</td>
+                    <td data-label="Phase">{currentPhaseOf(project.milestones, project.currentPhase) || '—'}</td>
                     <td data-label="Progress">
                       <div className={projectStyles.progress}>
                         <div className={projectStyles.progressTrack}>

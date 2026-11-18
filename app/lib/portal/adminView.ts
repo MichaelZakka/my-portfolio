@@ -1,8 +1,10 @@
 import { parseActivityMeta } from './activity';
-import { invitationState } from './constants';
+import { currentPhaseOf, invitationState } from './constants';
 import { getProjectMeetings } from './meetings';
 import { getAdminStamps } from './messages';
+import { latestDueDate } from './work';
 import { presentMeetings } from './present';
+import { getTaskComments, presentTaskComments } from './taskComments';
 import {
   dayKey,
   formatBytes,
@@ -53,17 +55,25 @@ export function presentAdminMessages(projectId: string, messages: MessageRow[]) 
  * returns the same shape, which the screen re-reads after every change.
  */
 export async function buildAdminProjectView(projectId: string) {
-  const [project, messagePage, files, activity, meetings, live] = await Promise.all([
+  const [project, messagePage, files, activity, meetings, comments, live] = await Promise.all([
     getAdminProjectDetail(projectId),
     getMessagePage(projectId, { clientView: false }),
     getProjectFiles(projectId, { clientView: false }),
     getProjectActivity(projectId, { clientView: false }),
     getProjectMeetings(projectId),
+    getTaskComments(projectId, { clientView: false }),
     getAdminStamps(projectId),
   ]);
   if (!project) return null;
 
   const at = (date: Date | null) => (date ? formatDateTime(date, 'en') : null);
+  const threads = presentTaskComments(comments, {
+    viewerRole: 'admin',
+    locale: 'en',
+    timeZone: getPortalTimeZone(),
+    projectId,
+  });
+  const lastDue = latestDueDate(project.milestones);
 
   return {
     project: {
@@ -71,7 +81,10 @@ export async function buildAdminProjectView(projectId: string) {
       name: project.name,
       summary: project.summary,
       status: project.status,
-      currentPhase: project.currentPhase,
+      currentPhase: currentPhaseOf(project.milestones, project.currentPhase),
+      /** The hand-typed phase; only shown (and editable) while the project has no milestones. */
+      manualPhase: project.currentPhase,
+      phaseFollowsMilestones: project.milestones.length > 0,
       estimatedCompletion: toDateInputValue(project.estimatedCompletion),
       etaLabel: project.estimatedCompletion ? formatDate(project.estimatedCompletion, 'en') : null,
       archived: Boolean(project.archivedAt),
@@ -129,9 +142,33 @@ export async function buildAdminProjectView(projectId: string) {
             response: r.response,
           })),
           changesRounds: answered.filter((r) => r.status === 'changes_requested').length,
+          /**
+           * The client's latest answer, when it asked for changes and no new
+           * request has replaced it: the change request and its replies.
+           */
+          changeRequest:
+            !pending && answered[0]?.status === 'changes_requested'
+              ? {
+                  reviewId: answered[0].id,
+                  by: answered[0].respondedBy ? displayName(answered[0].respondedBy) : 'A client',
+                  when: at(answered[0].respondedAt),
+                  text: answered[0].response ?? '',
+                  comments: answered[0].comments.map((c) => ({
+                    id: c.id,
+                    body: c.body,
+                    author: c.author ? displayName(c.author) : null,
+                    fromLead: c.authorRole === 'admin',
+                    timeLabel: formatDateTime(c.createdAt, 'en'),
+                  })),
+                  // The client spoke last (the request itself, or a follow-up): your turn.
+                  waitingForReply: (answered[0].comments.at(-1)?.authorRole ?? 'client') === 'client',
+                }
+              : null,
         },
       };
     }),
+    /** A new milestone is due after this (the latest due date so far), YYYY-MM-DD. */
+    milestonesLastDue: lastDue ? { value: toDateInputValue(lastDue), label: formatDate(lastDue, 'en') } : null,
     tasks: project.tasks.map((task) => ({
       id: task.id,
       title: task.title,
@@ -139,6 +176,9 @@ export async function buildAdminProjectView(projectId: string) {
       status: task.status,
       milestoneId: task.milestoneId,
       visibleToClient: task.visibleToClient,
+      comments: threads[task.id]?.comments ?? [],
+      /** The newest comment is a client's: it waits for your reply. */
+      waitingForReply: threads[task.id]?.waitingForLead ?? false,
     })),
     messages: presentAdminMessages(project.id, messagePage.messages),
     messagesHasMore: messagePage.hasMore,
@@ -160,6 +200,7 @@ export async function buildAdminProjectView(projectId: string) {
       id: file.id,
       filename: file.filename,
       size: formatBytes(file.fileSize, 'en'),
+      mimeType: file.mimeType,
       uploadedAt: formatDateTime(file.createdAt, 'en'),
       uploadedBy: displayName(file.uploadedBy),
       visibleToClient: file.visibleToClient,

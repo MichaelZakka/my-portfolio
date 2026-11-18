@@ -28,7 +28,7 @@ export async function POST(request: Request, { params }: RouteParams) {
   const auth = await authorizeAdminProject(request, projectId, { mutation: true });
   if (!auth.ok) return auth.response;
 
-  const input = await readMessageInput(request);
+  const input = await readMessageInput(request, auth.project.id);
   if (!input.ok) return input.response;
 
   const actor = await getAdminActor();

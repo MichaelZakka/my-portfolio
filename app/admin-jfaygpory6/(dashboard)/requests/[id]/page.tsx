@@ -5,7 +5,7 @@ import { ArrowLeft } from 'lucide-react';
 import { prisma } from '../../../../lib/db';
 import { requireAdminSession } from '../../../../lib/session';
 import { fromJsonArray, guessLeadLocale } from '../../../../lib/leads';
-import { PROJECT_TYPE_LABELS, buildWhatsAppMessage } from '../../../../lib/projectBrief';
+import { PROJECT_TYPE_LABELS, buildWhatsAppMessage, getContactLocaleLabel } from '../../../../lib/projectBrief';
 import { leadToBriefPayload } from '../../../../lib/leads';
 import { proposalState } from '../../../../lib/portal/constants';
 import { formatDate, formatMoney } from '../../../../lib/portal/format';
@@ -145,6 +145,14 @@ export default async function AdminRequestDetailPage({ params }: Params) {
               <div className={styles.detailField}>
                 <span className={styles.detailLabel}>Phone</span>
                 <span className={styles.detailValue}>{lead.phone || '—'}</span>
+              </div>
+              <div className={styles.detailField}>
+                <span className={styles.detailLabel}>Language</span>
+                <span className={styles.detailValue}>
+                  {lead.contactLocale
+                    ? getContactLocaleLabel(lead.contactLocale)
+                    : `Not chosen (guess: ${getContactLocaleLabel(guessLeadLocale(lead))})`}
+                </span>
               </div>
             </div>
           </div>

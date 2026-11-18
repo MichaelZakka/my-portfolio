@@ -6,7 +6,7 @@ import { PASSWORD_MIN_LENGTH } from '../../../../lib/portal/constants';
 import { checkPasswordPolicy, hashPassword, verifyPassword } from '../../../../lib/portal/credentials';
 import { apiError, parseJsonBody, rateLimited, rejectCrossOrigin } from '../../../../lib/portal/http';
 import { findInvitationByToken } from '../../../../lib/portal/invitations';
-import { getPortalLocale } from '../../../../lib/portal/locale';
+import { PORTAL_LOCALE_COOKIE, getPortalLocale, localeCookieOptions } from '../../../../lib/portal/locale';
 import { notifyAboutClientJoined } from '../../../../lib/portal/notify';
 import { isPortalAuthConfigured, setPortalSessionCookie } from '../../../../lib/portal/session';
 import { acceptInvitationSchema } from '../../../../lib/portal/validation';
@@ -46,7 +46,7 @@ export async function POST(request: Request) {
     invitation.user ??
     (await prisma.user.findUnique({
       where: { email: invitation.email },
-      select: { id: true, name: true, role: true, passwordHash: true, emailVerifiedAt: true },
+      select: { id: true, name: true, role: true, passwordHash: true, emailVerifiedAt: true, locale: true },
     }));
   if (existing && existing.role !== 'client') {
     return apiError(403, 'forbidden', 'This invitation cannot be accepted by this account.');
@@ -67,7 +67,8 @@ export async function POST(request: Request) {
   }
 
   const now = new Date();
-  const locale = await getPortalLocale();
+  // A language picked on the page, else the one the invitation was sent in (stored on the account).
+  const locale = await getPortalLocale(existing?.locale);
   const { projectId } = invitation;
 
   const joined = await prisma.$transaction(async (tx) => {
@@ -141,5 +142,7 @@ export async function POST(request: Request) {
 
   const response = NextResponse.json({ success: true, redirectTo: `/portal/projects/${projectId}` });
   await setPortalSessionCookie(response, account);
+  // The portal opens in the language their emails use.
+  response.cookies.set(PORTAL_LOCALE_COOKIE, locale, localeCookieOptions());
   return response;
 }

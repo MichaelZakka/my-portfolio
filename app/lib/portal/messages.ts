@@ -2,14 +2,17 @@ import { prisma } from '../db';
 import { logActivity } from './activity';
 import { MESSAGE_MAX_ATTACHMENTS, MESSAGE_MAX_LENGTH } from './constants';
 import {
+  claimDirectUploads,
   declaredBodyTooLarge,
   discardUploads,
   getMaxUploadBytes,
   validateUploadFile,
   writeUploads,
+  type StoredUpload,
   type ValidUpload,
 } from './files';
 import { apiError, parseJsonBody, type Result } from './http';
+import { getClientCommentsStamp } from './taskComments';
 import { messageSchema } from './validation';
 
 /**
@@ -18,22 +21,30 @@ import { messageSchema } from './validation';
  *
  * Attachments are ordinary project files linked to their message
  * (ProjectFile.messageId), so they also appear under Files, follow the same
- * visibility switch and download through the same authorized routes. They
- * travel in the message request itself, so together they share the upload
- * size limit.
+ * visibility switch and download through the same authorized routes. Each
+ * may be up to the upload limit; with Vercel Blob the browser uploads them
+ * directly and the message only carries references (see claimDirectUploads).
  */
 
-export type MessageInput = { content: string; uploads: ValidUpload[] };
+export type MessageInput = { content: string; stored: StoredUpload[] };
 
-/** JSON `{ content }`, or multipart with `content` and up to MESSAGE_MAX_ATTACHMENTS `files`. */
-export async function readMessageInput(request: Request): Promise<Result<MessageInput>> {
+/**
+ * JSON `{ content, uploads? }` (uploads: files the browser already put in
+ * Vercel Blob), or multipart with `content` and up to MESSAGE_MAX_ATTACHMENTS
+ * `files` (local disk driver). Either way the attachments come back stored
+ * and checked; the caller writes the rows or discards them.
+ */
+export async function readMessageInput(request: Request, projectId: string): Promise<Result<MessageInput>> {
   if (!request.headers.get('content-type')?.startsWith('multipart/form-data')) {
     const body = await parseJsonBody(request, messageSchema);
-    return body.ok ? { ok: true, data: { content: body.data.content, uploads: [] } } : body;
+    if (!body.ok) return body;
+    if (!body.data.uploads.length) return { ok: true, data: { content: body.data.content, stored: [] } };
+    const claimed = await claimDirectUploads(projectId, body.data.uploads);
+    return claimed.ok ? { ok: true, data: { content: body.data.content, stored: claimed.data } } : claimed;
   }
 
   const max = getMaxUploadBytes();
-  const sizeCheck = declaredBodyTooLarge(request, max);
+  const sizeCheck = declaredBodyTooLarge(request, max, MESSAGE_MAX_ATTACHMENTS);
   if (!sizeCheck.ok) return sizeCheck;
 
   let form: FormData;
@@ -60,38 +71,27 @@ export async function readMessageInput(request: Request): Promise<Result<Message
     return { ok: false, response: apiError(400, 'invalidInput', 'Write a message or attach a file.') };
   }
 
-  const total = files.reduce((sum, file) => sum + file.size, 0);
-  if (total > max) {
-    return {
-      ok: false,
-      response: apiError(413, 'fileTooLarge', `Attachments can be at most ${Math.round(max / 1024 / 1024)} MB together.`, {
-        maxBytes: max,
-      }),
-    };
-  }
-
+  // Each file may be up to the limit.
   const uploads: ValidUpload[] = [];
   for (const file of files) {
     const upload = await validateUploadFile(file, max);
     if (!upload.ok) return upload;
     uploads.push(upload.data);
   }
-  return { ok: true, data: { content, uploads } };
+  if (!uploads.length) return { ok: true, data: { content, stored: [] } };
+  const written = await writeUploads(projectId, uploads);
+  return written.ok ? { ok: true, data: { content, stored: written.data } } : written;
 }
 
-/**
- * Stores the attachments' bytes first, then the message, its files and their
- * activity in one transaction (the bytes are removed again if that fails).
- */
+/** The message, its files and their activity in one transaction (the stored bytes are removed if that fails). */
 export async function createMessage(input: {
   projectId: string;
   sender: { id: string; name: string };
   content: string;
-  uploads: ValidUpload[];
+  /** Attachments already in storage (readMessageInput); removed again if the message cannot be saved. */
+  stored: StoredUpload[];
 }): Promise<Result<{ id: string; createdAt: Date; attachments: number }>> {
-  const written = input.uploads.length ? await writeUploads(input.projectId, input.uploads) : null;
-  if (written && !written.ok) return written;
-  const files = written?.data ?? [];
+  const files = input.stored;
 
   try {
     const message = await prisma.$transaction(async (tx) => {
@@ -108,7 +108,7 @@ export async function createMessage(input: {
             filename: file.filename,
             storageKey: file.storageKey,
             storageDriver: file.storageDriver,
-            fileSize: file.bytes.byteLength,
+            fileSize: file.size,
             mimeType: file.mimeType,
             visibleToClient: true,
           },
@@ -223,11 +223,12 @@ const stamp = (count: number, latest: Date | null | undefined) => `${count}:${la
  * The screen polls these and re-reads only the sections whose stamp changed.
  */
 export async function getClientStamps(projectId: string, userId: string) {
-  const [messages, files, activity, meetings, read] = await Promise.all([
+  const [messages, files, activity, meetings, comments, read] = await Promise.all([
     prisma.message.aggregate({ where: { projectId }, _count: true, _max: { createdAt: true } }),
     prisma.projectFile.aggregate({ where: { projectId, visibleToClient: true }, _count: true, _max: { createdAt: true } }),
     prisma.activity.aggregate({ where: { projectId, visibleToClient: true }, _count: true, _max: { createdAt: true } }),
     prisma.meeting.aggregate({ where: { projectId }, _count: true, _max: { updatedAt: true } }),
+    getClientCommentsStamp(projectId),
     getClientReadState(projectId, userId),
   ]);
   return {
@@ -236,6 +237,7 @@ export async function getClientStamps(projectId: string, userId: string) {
       files: stamp(files._count, files._max.createdAt),
       activity: stamp(activity._count, activity._max.createdAt),
       meetings: stamp(meetings._count, meetings._max.updatedAt),
+      comments,
     },
     unread: read.unread,
   };
@@ -244,18 +246,24 @@ export async function getClientStamps(projectId: string, userId: string) {
 export type ClientStamps = Awaited<ReturnType<typeof getClientStamps>>['stamps'];
 
 /**
- * The admin screen shows everything, and every change by either side logs an
- * activity entry, so one stamp over all activity (plus files, whose deletion
- * leaves no newer entry for the client view) tells it when to reload.
+ * The admin screen shows everything, and nearly every change by either side
+ * logs an activity entry, so one stamp over all activity tells it when to
+ * reload; plus files (a deletion leaves no newer entry for the client view)
+ * and meetings (a client reopening an action item logs nothing).
  */
 export async function getAdminStamps(projectId: string) {
-  const [activity, files, project] = await Promise.all([
+  const [activity, files, meetings, project] = await Promise.all([
     prisma.activity.aggregate({ where: { projectId }, _count: true, _max: { createdAt: true } }),
     prisma.projectFile.aggregate({ where: { projectId }, _count: true, _max: { createdAt: true } }),
+    prisma.meeting.aggregate({ where: { projectId }, _count: true, _max: { updatedAt: true } }),
     prisma.project.findUnique({ where: { id: projectId }, select: { adminLastReadAt: true } }),
   ]);
   return {
-    stamp: `${stamp(activity._count, activity._max.createdAt)}|${stamp(files._count, files._max.createdAt)}`,
+    stamp: [
+      stamp(activity._count, activity._max.createdAt),
+      stamp(files._count, files._max.createdAt),
+      stamp(meetings._count, meetings._max.updatedAt),
+    ].join('|'),
     unread: await countUnreadForAdmin(projectId, project?.adminLastReadAt ?? null),
   };
 }

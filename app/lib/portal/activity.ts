@@ -18,8 +18,19 @@ export type ActivityMeta = {
   MILESTONE_REVIEW_REQUESTED: ReviewMeta;
   MILESTONE_APPROVED: ReviewMeta & { name: string };
   MILESTONE_CHANGES_REQUESTED: ReviewMeta & { name: string };
+  /** A reply under a change request. */
+  MILESTONE_CHANGES_COMMENTED: ReviewMeta & { name: string; commentId: string; emailSent?: boolean; emailError?: string | null };
   TASK_CREATED: { taskId: string; title: string };
   TASK_COMPLETED: { taskId: string; title: string };
+  /** title: the task's; name: who commented. Follows the task's visibility. */
+  TASK_COMMENTED: {
+    taskId: string;
+    commentId: string;
+    title: string;
+    name: string;
+    emailSent?: boolean;
+    emailError?: string | null;
+  };
   MESSAGE_SENT: { messageId: string; senderName: string };
   FILE_UPLOADED: { fileId: string; filename: string };
   STATUS_CHANGED: { from: string; to: string; emailSent?: boolean; emailError?: string | null };
@@ -27,6 +38,15 @@ export type ActivityMeta = {
   MEETING_RESCHEDULED: MeetingMeta;
   MEETING_CONFIRMED: MeetingMeta;
   MEETING_CANCELLED: MeetingMeta;
+  MEETING_UPDATED: MeetingMeta;
+  MEETING_LINK_ADDED: MeetingMeta;
+  MEETING_NO_SHOW: MeetingMeta;
+  MEETING_NOTES_PUBLISHED: MeetingMeta;
+  MEETING_NOTES_UPDATED: MeetingMeta;
+  MEETING_NOTES_ACKNOWLEDGED: MeetingMeta & { name: string };
+  MEETING_NOTES_COMMENTED: MeetingMeta & { name: string; commentId: string };
+  /** title: the action item's text. */
+  MEETING_ACTION_ITEM_DONE: { meetingId: string; itemId: string; title: string };
   PROPOSAL_ACCEPTED: { proposalId: string; version: number; title: string; name: string };
   PROJECT_UPDATED: { fields: string };
   PROJECT_ARCHIVED: { name: string };
@@ -56,8 +76,10 @@ const SUMMARIES: { [T in ActivityType]: (meta: ActivityMeta[T]) => string } = {
   MILESTONE_REVIEW_REQUESTED: (m) => `Approval requested: ${m.title}`,
   MILESTONE_APPROVED: (m) => `${m.name} approved: ${m.title}`,
   MILESTONE_CHANGES_REQUESTED: (m) => `${m.name} asked for changes: ${m.title}`,
+  MILESTONE_CHANGES_COMMENTED: (m) => `${m.name} replied about the requested changes: ${m.title}`,
   TASK_CREATED: (m) => `Task added: ${m.title}`,
   TASK_COMPLETED: (m) => `Task completed: ${m.title}`,
+  TASK_COMMENTED: (m) => `${m.name} commented on the task: ${m.title}`,
   MESSAGE_SENT: (m) => `${m.senderName} sent a message`,
   FILE_UPLOADED: (m) => `File uploaded: ${m.filename}`,
   STATUS_CHANGED: (m) => `Status changed from ${statusLabel(m.from)} to ${statusLabel(m.to)}`,
@@ -65,6 +87,14 @@ const SUMMARIES: { [T in ActivityType]: (meta: ActivityMeta[T]) => string } = {
   MEETING_RESCHEDULED: (m) => `New time proposed for meeting: ${m.title}`,
   MEETING_CONFIRMED: (m) => `Meeting confirmed: ${m.title}`,
   MEETING_CANCELLED: (m) => `Meeting cancelled: ${m.title}`,
+  MEETING_UPDATED: (m) => `Meeting details updated: ${m.title}`,
+  MEETING_LINK_ADDED: (m) => `Meeting link shared: ${m.title}`,
+  MEETING_NO_SHOW: (m) => `Meeting marked as not held: ${m.title}`,
+  MEETING_NOTES_PUBLISHED: (m) => `Meeting notes shared: ${m.title}`,
+  MEETING_NOTES_UPDATED: (m) => `Meeting notes updated: ${m.title}`,
+  MEETING_NOTES_ACKNOWLEDGED: (m) => `${m.name} confirmed the meeting notes: ${m.title}`,
+  MEETING_NOTES_COMMENTED: (m) => `${m.name} commented on the meeting notes: ${m.title}`,
+  MEETING_ACTION_ITEM_DONE: (m) => `Action item done: ${m.title}`,
   PROPOSAL_ACCEPTED: (m) => `${m.name} accepted proposal v${m.version}`,
   PROJECT_UPDATED: (m) => `Project details edited: ${m.fields}`,
   PROJECT_ARCHIVED: (m) => `Project archived: ${m.name}`,
@@ -150,7 +180,7 @@ export async function syncActivityVisibility(
   db: Db = prisma
 ) {
   const [key, id] = 'taskId' in ref ? ['taskId', ref.taskId] : ['fileId', ref.fileId];
-  const types = 'taskId' in ref ? ['TASK_CREATED', 'TASK_COMPLETED'] : ['FILE_UPLOADED'];
+  const types = 'taskId' in ref ? ['TASK_CREATED', 'TASK_COMPLETED', 'TASK_COMMENTED'] : ['FILE_UPLOADED'];
   await db.activity.updateMany({
     where: { projectId, type: { in: types }, meta: { contains: `"${key}":"${id}"` } },
     data: { visibleToClient },

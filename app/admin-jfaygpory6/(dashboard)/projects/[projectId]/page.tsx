@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { prisma } from '../../../../lib/db';
 import { buildAdminProjectView } from '../../../../lib/portal/adminView';
-import { ACCEPT_ATTRIBUTE, getMaxUploadBytes } from '../../../../lib/portal/files';
+import { ACCEPT_ATTRIBUTE, getMaxUploadBytes, usesDirectUploads } from '../../../../lib/portal/files';
 import { formatBytes } from '../../../../lib/portal/format';
 import { idSchema } from '../../../../lib/portal/validation';
 import { requireAdminSession } from '../../../../lib/session';
@@ -37,6 +37,7 @@ export default async function AdminProjectPage({ params, searchParams }: Params)
       upload={{
         maxBytes: getMaxUploadBytes(),
         maxSizeLabel: formatBytes(getMaxUploadBytes(), 'en'),
+        direct: usesDirectUploads(),
         accept: ACCEPT_ATTRIBUTE,
       }}
     />

@@ -2,6 +2,7 @@
 
 import { FormEvent, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
+import { fileRequest } from '../../../../lib/portal/uploadClient';
 import { readJson, useErrorMessage, type ApiErrorBody } from '../../../_components/useErrorMessage';
 import styles from '../../../portal.module.css';
 
@@ -11,11 +12,13 @@ type Props = {
   /** maxBytes formatted for the current locale on the server. */
   maxSizeLabel: string;
   accept: string;
+  /** Upload straight to Vercel Blob (see uploadClient.ts). */
+  direct: boolean;
   onUploaded: () => Promise<void>;
 };
 
 /** Size and type are checked here for instant feedback; the server enforces both again. */
-export default function FileUploadForm({ projectId, maxBytes, maxSizeLabel, accept, onUploaded }: Props) {
+export default function FileUploadForm({ projectId, maxBytes, maxSizeLabel, accept, direct, onUploaded }: Props) {
   const t = useTranslations('portal.project');
   const errorMessage = useErrorMessage();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -40,9 +43,16 @@ export default function FileUploadForm({ projectId, maxBytes, maxSizeLabel, acce
 
     setUploading(true);
     try {
-      const body = new FormData();
-      body.append('file', file);
-      const response = await fetch(`/api/portal/projects/${projectId}/files`, { method: 'POST', body });
+      const prepared = await fileRequest(file, {}, {
+        direct,
+        tokenUrl: `/api/portal/projects/${projectId}/uploads`,
+        projectId,
+      });
+      if (!prepared.ok) {
+        setError(errorMessage({ code: prepared.code }, { size: maxSizeLabel }));
+        return;
+      }
+      const response = await fetch(`/api/portal/projects/${projectId}/files`, prepared.init);
       if (!response.ok) {
         setError(errorMessage(await readJson<ApiErrorBody>(response), { size: maxSizeLabel }));
         return;

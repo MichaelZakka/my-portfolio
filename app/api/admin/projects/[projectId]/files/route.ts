@@ -13,21 +13,21 @@ export async function GET(request: Request, { params }: RouteParams) {
   return NextResponse.json({ files: await getProjectFiles(auth.project.id, { clientView: false }) });
 }
 
-/** Multipart upload; `visibleToClient` = "false" keeps the file internal. */
+/** Multipart upload, or JSON { pathname, filename } after a direct Blob upload; `visibleToClient` = "false" keeps the file internal. */
 export async function POST(request: Request, { params }: RouteParams) {
   const { projectId } = await params;
   const auth = await authorizeAdminProject(request, projectId, { mutation: true });
   if (!auth.ok) return auth.response;
 
-  const parsed = await readUpload(request);
+  const parsed = await readUpload(request, projectId);
   if (!parsed.ok) return parsed.response;
 
   const actor = await getAdminActor();
   const stored = await storeProjectFile({
     projectId: auth.project.id,
     uploadedById: actor.id,
-    upload: parsed.data.upload,
-    visibleToClient: parsed.data.form.get('visibleToClient') !== 'false',
+    upload: parsed.data.stored,
+    visibleToClient: parsed.data.fields.visibleToClient !== 'false',
   });
   if (!stored.ok) return stored.response;
 

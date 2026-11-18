@@ -2,14 +2,14 @@ import { NextResponse, after } from 'next/server';
 import { rateLimit } from '../../../../../../lib/rateLimit';
 import { authorizeClientProject } from '../../../../../../lib/portal/access';
 import { apiError, notFound, parseJsonBody, rateLimited } from '../../../../../../lib/portal/http';
-import { actOnMeeting } from '../../../../../../lib/portal/meetings';
+import { actOnMeeting, editMeeting } from '../../../../../../lib/portal/meetings';
 import { notifyAboutMeeting } from '../../../../../../lib/portal/notify';
 import { displayName } from '../../../../../../lib/portal/queries';
-import { idSchema, meetingActionSchema } from '../../../../../../lib/portal/validation';
+import { clientMeetingActionSchema, idSchema } from '../../../../../../lib/portal/validation';
 
 type RouteParams = { params: Promise<{ projectId: string; meetingId: string }> };
 
-/** Accept the admin's proposal, propose another time, or cancel. */
+/** Accept the admin's proposal, propose another time, cancel, or edit the details of a meeting the client created. */
 export async function PATCH(request: Request, { params }: RouteParams) {
   const { projectId, meetingId } = await params;
   const auth = await authorizeClientProject(request, projectId, { mutation: true });
@@ -22,10 +22,14 @@ export async function PATCH(request: Request, { params }: RouteParams) {
     return rateLimited();
   }
 
-  const body = await parseJsonBody(request, meetingActionSchema);
+  const body = await parseJsonBody(request, clientMeetingActionSchema);
   if (!body.ok) return body.response;
 
-  const result = await actOnMeeting(project.id, meetingId, { id: user.id, role: 'client' }, body.data);
+  const client = { id: user.id, role: 'client' as const };
+  const result =
+    body.data.action === 'edit'
+      ? await editMeeting(project.id, meetingId, client, body.data)
+      : await actOnMeeting(project.id, meetingId, client, body.data);
   if (!result.ok) return apiError(result.status, result.code, result.error);
 
   after(() =>

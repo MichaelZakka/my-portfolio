@@ -26,6 +26,25 @@ export const WORK_STATUS_LABELS: Record<WorkStatus, string> = {
   done: 'Done',
 };
 
+/**
+ * What the admin may set on a milestone. "done" is not among them: a milestone
+ * is done only when the client approves it (reviews.ts). The admin can still
+ * move a done milestone back (e.g. it needs rework).
+ */
+export const MILESTONE_ADMIN_STATUSES = ['todo', 'in_progress'] as const;
+export type MilestoneAdminStatus = (typeof MILESTONE_ADMIN_STATUSES)[number];
+
+/**
+ * The phase a project is in: the first milestone (in order) that isn't done,
+ * or the last one once all are. Projects without milestones fall back to the
+ * phase typed in by hand (Project.currentPhase). `milestones` must be in
+ * display order.
+ */
+export function currentPhaseOf(milestones: { title: string; status: string }[], manualPhase: string): string {
+  if (milestones.length === 0) return manualPhase;
+  return (milestones.find((m) => m.status !== 'done') ?? milestones[milestones.length - 1]).title;
+}
+
 export const ACTIVITY_TYPES = [
   'PROJECT_CREATED',
   'CLIENT_INVITED',
@@ -35,8 +54,10 @@ export const ACTIVITY_TYPES = [
   'MILESTONE_REVIEW_REQUESTED',
   'MILESTONE_APPROVED',
   'MILESTONE_CHANGES_REQUESTED',
+  'MILESTONE_CHANGES_COMMENTED',
   'TASK_CREATED',
   'TASK_COMPLETED',
+  'TASK_COMMENTED',
   'MESSAGE_SENT',
   'FILE_UPLOADED',
   'STATUS_CHANGED',
@@ -44,6 +65,14 @@ export const ACTIVITY_TYPES = [
   'MEETING_RESCHEDULED',
   'MEETING_CONFIRMED',
   'MEETING_CANCELLED',
+  'MEETING_UPDATED',
+  'MEETING_LINK_ADDED',
+  'MEETING_NO_SHOW',
+  'MEETING_NOTES_PUBLISHED',
+  'MEETING_NOTES_UPDATED',
+  'MEETING_NOTES_ACKNOWLEDGED',
+  'MEETING_NOTES_COMMENTED',
+  'MEETING_ACTION_ITEM_DONE',
   'PROPOSAL_ACCEPTED',
   // Audit trail: admin-side changes, always internal (visibleToClient false)
   'PROJECT_UPDATED',
@@ -61,14 +90,28 @@ export const ACTIVITY_TYPES = [
 ] as const;
 export type ActivityType = (typeof ACTIVITY_TYPES)[number];
 
-export const MEETING_STATUSES = ['proposed', 'confirmed', 'cancelled'] as const;
+/** held / no_show come after the meeting: notes published, or marked as not having taken place. */
+export const MEETING_STATUSES = ['proposed', 'confirmed', 'cancelled', 'held', 'no_show'] as const;
 export type MeetingStatus = (typeof MEETING_STATUSES)[number];
 
 export const MEETING_STATUS_LABELS: Record<MeetingStatus, string> = {
   proposed: 'Awaiting reply',
   confirmed: 'Confirmed',
   cancelled: 'Cancelled',
+  held: 'Held',
+  no_show: 'Did not take place',
 };
+
+/** Meetings that are over by status, whatever their time says. */
+export const isMeetingFinished = (status: string) => status === 'held' || status === 'no_show';
+
+/** Who an action item from a meeting is for. */
+export const ACTION_ITEM_OWNERS = ['admin', 'client'] as const;
+export type ActionItemOwner = (typeof ACTION_ITEM_OWNERS)[number];
+
+export const MEETING_NOTES_MAX_LENGTH = 10_000;
+export const MEETING_ACTION_ITEMS_MAX = 30;
+export const MEETING_COMMENT_MAX_LENGTH = 3000;
 
 export const MEETING_DURATIONS = [15, 30, 45, 60, 90, 120] as const;
 
@@ -103,12 +146,22 @@ const ACTIVITY_CATEGORY_OF: Record<ActivityType, ActivityCategory> = {
   MILESTONE_REVIEW_REQUESTED: 'progress',
   MILESTONE_APPROVED: 'progress',
   MILESTONE_CHANGES_REQUESTED: 'progress',
+  MILESTONE_CHANGES_COMMENTED: 'progress',
   TASK_CREATED: 'progress',
   TASK_COMPLETED: 'progress',
+  TASK_COMMENTED: 'progress',
   MEETING_PROPOSED: 'meetings',
   MEETING_RESCHEDULED: 'meetings',
   MEETING_CONFIRMED: 'meetings',
   MEETING_CANCELLED: 'meetings',
+  MEETING_UPDATED: 'meetings',
+  MEETING_LINK_ADDED: 'meetings',
+  MEETING_NO_SHOW: 'meetings',
+  MEETING_NOTES_PUBLISHED: 'meetings',
+  MEETING_NOTES_UPDATED: 'meetings',
+  MEETING_NOTES_ACKNOWLEDGED: 'meetings',
+  MEETING_NOTES_COMMENTED: 'meetings',
+  MEETING_ACTION_ITEM_DONE: 'meetings',
   MESSAGE_SENT: 'messages',
   FILE_UPLOADED: 'files',
 };
@@ -177,6 +230,40 @@ export const MESSAGE_MAX_LENGTH = 5000;
 
 /** Files per message; together they still have to fit the upload size limit (one request). */
 export const MESSAGE_MAX_ATTACHMENTS = 5;
+
+/**
+ * Allowed upload types by extension. The server checks each file's bytes
+ * against its extension (files.ts); browsers use this map to label direct
+ * uploads to Vercel Blob, whose upload token only accepts these types.
+ */
+export const UPLOAD_TYPES = {
+  pdf: 'application/pdf',
+  png: 'image/png',
+  jpg: 'image/jpeg',
+  jpeg: 'image/jpeg',
+  gif: 'image/gif',
+  webp: 'image/webp',
+  zip: 'application/zip',
+  docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  pptx: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+  txt: 'text/plain',
+  csv: 'text/csv',
+} as const satisfies Record<string, string>;
+
+/** Upload limits and mode for the browser (formatted on the server). */
+export type UploadSettings = {
+  /** Per file. */
+  maxBytes: number;
+  maxSizeLabel: string;
+  /** For <input type="file" accept>. */
+  accept: string;
+  /** Upload straight to Vercel Blob (see uploadClient.ts); otherwise through the app. */
+  direct: boolean;
+};
+
+/** Images shown as thumbnails in the Files gallery (the types above that browsers display). */
+export const isGalleryImage = (mimeType: string) => mimeType.startsWith('image/');
 
 export function isProjectStatus(value: unknown): value is ProjectStatus {
   return typeof value === 'string' && (PROJECT_STATUSES as readonly string[]).includes(value);

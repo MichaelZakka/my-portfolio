@@ -687,6 +687,212 @@
   padding: 0 0.85rem 0.85rem;
 }
 
+.meeting { scroll-margin-top: 5rem; }
+.meeting[data-status='held'] { border-inline-start-color: var(--accent); }
+.meeting[data-status='no_show'] { background: transparent; opacity: 0.75; }
+
+/* Meeting notes (inside a meeting card) */
+.notes,
+.notesPrompt {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-top: 0.75rem;
+  padding: 0.75rem 0.85rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.notesPrompt[data-needed] {
+  border-color: var(--accent-line);
+}
+
+.notesPromptText {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.45rem;
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.notesPromptText svg {
+  flex-shrink: 0;
+  margin-top: 0.15rem;
+  color: var(--accent-text);
+}
+
+.notesHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.75rem;
+}
+
+.notesTitle {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.notesEdit {
+  margin-inline-start: auto;
+}
+
+.notesSubtitle {
+  margin: 0.25rem 0 0;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-dim);
+}
+
+.notesSummary {
+  margin: 0;
+  font-size: 0.86rem;
+  line-height: 1.6;
+  color: var(--text);
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+.actionList,
+.commentList,
+.itemEditorList {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0;
+}
+
+.actionItem {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 0.6rem;
+  font-size: 0.85rem;
+}
+
+.actionLabel {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  flex: 1 1 14rem;
+  min-width: 0;
+  color: var(--text);
+  overflow-wrap: anywhere;
+  cursor: pointer;
+}
+
+.actionLabel input {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  margin-top: 0.15rem;
+  accent-color: var(--accent-strong);
+}
+
+.actionItem[data-done] .actionLabel span {
+  text-decoration: line-through;
+  color: var(--text-dim);
+}
+
+.actionOwner {
+  padding: 0.05rem 0.45rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  border: 1px solid var(--border-strong);
+}
+
+.actionOwner[data-owner='client'] {
+  color: var(--accent-text);
+  border-color: var(--accent-line);
+}
+
+.actionDone {
+  flex-basis: 100%;
+  padding-inline-start: calc(16px + 0.5rem);
+  font-size: 0.72rem;
+  color: var(--text-dim);
+}
+
+.ackLine {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--text-dim);
+}
+
+.ackLine[data-confirmed] {
+  color: var(--success);
+}
+
+.comment {
+  padding: 0.45rem 0.65rem;
+  border-radius: var(--radius-sm);
+  background: var(--bg-elevated-2);
+  border-inline-start: 2px solid var(--accent-line);
+}
+
+.comment[data-lead] {
+  border-inline-start-color: var(--border-strong);
+}
+
+.commentMeta {
+  font-size: 0.72rem;
+  color: var(--text-dim);
+}
+
+.commentMeta strong {
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.commentBody {
+  margin: 0.15rem 0 0;
+  font-size: 0.84rem;
+  color: var(--text);
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+.commentForm {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.notesItemsField {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+
+.notesItemsField .itemEditorList {
+  align-self: stretch;
+}
+
+.itemEditorRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 0.4rem;
+  align-items: center;
+}
+
 @media (max-width: 520px) {
   .meeting { flex-direction: column; }
   .meetingDate {
@@ -698,6 +904,8 @@
     padding: 0.2rem 0.6rem;
   }
   .meetingDay { font-size: 0.95rem; }
+  .itemEditorRow { grid-template-columns: minmax(0, 1fr) auto; }
+  .itemEditorRow > input { grid-column: 1 / -1; }
 }
 
 /* ---------- Phone ---------- */
@@ -1442,4 +1650,206 @@
     animation: none;
     stroke-dashoffset: 0;
   }
+}
+
+/* Task comments (inside a task row) */
+.item { scroll-margin-top: 5rem; }
+
+.item[data-waiting] {
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+
+.taskComments {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.taskCommentsHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.75rem;
+}
+
+.taskCommentsToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem 0;
+  background: none;
+  border: 0;
+  font: inherit;
+  font-size: 0.8rem;
+  color: var(--accent-text);
+  cursor: pointer;
+}
+
+.taskCommentsToggle:hover { text-decoration: underline; }
+
+.taskCommentsToggle:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.waitingTag {
+  padding: 0.05rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--accent-text);
+  background: var(--accent-soft);
+  border: 1px solid var(--accent-line);
+}
+
+.taskThread {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 0.65rem 0.75rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.commentFiles {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.75rem;
+  margin: 0.3rem 0 0;
+  padding: 0;
+  font-size: 0.8rem;
+}
+
+.commentFiles a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  overflow-wrap: anywhere;
+}
+
+
+/* Files: image gallery */
+.gallery {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 0.85rem;
+  margin: 0 0 1rem;
+  padding: 0;
+}
+
+.galleryItem {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.galleryThumb {
+  position: relative;
+  display: block;
+  aspect-ratio: 1;
+  width: 100%;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-elevated-2);
+  cursor: zoom-in;
+}
+
+.galleryThumb img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.galleryThumb:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.galleryTag {
+  position: absolute;
+  inset-block-start: 0.4rem;
+  inset-inline-start: 0.4rem;
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--text);
+  background: rgb(10 22 40 / 0.85);
+  border: 1px solid var(--border-strong);
+}
+
+.galleryName {
+  font-size: 0.82rem;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.galleryControls {
+  display: flex;
+  gap: 0.35rem;
+}
+
+.fileIcon {
+  flex-shrink: 0;
+  margin-top: 0.15rem;
+  color: var(--text-dim);
+}
+
+@media (max-width: 640px) {
+  .gallery {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* A client's change request on a milestone */
+.changeCard {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-top: 0.25rem;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid color-mix(in srgb, var(--warning) 45%, transparent);
+  border-inline-start: 3px solid var(--warning);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--warning) 7%, var(--bg));
+}
+
+.changeCard[data-waiting] {
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--warning) 35%, transparent);
+}
+
+.changeHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.6rem;
+  color: var(--warning);
+}
+
+.changeTitle {
+  font-weight: 700;
+  font-size: 0.88rem;
+}
+
+.changeText {
+  margin: 0;
+  padding: 0.55rem 0.75rem;
+  border-radius: var(--radius-sm);
+  background: var(--bg-elevated-2);
+  color: var(--text);
+  font-size: 0.9rem;
+  line-height: 1.6;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
 }

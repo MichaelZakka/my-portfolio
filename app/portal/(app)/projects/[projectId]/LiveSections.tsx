@@ -14,16 +14,18 @@ import {
 import { useTranslations } from 'next-intl';
 import { Download, FileText, MessageCircle, Paperclip } from 'lucide-react';
 import { initials, layoutThread } from '../../../../lib/portal/chat';
-import { ACTIVITY_CATEGORIES, activityCategory } from '../../../../lib/portal/constants';
+import { ACTIVITY_CATEGORIES, activityCategory, isGalleryImage, type UploadSettings } from '../../../../lib/portal/constants';
+import MediaLightbox from '../../../../components/MediaLightbox';
 import { jsonRequest } from '../../../_components/useErrorMessage';
 import { useProjectTabs } from './ProjectTabs';
 import type { ClientActivity, ClientFile, ClientMeeting, ClientMessage } from '../../../../lib/portal/present';
+import type { TaskThreads } from '../../../../lib/portal/taskComments';
 import FileUploadForm from './FileUploadForm';
 import ReplyForm from './ReplyForm';
 import styles from '../../../portal.module.css';
 
 /**
- * Messages, files, meetings and activity change while the page is open, so
+ * Messages, files, meetings, task comments and activity change while the page is open, so
  * they live in client state: the server renders the first version, then the
  * page polls cheap stamps (GET …/updates, every 15 s while the tab is
  * visible, and at once when it becomes visible again) and re-reads only the
@@ -38,6 +40,8 @@ type LiveData = {
   files: ClientFile[];
   activity: ClientActivity[];
   meetings: ClientMeeting[];
+  /** Comment threads on the tasks shown to the client, by task id. */
+  comments: TaskThreads;
 };
 type Section = keyof LiveData;
 export type LiveStamps = Record<Section, string>;
@@ -111,7 +115,7 @@ export function LiveProvider({
   const [unread, setUnread] = useState(initialUnread);
   const stamps = useRef<LiveStamps | null>(initialStamps);
   // Per-section request counters: a slower, older response never overwrites a newer one.
-  const latest = useRef<Record<Section, number>>({ messages: 0, files: 0, activity: 0, meetings: 0 });
+  const latest = useRef<Record<Section, number>>({ messages: 0, files: 0, activity: 0, meetings: 0, comments: 0 });
   const marking = useRef(false);
 
   const refresh = useCallback(
@@ -180,8 +184,10 @@ export function LiveProvider({
         setUnread(body.unread);
         if (!previous) return;
         const changed = (Object.keys(body.stamps) as Section[]).filter((section) => body.stamps[section] !== previous[section]);
-        // Attachments are files: sharing or hiding one changes messages too.
-        if (changed.includes('files') && !changed.includes('messages')) changed.push('messages');
+        // Attachments are files: sharing or hiding one changes messages and task comments too.
+        if (changed.includes('files')) {
+          for (const section of ['messages', 'comments'] as const) if (!changed.includes(section)) changed.push(section);
+        }
         if (changed.length) await refresh(changed);
       } catch {
         // Offline or a deploy in progress: the next check tries again.
@@ -217,7 +223,7 @@ export function LiveProvider({
   );
 }
 
-type UploadConfig = { maxBytes: number; maxSizeLabel: string; accept: string };
+type UploadConfig = UploadSettings;
 
 /** preview: the admin's read-only "view as client" (no composer, no archived notice, nothing marked read). */
 export function MessagesSection({
@@ -391,42 +397,86 @@ export function FilesSection({
   projectId: string;
   archived: boolean;
   preview?: boolean;
-  upload: { maxBytes: number; maxSizeLabel: string; accept: string };
+  upload: UploadSettings;
 }) {
   const t = useTranslations('portal.project');
   const { data, refresh } = useLive();
+  const [open, setOpen] = useState<number | null>(null);
+  const images = data.files.filter((file) => isGalleryImage(file.mimeType));
+  const documents = data.files.filter((file) => !isGalleryImage(file.mimeType));
+  // Each part isolated, so a Latin name or a date cannot reorder the line in Arabic.
+  const isolate = (text: string) => `⁨${text}⁩`;
+  const meta = (file: ClientFile) =>
+    t('fileMeta', { size: isolate(file.sizeLabel), name: isolate(file.uploadedBy.name), date: isolate(file.dateLabel) });
 
   return (
     <section id="files" aria-labelledby="files-title" className={`${styles.card} ${styles.section}`}>
       <h2 id="files-title" className={styles.sectionTitle}>
         {t('filesTitle')}
       </h2>
-      {data.files.length === 0 ? (
-        <p className={styles.empty}>{t('filesEmpty')}</p>
-      ) : (
-        <ul className={styles.fileList}>
-          {data.files.map((file) => (
-            <li key={file.id} className={styles.fileItem}>
-              <FileText size={22} strokeWidth={1.75} aria-hidden="true" className={styles.fileIcon} />
-              <div className={styles.fileInfo}>
-                <span className={styles.fileName} dir="auto">
-                  {file.filename}
+      {data.files.length === 0 && <p className={styles.empty}>{t('filesEmpty')}</p>}
+      {images.length > 0 && (
+        <>
+          <h3 className={styles.filesGroupTitle}>{t('filesImagesTitle')}</h3>
+          <ul className={styles.gallery}>
+            {images.map((file, index) => (
+              <li key={file.id} className={styles.galleryItem}>
+                <button
+                  type="button"
+                  className={styles.galleryThumb}
+                  onClick={() => setOpen(index)}
+                  aria-label={t('openImage', { name: file.filename })}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element -- private files stream through an authorized route */}
+                  <img src={file.downloadUrl} alt="" loading="lazy" decoding="async" />
+                </button>
+                <span className={styles.galleryName} title={file.filename}>
+                  <bdi>{file.filename}</bdi>
                 </span>
-                <span className={styles.fileMeta}>
-                  {t('fileMeta', { size: file.sizeLabel, name: file.uploadedBy.name, date: file.dateLabel })}
-                </span>
-              </div>
-              <a
-                href={file.downloadUrl}
-                className={styles.iconButton}
-                aria-label={t('downloadFile', { name: file.filename })}
-                download
-              >
-                <Download size={18} strokeWidth={2} aria-hidden="true" />
-              </a>
-            </li>
-          ))}
-        </ul>
+                <span className={styles.galleryMeta}>{file.sizeLabel}</span>
+              </li>
+            ))}
+          </ul>
+          <MediaLightbox
+            items={images.map((file) => ({ id: file.id, src: file.downloadUrl, title: file.filename, meta: meta(file) }))}
+            index={open !== null && open < images.length ? open : null}
+            onIndex={setOpen}
+            onClose={() => setOpen(null)}
+            labels={{
+              close: t('lightboxClose'),
+              previous: t('lightboxPrevious'),
+              next: t('lightboxNext'),
+              download: t('downloadFile', { name: '' }).trim(),
+              position: (n, total) => t('lightboxPosition', { n, total }),
+            }}
+          />
+        </>
+      )}
+      {documents.length > 0 && (
+        <>
+          {images.length > 0 && <h3 className={styles.filesGroupTitle}>{t('filesDocumentsTitle')}</h3>}
+          <ul className={styles.fileList}>
+            {documents.map((file) => (
+              <li key={file.id} className={styles.fileItem}>
+                <FileText size={22} strokeWidth={1.75} aria-hidden="true" className={styles.fileIcon} />
+                <div className={styles.fileInfo}>
+                  <span className={styles.fileName} dir="auto">
+                    {file.filename}
+                  </span>
+                  <span className={styles.fileMeta}>{meta(file)}</span>
+                </div>
+                <a
+                  href={file.downloadUrl}
+                  className={styles.iconButton}
+                  aria-label={t('downloadFile', { name: file.filename })}
+                  download
+                >
+                  <Download size={18} strokeWidth={2} aria-hidden="true" />
+                </a>
+              </li>
+            ))}
+          </ul>
+        </>
       )}
       {!archived && !preview && (
         <FileUploadForm projectId={projectId} {...upload} onUploaded={() => refresh(['files', 'activity'])} />

@@ -10,10 +10,20 @@ import { isPortalLocale, type PortalLocale } from './constants';
 export const PORTAL_LOCALE_COOKIE = 'portal_locale';
 export const PORTAL_LOCALE_COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
 
-export async function getPortalLocale(): Promise<PortalLocale> {
-  const cookieStore = await cookies();
-  const fromCookie = cookieStore.get(PORTAL_LOCALE_COOKIE)?.value;
-  if (isPortalLocale(fromCookie)) return fromCookie;
+/** The language the visitor picked with the switch (or restored at sign-in); null when never set. */
+export async function getPortalLocaleCookie(): Promise<PortalLocale | null> {
+  const fromCookie = (await cookies()).get(PORTAL_LOCALE_COOKIE)?.value;
+  return isPortalLocale(fromCookie) ? fromCookie : null;
+}
+
+/**
+ * The cookie, else `fallback` (what we already know about this person, e.g.
+ * the language they chose on the request form), else the browser's language.
+ */
+export async function getPortalLocale(fallback?: string | null): Promise<PortalLocale> {
+  const fromCookie = await getPortalLocaleCookie();
+  if (fromCookie) return fromCookie;
+  if (isPortalLocale(fallback)) return fallback;
 
   const headerStore = await headers();
   const primary = headerStore.get('accept-language')?.split(',')[0]?.trim().toLowerCase() ?? '';
@@ -21,8 +31,8 @@ export async function getPortalLocale(): Promise<PortalLocale> {
 }
 
 /** Server-side translator for portal pages, bound to the portal locale. */
-export async function getPortalTranslations(namespace = 'portal') {
-  const locale = await getPortalLocale();
+export async function getPortalTranslations(namespace = 'portal', fallback?: string | null) {
+  const locale = await getPortalLocale(fallback);
   const t = await getTranslations({ locale, namespace });
   return { t, locale };
 }

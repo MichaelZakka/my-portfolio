@@ -303,7 +303,7 @@ export async function sendClientJoinedEmail(input: {
   });
 }
 
-export type MeetingEmailEvent = 'proposed' | 'rescheduled' | 'confirmed' | 'cancelled' | 'reminder';
+export type MeetingEmailEvent = 'proposed' | 'rescheduled' | 'confirmed' | 'cancelled' | 'linkAdded' | 'reminder';
 
 export async function sendMeetingEmail(input: {
   to: string;
@@ -483,6 +483,135 @@ export async function sendReviewResponseEmail(input: {
     replyTo: input.clientEmail,
     ...content,
   });
+}
+
+/** Tells a client the notes from a meeting are ready: the summary, then the action items. */
+export async function sendMeetingNotesEmail(input: {
+  to: string;
+  locale: string;
+  actorName: string;
+  projectName: string;
+  meetingTitle: string;
+  summary: string;
+  actionItems: { text: string; owner: string }[];
+  url: string;
+}): Promise<EmailSendResult> {
+  if (!getResendConfig().configured) {
+    console.info(`[portal] ${NOT_CONFIGURED} Meeting notes email to ${input.to} was not sent.`);
+    return { sent: false, error: NOT_CONFIGURED };
+  }
+  const { lang, t } = translator(input.locale);
+  const values = { actor: input.actorName, title: input.meetingTitle, project: input.projectName };
+  const items = input.actionItems.map(
+    (item) => `• ${item.text} (${item.owner === 'client' ? t('meetingNotes.ownerYou') : input.actorName})`
+  );
+  const content = renderEmail(lang, {
+    heading: t('meetingNotes.heading', values),
+    paragraphs: [t('meetingNotes.body', values)],
+    quote: [excerpt(input.summary), ...(items.length ? ['', t('meetingNotes.actionItems'), ...items] : [])].join('\n'),
+    cta: { label: t('meetingNotes.cta'), url: input.url },
+    notes: [t('meetingNotes.confirm')],
+    footer: t('footer'),
+  });
+  return deliver({ to: input.to, subject: t('meetingNotes.subject', values), ...content });
+}
+
+/** Tells the admin that a client commented under the notes of a meeting. */
+export async function sendMeetingCommentEmail(input: {
+  to: string;
+  clientName: string;
+  clientEmail: string;
+  projectName: string;
+  meetingTitle: string;
+  comment: string;
+  url: string;
+}): Promise<EmailSendResult> {
+  if (!getResendConfig().configured) {
+    console.info(`[portal] ${NOT_CONFIGURED} Meeting comment email to ${input.to} was not sent.`);
+    return { sent: false, error: NOT_CONFIGURED };
+  }
+  // Goes to the admin, whose dashboard is English.
+  const { lang, t } = translator('en');
+  const values = { client: input.clientName, title: input.meetingTitle, project: input.projectName };
+  const content = renderEmail(lang, {
+    heading: t('meetingComment.heading', values),
+    paragraphs: [t('meetingComment.body', values)],
+    quote: excerpt(input.comment),
+    cta: { label: t('meetingComment.cta'), url: input.url },
+    footer: t('footer'),
+  });
+  return deliver({
+    to: input.to,
+    subject: t('meetingComment.subject', values),
+    replyTo: input.clientEmail,
+    ...content,
+  });
+}
+
+/**
+ * A comment on a task, to the other side, in the recipient's language.
+ * `count`: comments from the other side they have not answered yet (one email covers the batch).
+ */
+export async function sendTaskCommentEmail(input: {
+  to: string;
+  locale: string;
+  authorName: string;
+  projectName: string;
+  taskTitle: string;
+  comment: string;
+  attachments: number;
+  count: number;
+  url: string;
+  replyTo?: string;
+}): Promise<EmailSendResult> {
+  if (!getResendConfig().configured) {
+    console.info(`[portal] ${NOT_CONFIGURED} Task comment email to ${input.to} was not sent.`);
+    return { sent: false, error: NOT_CONFIGURED };
+  }
+  const { lang, t } = translator(input.locale);
+  const values = { author: input.authorName, task: input.taskTitle, project: input.projectName, count: input.count };
+  const many = input.count > 1;
+  const content = renderEmail(lang, {
+    heading: t('taskComment.heading', values),
+    paragraphs: [many ? t('taskComment.bodyMany', values) : t('taskComment.body', values)],
+    quote: input.comment ? excerpt(input.comment) : t('message.attachmentOnly'),
+    cta: { label: t('taskComment.cta'), url: input.url },
+    notes: input.attachments > 0 ? [t('message.attachments', { count: input.attachments })] : undefined,
+    footer: t('footer'),
+  });
+  return deliver({
+    to: input.to,
+    subject: t('taskComment.subject', values),
+    replyTo: input.replyTo,
+    ...content,
+  });
+}
+
+/** A reply under a change request, to the other side, in the recipient's language. */
+export async function sendChangeReplyEmail(input: {
+  to: string;
+  locale: string;
+  authorName: string;
+  projectName: string;
+  milestoneTitle: string;
+  comment: string;
+  url: string;
+  replyTo?: string;
+}): Promise<EmailSendResult> {
+  if (!getResendConfig().configured) {
+    console.info(`[portal] ${NOT_CONFIGURED} Change-request reply email to ${input.to} was not sent.`);
+    return { sent: false, error: NOT_CONFIGURED };
+  }
+  const { lang, t } = translator(input.locale);
+  const values = { author: input.authorName, milestone: input.milestoneTitle, project: input.projectName };
+  const content = renderEmail(lang, {
+    heading: t('changeReply.heading', values),
+    paragraphs: [t('changeReply.body', values)],
+    quote: excerpt(input.comment),
+    cta: { label: t('changeReply.cta'), url: input.url },
+    footer: t('footer'),
+  });
+  return deliver({ to: input.to, subject: t('changeReply.subject', values), replyTo: input.replyTo, ...content });
 }
 
 /** Folds per-recipient results into one { sent, error } for the record (recipients named only when several). */

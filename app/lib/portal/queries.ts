@@ -1,5 +1,5 @@
 import { prisma } from '../db';
-import { progressPercent } from './constants';
+import { currentPhaseOf, progressPercent } from './constants';
 import { countUnreadForClient } from './messages';
 
 /**
@@ -36,6 +36,11 @@ const reviewsSelect = {
     emailSent: true,
     emailError: true,
     respondedBy: reviewerSelect,
+    // Replies under a change request, oldest first.
+    comments: {
+      orderBy: { createdAt: 'asc' as const },
+      select: { id: true, body: true, authorRole: true, createdAt: true, author: reviewerSelect },
+    },
   },
 };
 
@@ -52,7 +57,7 @@ export async function listClientProjects(userId: string) {
       estimatedCompletion: true,
       archivedAt: true,
       updatedAt: true,
-      milestones: { select: PROGRESS_MILESTONE_SELECT },
+      milestones: { orderBy: byOrder, select: { ...PROGRESS_MILESTONE_SELECT, title: true } },
       reviews: { where: { status: 'pending' }, select: { id: true } },
       members: { where: { userId }, select: { lastReadAt: true } },
     },
@@ -65,7 +70,7 @@ export async function listClientProjects(userId: string) {
     name: project.name,
     summary: project.summary,
     status: project.status,
-    currentPhase: project.currentPhase,
+    currentPhase: currentPhaseOf(milestones, project.currentPhase),
     estimatedCompletion: project.estimatedCompletion,
     archivedAt: project.archivedAt,
     updatedAt: project.updatedAt,
@@ -120,6 +125,7 @@ export async function getClientProjectDetail(projectId: string) {
   if (!project) return null;
   return {
     ...project,
+    currentPhase: currentPhaseOf(project.milestones, project.currentPhase),
     progress: progressPercent(project.milestones),
     // An allow-list: internal task statuses only feed the progress figure, and
     // email delivery bookkeeping is the admin's business.
@@ -139,6 +145,7 @@ export async function getClientProjectDetail(projectId: string) {
         respondedAt: r.respondedAt,
         response: r.response,
         respondedBy: r.respondedBy,
+        comments: r.comments,
       })),
     })),
   };

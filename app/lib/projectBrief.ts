@@ -1,3 +1,5 @@
+import { isPortalLocale, type PortalLocale } from './portal/constants';
+
 export type ProjectBriefPayload = {
   projectTitle: string;
   projectDescription: string;
@@ -7,6 +9,8 @@ export type ProjectBriefPayload = {
   clientEmail: string;
   company: string;
   phone: string;
+  /** Language for everything sent to the client (proposal, milestones, emails); '' when unknown. */
+  contactLocale: PortalLocale | '';
   projectTypes: string[];
   projectTypeOther: string;
   businessDomains: string[];
@@ -34,6 +38,15 @@ export const PROJECT_TYPE_LABELS: Record<string, string> = {
   mobile: 'Mobile Application',
   other: 'Other',
 };
+
+export const CONTACT_LOCALE_LABELS: Record<PortalLocale, string> = {
+  en: 'English',
+  ar: 'Arabic',
+};
+
+export function getContactLocaleLabel(locale: string | null | undefined): string {
+  return isPortalLocale(locale) ? CONTACT_LOCALE_LABELS[locale] : 'Not specified';
+}
 
 const COLOR_APPROACH_LABELS: Record<string, string> = {
   match: 'Match my existing brand colors',
@@ -64,6 +77,7 @@ export function parseProjectBrief(raw: unknown): ProjectBriefPayload | null {
     clientEmail: asString(body.clientEmail),
     company: asString(body.company),
     phone: asString(body.phone),
+    contactLocale: isPortalLocale(body.contactLocale) ? body.contactLocale : '',
     projectTypes: asStringArray(body.projectTypes),
     projectTypeOther: asString(body.projectTypeOther),
     businessDomains: asStringArray(body.businessDomains),
@@ -149,6 +163,7 @@ export function buildBriefEmailBody(data: ProjectBriefPayload): string {
     `Email: ${data.clientEmail}`,
     `Company: ${data.company || 'N/A'}`,
     `Phone: ${data.phone || 'N/A'}`,
+    `Language: ${getContactLocaleLabel(data.contactLocale)}`,
     '',
     '— Project type —',
     formatProjectTypes(data),
@@ -181,6 +196,7 @@ export function buildWhatsAppMessage(data: ProjectBriefPayload): string {
     `Name: ${data.clientName}`,
     `Email: ${data.clientEmail}`,
     data.company ? `Company: ${data.company}` : null,
+    data.contactLocale ? `Language: ${getContactLocaleLabel(data.contactLocale)}` : null,
     `Project: ${data.projectTitle || 'Untitled'}`,
     `Type: ${formatProjectTypes(data)}`,
     `Domain: ${formatDomains(data)}`,

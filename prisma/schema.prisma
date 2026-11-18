@@ -45,6 +45,7 @@ model Lead {
   clientEmail        String
   company            String
   phone              String
+  contactLocale      String? // en | ar: the language the client chose for proposals, milestones and emails; null on older requests
 
   projectTypes     String // JSON string[]
   projectTypeOther String
@@ -188,46 +189,54 @@ model User {
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
-  memberships      ProjectMember[]
-  invitations      Invitation[]
-  passwordResets   PasswordResetToken[]
-  messages         Message[]
-  uploadedFiles    ProjectFile[]
-  activities       Activity[]
-  meetingsProposed Meeting[]
-  reviewsRequested MilestoneReview[]    @relation("ReviewRequestedBy")
-  reviewsAnswered  MilestoneReview[]    @relation("ReviewRespondedBy")
+  memberships       ProjectMember[]
+  invitations       Invitation[]
+  passwordResets    PasswordResetToken[]
+  messages          Message[]
+  uploadedFiles     ProjectFile[]
+  activities        Activity[]
+  meetingsProposed  Meeting[]            @relation("MeetingProposedBy")
+  notesAcknowledged Meeting[]            @relation("MeetingAcknowledgedBy")
+  actionItemsDone   MeetingActionItem[]
+  meetingComments   MeetingComment[]
+  taskComments      TaskComment[]
+  reviewComments    ReviewComment[]
+  reviewsRequested  MilestoneReview[]    @relation("ReviewRequestedBy")
+  reviewsAnswered   MilestoneReview[]    @relation("ReviewRespondedBy")
 
   @@index([role])
 }
 
 model Project {
-  id                  String    @id @default(cuid())
-  requestId           String?   @unique // the Lead this project was converted from
-  name                String
-  summary             String    @default("")
-  status              String    @default("planning")
-  currentPhase        String    @default("")
-  estimatedCompletion DateTime?
-  startedAt           DateTime?
-  completedAt         DateTime?
-  archivedAt          DateTime?
+  id                          String    @id @default(cuid())
+  requestId                   String?   @unique // the Lead this project was converted from
+  name                        String
+  summary                     String    @default("")
+  status                      String    @default("planning")
+  currentPhase                String    @default("")
+  estimatedCompletion         DateTime?
+  startedAt                   DateTime?
+  completedAt                 DateTime?
+  archivedAt                  DateTime?
   // The admin's side of ProjectMember.lastReadAt / lastNotifiedAt (the admin is not a member).
-  adminLastReadAt     DateTime?
-  adminLastNotifiedAt DateTime?
-  createdAt           DateTime  @default(now())
-  updatedAt           DateTime  @updatedAt
+  adminLastReadAt             DateTime?
+  adminLastNotifiedAt         DateTime?
+  adminTaskCommentsNotifiedAt DateTime?
+  createdAt                   DateTime  @default(now())
+  updatedAt                   DateTime  @updatedAt
 
-  request     Lead?             @relation(fields: [requestId], references: [id], onDelete: SetNull)
-  members     ProjectMember[]
-  invitations Invitation[]
-  milestones  Milestone[]
-  tasks       Task[]
-  messages    Message[]
-  files       ProjectFile[]
-  activities  Activity[]
-  meetings    Meeting[]
-  reviews     MilestoneReview[]
+  request        Lead?             @relation(fields: [requestId], references: [id], onDelete: SetNull)
+  members        ProjectMember[]
+  invitations    Invitation[]
+  milestones     Milestone[]
+  tasks          Task[]
+  taskComments   TaskComment[]
+  reviewComments ReviewComment[]
+  messages       Message[]
+  files          ProjectFile[]
+  activities     Activity[]
+  meetings       Meeting[]
+  reviews        MilestoneReview[]
 
   @@index([createdAt])
   @@index([status])
@@ -243,8 +252,10 @@ model ProjectMember {
 
   // Messages: what this client has read, and when they were last emailed about
   // unread ones (one email per unread batch, see notifyAboutMessage).
-  lastReadAt     DateTime?
-  lastNotifiedAt DateTime?
+  lastReadAt             DateTime?
+  lastNotifiedAt         DateTime?
+  // Task comments: when this client was last emailed about them (one email per batch).
+  taskCommentsNotifiedAt DateTime?
 
   project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
   user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -334,13 +345,32 @@ model MilestoneReview {
   emailSent     Boolean   @default(false)
   emailError    String?
 
-  project     Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  milestone   Milestone @relation(fields: [milestoneId], references: [id], onDelete: Cascade)
-  requestedBy User?     @relation("ReviewRequestedBy", fields: [requestedById], references: [id], onDelete: SetNull)
-  respondedBy User?     @relation("ReviewRespondedBy", fields: [respondedById], references: [id], onDelete: SetNull)
+  project     Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  milestone   Milestone       @relation(fields: [milestoneId], references: [id], onDelete: Cascade)
+  requestedBy User?           @relation("ReviewRequestedBy", fields: [requestedById], references: [id], onDelete: SetNull)
+  respondedBy User?           @relation("ReviewRespondedBy", fields: [respondedById], references: [id], onDelete: SetNull)
+  comments    ReviewComment[]
 
   @@index([milestoneId, requestedAt])
   @@index([projectId, status])
+}
+
+// The conversation under a change request (a MilestoneReview answered with
+// changes_requested): the admin replies, the client follows up.
+model ReviewComment {
+  id         String   @id @default(cuid())
+  projectId  String
+  reviewId   String
+  authorId   String?
+  authorRole String // client | admin
+  body       String
+  createdAt  DateTime @default(now())
+
+  project Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  review  MilestoneReview @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  author  User?           @relation(fields: [authorId], references: [id], onDelete: SetNull)
+
+  @@index([reviewId, createdAt])
 }
 
 model Task {
@@ -356,11 +386,33 @@ model Task {
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
-  project   Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  milestone Milestone? @relation(fields: [milestoneId], references: [id], onDelete: SetNull)
+  project   Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  milestone Milestone?    @relation(fields: [milestoneId], references: [id], onDelete: SetNull)
+  comments  TaskComment[]
 
   @@index([milestoneId])
   @@index([projectId, status])
+}
+
+// A comment on a task, from the admin or a client (clients only on tasks shown to
+// them). Attachments are ProjectFile rows (taskCommentId) and follow the task's
+// visibility. A task waits for the admin while its newest comment is a client's.
+model TaskComment {
+  id         String   @id @default(cuid())
+  projectId  String
+  taskId     String
+  authorId   String?
+  authorRole String // client | admin
+  body       String   @default("")
+  createdAt  DateTime @default(now())
+
+  project     Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  task        Task          @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  author      User?         @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  attachments ProjectFile[]
+
+  @@index([taskId, createdAt])
+  @@index([projectId, createdAt])
 }
 
 model Message {
@@ -395,43 +447,96 @@ model ProjectFile {
   mimeType        String
   visibleToClient Boolean  @default(true)
   messageId       String? // set when the file was sent as a message attachment
+  taskCommentId   String? // set when the file was attached to a task comment
   createdAt       DateTime @default(now())
 
-  project    Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  uploadedBy User     @relation(fields: [uploadedById], references: [id], onDelete: Cascade)
-  message    Message? @relation(fields: [messageId], references: [id], onDelete: SetNull)
+  project     Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  uploadedBy  User         @relation(fields: [uploadedById], references: [id], onDelete: Cascade)
+  message     Message?     @relation(fields: [messageId], references: [id], onDelete: SetNull)
+  taskComment TaskComment? @relation(fields: [taskCommentId], references: [id], onDelete: SetNull)
 
   @@index([projectId, createdAt])
   @@index([messageId])
+  @@index([taskCommentId])
 }
 
 // A meeting either side can propose. proposedByRole is the side whose latest
 // proposal is pending: only the other side can accept it; either side can
 // propose a new time (which hands the decision back) or cancel.
 model Meeting {
-  id              String    @id @default(cuid())
-  projectId       String
-  milestoneId     String?
-  title           String
-  agenda          String    @default("")
-  location        String    @default("") // a place or a video-call link
-  startsAt        DateTime
-  durationMinutes Int       @default(30)
-  status          String    @default("proposed") // proposed | confirmed | cancelled
-  proposedById    String?
-  proposedByRole  String // client | admin
-  confirmedAt     DateTime?
-  cancelledAt     DateTime?
-  reminderSentAt  DateTime? // the day-before reminder; cleared when the time changes
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  id                String    @id @default(cuid())
+  projectId         String
+  milestoneId       String?
+  title             String
+  agenda            String    @default("")
+  location          String    @default("") // a place or a video-call link
+  startsAt          DateTime
+  durationMinutes   Int       @default(30)
+  // proposed | confirmed | cancelled, then after it: held (notes published) | no_show (did not take place)
+  status            String    @default("proposed")
+  proposedById      String?
+  proposedByRole    String // client | admin
+  // client | admin: who created the meeting (proposedByRole flips with every new time). A client's
+  // meeting keeps its details client-owned: the admin only adds the Google Meet link.
+  createdByRole     String    @default("admin")
+  confirmedAt       DateTime?
+  cancelledAt       DateTime?
+  reminderSentAt    DateTime? // the day-before reminder; cleared when the time changes
+  // Meeting notes, written by the admin once the meeting has started: a summary plus
+  // MeetingActionItem rows. A private draft until outputPublishedAt; publishing marks the
+  // meeting held and emails the clients. outputSavedAt is the version clients confirm.
+  outputSummary     String    @default("")
+  outputSavedAt     DateTime?
+  outputPublishedAt DateTime?
+  noShowAt          DateTime?
+  // A client confirmed the published notes; cleared when the notes change afterwards.
+  acknowledgedAt    DateTime?
+  acknowledgedById  String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
 
-  project    Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  milestone  Milestone? @relation(fields: [milestoneId], references: [id], onDelete: SetNull)
-  proposedBy User?      @relation(fields: [proposedById], references: [id], onDelete: SetNull)
+  project        Project             @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  milestone      Milestone?          @relation(fields: [milestoneId], references: [id], onDelete: SetNull)
+  proposedBy     User?               @relation("MeetingProposedBy", fields: [proposedById], references: [id], onDelete: SetNull)
+  acknowledgedBy User?               @relation("MeetingAcknowledgedBy", fields: [acknowledgedById], references: [id], onDelete: SetNull)
+  actionItems    MeetingActionItem[]
+  comments       MeetingComment[]
 
   @@index([projectId, startsAt])
   @@index([milestoneId])
+}
+
+// A follow-up agreed in a meeting, part of its notes. owner: admin | client. Either the
+// admin or (for client-owned items) a client ticks it off once the notes are published.
+model MeetingActionItem {
+  id        String    @id @default(cuid())
+  meetingId String
+  text      String
+  owner     String // admin | client
+  position  Int       @default(0)
+  doneAt    DateTime?
+  doneById  String?
+  createdAt DateTime  @default(now())
+
+  meeting Meeting @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+  doneBy  User?   @relation(fields: [doneById], references: [id], onDelete: SetNull)
+
+  @@index([meetingId, position])
+}
+
+// The thread under published meeting notes: corrections, questions, replies (either side).
+model MeetingComment {
+  id         String   @id @default(cuid())
+  meetingId  String
+  authorId   String?
+  authorRole String // client | admin
+  body       String
+  createdAt  DateTime @default(now())
+
+  meeting Meeting @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+  author  User?   @relation(fields: [authorId], references: [id], onDelete: SetNull)
+
+  @@index([meetingId, createdAt])
 }
 
 model Activity {

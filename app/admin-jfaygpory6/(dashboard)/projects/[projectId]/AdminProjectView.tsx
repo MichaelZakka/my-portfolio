@@ -8,8 +8,7 @@ import { ArchivedBadge, ProjectStatusBadge } from '../../../_components/ProjectB
 import {
   ACTIVITY_CATEGORIES,
   ACTIVITY_CATEGORY_LABELS,
-  activityCategory,
-} from '../../../../lib/portal/constants';
+  activityCategory, type UploadSettings } from '../../../../lib/portal/constants';
 import { ProjectViewContext } from '../projectViewContext';
 import AdminOverview from './AdminOverview';
 import AdminProjectTabs from './AdminProjectTabs';
@@ -27,7 +26,7 @@ import projectStyles from '../projects.module.css';
 type Props = {
   initialView: View;
   initialTab: AdminProjectTab;
-  upload: { maxBytes: number; maxSizeLabel: string; accept: string };
+  upload: UploadSettings;
 };
 
 /** The admin project screen. Panels call reload() after a change; the newest response wins. */
@@ -139,7 +138,14 @@ export default function AdminProjectView({ initialView, initialTab, upload }: Pr
       <AdminProjectTabs
         initialTab={initialTab}
         badges={{
-          meetings: { value: view.meetings.filter((m) => m.canAccept).length, tone: 'alert' },
+          milestones: {
+            // Tasks and change requests waiting for your reply.
+            value:
+              view.tasks.filter((task) => task.waitingForReply).length +
+              view.milestones.filter((m) => m.review.changeRequest?.waitingForReply).length,
+            tone: 'alert',
+          },
+          meetings: { value: view.meetings.filter((m) => m.canAccept || m.needsNotes).length, tone: 'alert' },
           messages: { value: view.unreadMessages, tone: 'alert' },
           files: { value: view.files.length },
           clients: { value: view.members.length },
@@ -149,11 +155,12 @@ export default function AdminProjectView({ initialView, initialTab, upload }: Pr
           overview: <AdminOverview view={view} />,
           milestones: (
             <div className={projectStyles.tabColumns}>
-              <MilestonesPanel projectId={project.id} milestones={view.milestones} />
+              <MilestonesPanel projectId={project.id} milestones={view.milestones} lastDue={view.milestonesLastDue} />
               <TasksPanel
                 projectId={project.id}
                 milestones={view.milestones.map((m) => ({ id: m.id, title: m.title }))}
                 tasks={view.tasks}
+                upload={upload}
               />
             </div>
           ),

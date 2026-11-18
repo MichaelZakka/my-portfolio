@@ -48,6 +48,11 @@ const BUSINESS_DOMAINS = [
   'Other',
 ] as const;
 
+const CONTACT_LOCALE_OPTIONS = [
+  { id: 'en', label: 'English', lang: 'en', dir: 'ltr' },
+  { id: 'ar', label: 'العربية', lang: 'ar', dir: 'rtl' },
+] as const;
+
 const BRAND_STATUS = ['Yes', 'No', 'In progress'] as const;
 
 const PERSONALITY_OPTIONS = [
@@ -88,6 +93,7 @@ const INITIAL_DATA: FormData = {
   clientEmail: '',
   company: '',
   phone: '',
+  contactLocale: 'en',
   projectTypes: [],
   projectTypeOther: '',
   businessDomains: [],
@@ -142,10 +148,18 @@ const COLOR_SWATCHES: { key: ColorKey; label: string; hint: string }[] = [
   { key: 'accentColor', label: 'Accent', hint: 'Highlights & CTAs' },
 ];
 
-export default function ProjectIntakeSurvey() {
+type Props = {
+  /** Locale of the page the survey is on; pre-selects the contact language. */
+  locale?: string;
+};
+
+export default function ProjectIntakeSurvey({ locale }: Props) {
   const formId = useId();
   const [step, setStep] = useState(1);
-  const [data, setData] = useState<FormData>(INITIAL_DATA);
+  const [data, setData] = useState<FormData>(() => ({
+    ...INITIAL_DATA,
+    contactLocale: locale === 'ar' ? 'ar' : 'en',
+  }));
   const [errors, setErrors] = useState<FormErrors>({});
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -479,6 +493,35 @@ export default function ProjectIntakeSurvey() {
                   onChange={(e) => updateField('phone', e.target.value)}
                   autoComplete="tel"
                 />
+              </div>
+            </div>
+
+            <div className={styles.formGroup}>
+              <span className={styles.groupLabel} id={fieldId('contactLocale-label')}>
+                Language for our communication
+              </span>
+              <p className={styles.hint} id={fieldId('contactLocale-hint')}>
+                Your proposal, milestones, tasks and emails will all be in this language.
+              </p>
+              <div
+                className={styles.chipWrap}
+                role="group"
+                aria-labelledby={fieldId('contactLocale-label')}
+                aria-describedby={fieldId('contactLocale-hint')}
+              >
+                {CONTACT_LOCALE_OPTIONS.map((opt) => (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    lang={opt.lang}
+                    dir={opt.dir}
+                    className={`${styles.chip} ${data.contactLocale === opt.id ? styles.selected : ''}`}
+                    aria-pressed={data.contactLocale === opt.id}
+                    onClick={() => updateField('contactLocale', opt.id)}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
               </div>
             </div>
           </fieldset>

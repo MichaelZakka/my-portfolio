@@ -5,18 +5,24 @@ import type { EmailSendResult } from '../email';
 import { reportDeliveryFailure } from '../monitoring';
 import { getPortalTimeZone, resolveTimeZone } from './format';
 import { countUnreadForAdmin, countUnreadForClient } from './messages';
+import type { MeetingEvent } from './meetings';
 import {
   adminNotifyAddress,
   combineResults,
   portalUrl,
+  sendChangeReplyEmail,
   sendClientJoinedEmail,
+  sendMeetingCommentEmail,
   sendMeetingEmail,
+  sendMeetingNotesEmail,
   type MeetingEmailEvent,
   sendNewMessageEmail,
   sendReviewRequestEmail,
   sendReviewResponseEmail,
   sendStatusChangedEmail,
+  sendTaskCommentEmail,
 } from './email';
+import type { Prisma } from '@prisma/client';
 
 /**
  * "Tell the other party" notifications. These run after the response is sent
@@ -219,19 +225,22 @@ const MEETING_EMAIL_EVENTS = {
   MEETING_RESCHEDULED: 'rescheduled',
   MEETING_CONFIRMED: 'confirmed',
   MEETING_CANCELLED: 'cancelled',
+  MEETING_LINK_ADDED: 'linkAdded',
 } as const satisfies Record<string, MeetingEmailEvent>;
 
 /** Tells the other side about a meeting change: the admin when a client acted, every client when the admin did. */
 export async function notifyAboutMeeting(input: {
   activityId: string;
   meetingId: string;
-  event: keyof typeof MEETING_EMAIL_EVENTS;
+  event: MeetingEvent;
   projectId: string;
   projectName: string;
   actorName: string;
   actorEmail: string;
   actorRole: string;
 }) {
+  // Edits other than a new place/link (MEETING_UPDATED) only show in the activity feed.
+  if (!(input.event in MEETING_EMAIL_EVENTS)) return;
   const meeting = await prisma.meeting.findUnique({
     where: { id: input.meetingId },
     select: {
@@ -248,16 +257,18 @@ export async function notifyAboutMeeting(input: {
   });
   if (!meeting) return;
 
-  const event = MEETING_EMAIL_EVENTS[input.event];
+  const event = MEETING_EMAIL_EVENTS[input.event as keyof typeof MEETING_EMAIL_EVENTS];
   const email = {
     event,
     actorName: input.actorName,
     projectName: input.projectName,
     meeting: { ...meeting, milestoneTitle: meeting.milestone?.title ?? null },
   };
-  // Agreed and cancelled meetings carry an .ics, so the calendar entry appears (or goes away) in one click.
-  const calendar = (url: string) =>
-    event === 'confirmed' || event === 'cancelled' ? meetingCalendar(meeting, input.projectName, url) : undefined;
+  // Agreed and cancelled meetings carry an .ics, so the calendar entry appears (or goes away) in one click;
+  // a link added to an agreed meeting re-sends it, which updates the entry already in the calendar.
+  const withCalendar =
+    event === 'confirmed' || event === 'cancelled' || (event === 'linkAdded' && meeting.status === 'confirmed');
+  const calendar = (url: string) => (withCalendar ? meetingCalendar(meeting, input.projectName, url) : undefined);
 
   let outcome;
   if (input.actorRole === 'client') {
@@ -351,6 +362,257 @@ export async function notifyAboutReviewResponse(input: {
     ...input,
   });
   if (!result.sent) await reportDeliveryFailure('Approval response email not sent', result.error);
+}
+
+/** Emails every client member, in their language, that the notes from a meeting are ready. */
+export async function notifyAboutMeetingNotes(input: {
+  activityId: string;
+  meetingId: string;
+  projectId: string;
+  projectName: string;
+  actorName: string;
+}) {
+  const meeting = await prisma.meeting.findUnique({
+    where: { id: input.meetingId },
+    select: {
+      title: true,
+      outputSummary: true,
+      outputPublishedAt: true,
+      actionItems: { orderBy: { position: 'asc' }, select: { text: true, owner: true } },
+    },
+  });
+  if (!meeting?.outputPublishedAt) return;
+
+  const recipients = await clientRecipients(input.projectId);
+  const url = portalUrl(`/portal/projects/${input.projectId}?tab=meetings#meeting-${input.meetingId}`);
+  const results = await Promise.all(
+    recipients.map(async (user) => ({
+      to: user.email,
+      result: await sendMeetingNotesEmail({
+        to: user.email,
+        locale: user.locale,
+        actorName: input.actorName,
+        projectName: input.projectName,
+        meetingTitle: meeting.title,
+        summary: meeting.outputSummary,
+        actionItems: meeting.actionItems,
+        url,
+      }),
+    }))
+  );
+  const outcome = recipients.length
+    ? combineResults(results)
+    : { sent: false, error: 'No client has access to this project yet.' };
+
+  await updateActivityMeta(input.activityId, { emailSent: outcome.sent, emailError: outcome.error ?? null });
+  if (!outcome.sent) await reportDeliveryFailure('Meeting notes email not sent', outcome.error);
+}
+
+/** Tells the admin about a client's comment under meeting notes (the admin's own replies send nothing). */
+export async function notifyAboutMeetingComment(input: {
+  activityId: string;
+  meetingId: string;
+  projectId: string;
+  projectName: string;
+  clientName: string;
+  clientEmail: string;
+  comment: string;
+}) {
+  const meeting = await prisma.meeting.findUnique({ where: { id: input.meetingId }, select: { title: true } });
+  if (!meeting) return;
+  const result = await sendMeetingCommentEmail({
+    to: adminNotifyAddress(),
+    clientName: input.clientName,
+    clientEmail: input.clientEmail,
+    projectName: input.projectName,
+    meetingTitle: meeting.title,
+    comment: input.comment,
+    url: portalUrl(`/admin-jfaygpory6/projects/${input.projectId}?tab=meetings#meeting-${input.meetingId}`),
+  });
+  await updateActivityMeta(input.activityId, { emailSent: result.sent, emailError: result.error ?? null });
+  if (!result.sent) await reportDeliveryFailure('Meeting comment email not sent', result.error);
+}
+
+/**
+ * Tells the other side about a task comment: the admin when a client wrote,
+ * every client when the admin wrote on a task shown to them (a comment on an
+ * internal task is an internal note). Like messages, one email per batch: a
+ * recipient emailed less than a day ago who has not commented since gets no
+ * new one; when an email does go out it counts their unanswered comments.
+ * Each send is claimed first, and a failed send releases the claim.
+ */
+export async function notifyAboutTaskComment(input: {
+  activityId: string;
+  projectId: string;
+  projectName: string;
+  taskId: string;
+  taskTitle: string;
+  taskVisible: boolean;
+  authorRole: string;
+  authorName: string;
+  authorEmail: string;
+  comment: string;
+  attachments: number;
+}) {
+  const now = new Date();
+  const { projectId } = input;
+  const email = {
+    authorName: input.authorName,
+    projectName: input.projectName,
+    taskTitle: input.taskTitle,
+    comment: input.comment,
+    attachments: input.attachments,
+  };
+  /** Covered by an earlier email: sent less than a day ago, and the recipient has not commented since. */
+  const covered = async (previous: Date | null, sinceFilter: Prisma.TaskCommentWhereInput) =>
+    previous !== null &&
+    now.getTime() - previous.getTime() < RENOTIFY_AFTER_MS &&
+    (await prisma.taskComment.count({ where: { projectId, ...sinceFilter, createdAt: { gt: previous } } })) === 0;
+  /** The other side's comments after the recipient's own latest one (on tasks the recipient sees). */
+  const unanswered = async (recipientFilter: Prisma.TaskCommentWhereInput, otherFilter: Prisma.TaskCommentWhereInput) => {
+    const last = await prisma.taskComment.findFirst({
+      where: { projectId, ...recipientFilter },
+      orderBy: { createdAt: 'desc' },
+      select: { createdAt: true },
+    });
+    const count = await prisma.taskComment.count({
+      where: { projectId, ...otherFilter, ...(last ? { createdAt: { gt: last.createdAt } } : {}) },
+    });
+    return Math.max(1, count);
+  };
+
+  const results: { to: string; result: EmailSendResult }[] = [];
+  let batched = 0;
+
+  if (input.authorRole === 'client') {
+    const project = await prisma.project.findUnique({
+      where: { id: projectId },
+      select: { adminTaskCommentsNotifiedAt: true },
+    });
+    if (!project) return;
+    const previous = project.adminTaskCommentsNotifiedAt;
+    const claimed =
+      !(await covered(previous, { authorRole: 'admin' })) &&
+      (await prisma.project.updateMany({
+        where: { id: projectId, adminTaskCommentsNotifiedAt: previous },
+        data: { adminTaskCommentsNotifiedAt: now },
+      })).count === 1;
+    if (!claimed) {
+      batched++;
+    } else {
+      const to = adminNotifyAddress();
+      const result = await sendTaskCommentEmail({
+        ...email,
+        to,
+        locale: 'en',
+        count: await unanswered({ authorRole: 'admin' }, { authorRole: 'client' }),
+        url: portalUrl(`/admin-jfaygpory6/projects/${projectId}?tab=milestones#task-${input.taskId}`),
+        replyTo: input.authorEmail,
+      });
+      if (!result.sent) {
+        await prisma.project.updateMany({
+          where: { id: projectId, adminTaskCommentsNotifiedAt: now },
+          data: { adminTaskCommentsNotifiedAt: previous },
+        });
+      }
+      results.push({ to, result });
+    }
+  } else {
+    if (!input.taskVisible) return;
+    const members = await prisma.projectMember.findMany({
+      where: { projectId, user: { role: 'client' } },
+      select: { id: true, taskCommentsNotifiedAt: true, user: { select: { id: true, email: true, locale: true } } },
+    });
+    if (!members.length) {
+      await updateActivityMeta(input.activityId, { emailSent: false, emailError: 'No client has access to this project yet.' });
+      return;
+    }
+    await Promise.all(
+      members.map(async (member) => {
+        const previous = member.taskCommentsNotifiedAt;
+        const claimed =
+          !(await covered(previous, { authorId: member.user.id })) &&
+          (await prisma.projectMember.updateMany({
+            where: { id: member.id, taskCommentsNotifiedAt: previous },
+            data: { taskCommentsNotifiedAt: now },
+          })).count === 1;
+        if (!claimed) {
+          batched++;
+          return;
+        }
+        const result = await sendTaskCommentEmail({
+          ...email,
+          to: member.user.email,
+          locale: member.user.locale,
+          count: await unanswered(
+            { authorId: member.user.id },
+            { authorRole: 'admin', task: { visibleToClient: true } }
+          ),
+          url: portalUrl(`/portal/projects/${projectId}?tab=milestones#task-${input.taskId}`),
+        });
+        if (!result.sent) {
+          await prisma.projectMember.updateMany({
+            where: { id: member.id, taskCommentsNotifiedAt: now },
+            data: { taskCommentsNotifiedAt: previous },
+          });
+        }
+        results.push({ to: member.user.email, result });
+      })
+    );
+  }
+
+  const outcome = results.length ? combineResults(results) : null;
+  await updateActivityMeta(
+    input.activityId,
+    outcome
+      ? { emailSent: outcome.sent, emailError: outcome.error ?? null }
+      : { emailSent: false, emailError: null, emailBatched: batched > 0 }
+  );
+  if (outcome && !outcome.sent) await reportDeliveryFailure('Task comment email not sent', outcome.error);
+}
+
+/** A reply under a change request: the admin is emailed when a client wrote, every client when the admin did. */
+export async function notifyAboutChangeReply(input: {
+  activityId: string;
+  projectId: string;
+  projectName: string;
+  milestoneId: string;
+  milestoneTitle: string;
+  authorRole: 'admin' | 'client';
+  authorName: string;
+  authorEmail: string;
+  comment: string;
+}) {
+  const email = {
+    authorName: input.authorName,
+    projectName: input.projectName,
+    milestoneTitle: input.milestoneTitle,
+    comment: input.comment,
+  };
+  let outcome: EmailSendResult;
+  if (input.authorRole === 'client') {
+    const to = adminNotifyAddress();
+    const result = await sendChangeReplyEmail({
+      ...email,
+      to,
+      locale: 'en',
+      url: portalUrl(`/admin-jfaygpory6/projects/${input.projectId}?tab=milestones#milestone-${input.milestoneId}`),
+      replyTo: input.authorEmail,
+    });
+    outcome = combineResults([{ to, result }]);
+  } else {
+    const recipients = await clientRecipients(input.projectId);
+    const url = portalUrl(`/portal/projects/${input.projectId}?tab=milestones#milestone-${input.milestoneId}`);
+    const results = await Promise.all(
+      recipients.map(async (user) => ({
+        to: user.email,
+        result: await sendChangeReplyEmail({ ...email, to: user.email, locale: user.locale, url }),
+      }))
+    );
+    outcome = recipients.length ? combineResults(results) : { sent: false, error: 'No client has access to this project yet.' };
+  }
+  await updateActivityMeta(input.activityId, { emailSent: outcome.sent, emailError: outcome.error ?? null });
+  if (!outcome.sent) await reportDeliveryFailure('Change-request reply email not sent', outcome.error);
 }
 
 function meetingCalendar(meeting: CalendarMeeting, projectName: string, url: string) {

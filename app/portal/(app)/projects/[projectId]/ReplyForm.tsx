@@ -3,8 +3,9 @@
 import { FormEvent, KeyboardEvent, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Paperclip, SendHorizontal, X } from 'lucide-react';
-import { MESSAGE_MAX_ATTACHMENTS, MESSAGE_MAX_LENGTH } from '../../../../lib/portal/constants';
-import { jsonRequest, readJson, useErrorMessage, type ApiErrorBody } from '../../../_components/useErrorMessage';
+import { MESSAGE_MAX_ATTACHMENTS, MESSAGE_MAX_LENGTH, type UploadSettings } from '../../../../lib/portal/constants';
+import { attachmentsRequest } from '../../../../lib/portal/uploadClient';
+import { readJson, useErrorMessage, type ApiErrorBody } from '../../../_components/useErrorMessage';
 import styles from '../../../portal.module.css';
 
 /** Grows the composer with its text, up to about six lines (then it scrolls). */
@@ -15,12 +16,18 @@ function grow(textarea: HTMLTextAreaElement, reset = false) {
 
 type Props = {
   projectId: string;
-  /** Attachments travel with the message, so together they share the upload limit. */
-  upload: { maxBytes: number; maxSizeLabel: string; accept: string };
+  /** Each attachment may be up to the upload limit (with Vercel Blob they upload directly). */
+  upload: UploadSettings;
   onSent: () => Promise<void>;
+  /** Where it posts (default: the conversation); task comments reuse this composer. */
+  url?: string;
+  /** Unique per composer on the page (the field ids derive from it). */
+  inputId?: string;
+  /** Overrides for the field label, placeholder and the "sent" notice. */
+  labels?: { label?: string; placeholder?: string; sent?: string };
 };
 
-export default function ReplyForm({ projectId, upload, onSent }: Props) {
+export default function ReplyForm({ projectId, upload, onSent, url, inputId = 'portal-reply', labels = {} }: Props) {
   const t = useTranslations('portal.project');
   const errorMessage = useErrorMessage();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -40,7 +47,7 @@ export default function ReplyForm({ projectId, upload, onSent }: Props) {
       setError(errorMessage({ code: 'tooManyFiles' }, { max: MESSAGE_MAX_ATTACHMENTS }));
       return;
     }
-    if (next.reduce((sum, file) => sum + file.size, 0) > upload.maxBytes) {
+    if (next.some((file) => file.size > upload.maxBytes)) {
       setError(errorMessage({ code: 'fileTooLarge' }, { size: upload.maxSizeLabel }));
       return;
     }
@@ -53,16 +60,16 @@ export default function ReplyForm({ projectId, upload, onSent }: Props) {
     setError('');
     setNotice('');
     try {
-      let init: RequestInit;
-      if (files.length) {
-        const body = new FormData();
-        body.append('content', content);
-        for (const file of files) body.append('files', file);
-        init = { method: 'POST', body };
-      } else {
-        init = jsonRequest('POST', { content });
+      const prepared = await attachmentsRequest(content, files, {
+        direct: upload.direct,
+        tokenUrl: `/api/portal/projects/${projectId}/uploads`,
+        projectId,
+      });
+      if (!prepared.ok) {
+        setError(errorMessage({ code: prepared.code }, { size: upload.maxSizeLabel, max: MESSAGE_MAX_ATTACHMENTS }));
+        return;
       }
-      const response = await fetch(`/api/portal/projects/${projectId}/messages`, init);
+      const response = await fetch(url ?? `/api/portal/projects/${projectId}/messages`, prepared.init);
       if (!response.ok) {
         setError(errorMessage(await readJson<ApiErrorBody>(response), { size: upload.maxSizeLabel, max: MESSAGE_MAX_ATTACHMENTS }));
         return;
@@ -71,7 +78,7 @@ export default function ReplyForm({ projectId, upload, onSent }: Props) {
       setFiles([]);
       if (textareaRef.current) grow(textareaRef.current, true);
       await onSent();
-      setNotice(t('sent'));
+      setNotice(labels.sent ?? t('sent'));
       // The emptied form disables Send; keep keyboard users in the composer.
       textareaRef.current?.focus();
     } catch {
@@ -122,7 +129,7 @@ export default function ReplyForm({ projectId, upload, onSent }: Props) {
       <div className={styles.composerBar}>
         <input
           ref={fileInputRef}
-          id="portal-reply-files"
+          id={`${inputId}-files`}
           type="file"
           multiple
           accept={upload.accept}
@@ -139,18 +146,18 @@ export default function ReplyForm({ projectId, upload, onSent }: Props) {
         >
           <Paperclip size={18} strokeWidth={2} aria-hidden="true" />
         </button>
-        <label className="visually-hidden" htmlFor="portal-reply">
-          {t('replyLabel')}
+        <label className="visually-hidden" htmlFor={inputId}>
+          {labels.label ?? t('replyLabel')}
         </label>
         <textarea
           ref={textareaRef}
-          id="portal-reply"
+          id={inputId}
           className={styles.composerInput}
           dir="auto"
           rows={1}
           maxLength={MESSAGE_MAX_LENGTH}
-          placeholder={t('replyPlaceholder')}
-          aria-describedby="portal-reply-hint"
+          placeholder={labels.placeholder ?? t('replyPlaceholder')}
+          aria-describedby={`${inputId}-hint`}
           value={content}
           onChange={(e) => {
             setContent(e.target.value);
@@ -171,7 +178,7 @@ export default function ReplyForm({ projectId, upload, onSent }: Props) {
         </button>
       </div>
       <div className={styles.composerFoot}>
-        <span id="portal-reply-hint">{t('sendHint')}</span>
+        <span id={`${inputId}-hint`}>{t('sendHint')}</span>
         <span role="status">{notice}</span>
       </div>
     </form>

@@ -354,13 +354,19 @@
       "meetingTopic": "Topic",
       "meetingWhen": "Date and time (your local time)",
       "meetingDurationLabel": "Duration",
-      "meetingLocation": "Place or video link (optional)",
+      "meetingLinkLater": "Meetings are on Google Meet. Michael will add the link once the time is set.",
+      "meetingLinkPending": "Google Meet link coming soon",
+      "meetingJoinLink": "Google Meet link",
       "meetingAgenda": "Agenda (optional)",
       "meetingMilestoneLabel": "Related milestone (optional)",
       "meetingNoMilestone": "None",
       "meetingPropose": "Propose meeting",
       "meetingSending": "Sending…",
       "meetingSent": "Done. The other side has been notified.",
+      "meetingSaved": "Saved.",
+      "meetingEditDetails": "Edit details",
+      "meetingSaveChanges": "Save changes",
+      "meetingEditTimeHint": "To change the date or time, use “Suggest another time”.",
       "meetingsUpcoming": "Upcoming",
       "meetingsEarlier": "Past and cancelled",
       "meetingJoin": "Join meeting",
@@ -402,13 +408,47 @@
       "newMessages": "New messages",
       "attachmentsLabel": "Attachments",
       "attachFiles": "Attach files",
-      "attachHint": "Attach up to {max} files ({size} together)",
+      "attachHint": "Attach up to {max} files (up to {size} each)",
       "removeAttachment": "Remove {name}",
       "unreadLabel": "Unread",
       "overviewUnread": "{count, plural, one {# new message} other {# new messages}}",
       "overviewAttachmentsOnly": "{count, plural, one {Sent an attachment} other {Sent # attachments}}",
       "meetingCancelYes": "Cancel meeting",
-      "meetingCancelKeep": "Keep it"
+      "meetingCancelKeep": "Keep it",
+      "meetingNotesTitle": "Meeting notes",
+      "meetingNotesShared": "Shared {when}",
+      "meetingActionItemsTitle": "Action items",
+      "meetingActionOwnerYou": "You",
+      "meetingActionOwnerLead": "Project lead",
+      "meetingActionDone": "Done by {name} · {when}",
+      "meetingNotesConfirmPrompt": "Do these notes match what we agreed? Confirm them, or add a comment below with any corrections.",
+      "meetingNotesConfirm": "Looks right",
+      "meetingNotesConfirmed": "Confirmed by {name} · {when}",
+      "meetingNotesConfirmedNotice": "Thanks, the notes are confirmed.",
+      "meetingCommentsTitle": "Comments",
+      "meetingCommentLabel": "Add a comment or correction",
+      "meetingCommentSend": "Send comment",
+      "meetingCommentSent": "Comment sent.",
+      "taskCommentsTitle": "Comments",
+      "taskCommentsCount": "{count, plural, one {# comment} other {# comments}}",
+      "taskCommentsEmpty": "A question or feedback about this task? Comment here and the project lead is notified.",
+      "taskCommentLabel": "Comment on “{task}”",
+      "taskCommentPlaceholder": "Write a comment…",
+      "taskCommentSent": "Comment sent.",
+      "filesImagesTitle": "Images",
+      "filesDocumentsTitle": "Documents",
+      "openImage": "Open {name}",
+      "lightboxClose": "Close",
+      "lightboxPrevious": "Previous image",
+      "lightboxNext": "Next image",
+      "lightboxPosition": "{n} of {total}",
+      "changesTitle": "Changes requested",
+      "changesBy": "{name} asked for changes · {date}",
+      "changesReplyLabel": "Reply about these changes",
+      "changesReplyPlaceholder": "Write a reply…",
+      "changesReplySend": "Send reply",
+      "changesReplySent": "Reply sent.",
+      "changesNoText": "No details were given."
     },
     "activity": {
       "PROJECT_CREATED": "Project created",
@@ -426,10 +466,20 @@
       "MEETING_RESCHEDULED": "New time proposed for meeting: {title}",
       "MEETING_CONFIRMED": "Meeting confirmed: {title}",
       "MEETING_CANCELLED": "Meeting cancelled: {title}",
+      "MEETING_UPDATED": "Meeting details updated: {title}",
+      "MEETING_LINK_ADDED": "Meeting link shared: {title}",
       "PROPOSAL_ACCEPTED": "{name} accepted the proposal",
       "MILESTONE_REVIEW_REQUESTED": "Ready for your approval: {title}",
       "MILESTONE_APPROVED": "{name} approved: {title}",
-      "MILESTONE_CHANGES_REQUESTED": "{name} asked for changes: {title}"
+      "MILESTONE_CHANGES_REQUESTED": "{name} asked for changes: {title}",
+      "MEETING_NO_SHOW": "Meeting marked as not held: {title}",
+      "MEETING_NOTES_PUBLISHED": "Meeting notes shared: {title}",
+      "MEETING_NOTES_UPDATED": "Meeting notes updated: {title}",
+      "MEETING_NOTES_ACKNOWLEDGED": "{name} confirmed the meeting notes: {title}",
+      "MEETING_NOTES_COMMENTED": "{name} commented on the meeting notes: {title}",
+      "MEETING_ACTION_ITEM_DONE": "Action item done: {title}",
+      "TASK_COMMENTED": "{name} commented on the task: {title}",
+      "MILESTONE_CHANGES_COMMENTED": "{name} replied about the requested changes: {title}"
     },
     "errors": {
       "generic": "Something went wrong. Please try again.",
@@ -460,12 +510,16 @@
       "meetingConfirmed": "This meeting is already confirmed.",
       "meetingAwaitingOther": "The other side needs to reply to your proposal.",
       "meetingChanged": "This meeting was just changed. Reload the page and try again.",
+      "meetingPast": "This meeting is already over.",
+      "meetingDetailsLocked": "Only the project lead can change the details of this meeting.",
       "proposalInvalid": "This proposal link isn’t valid.",
       "proposalExpired": "This proposal has expired. You can still ask for changes.",
       "proposalClosed": "This proposal was already answered or replaced. Reload the page.",
       "reviewNotPending": "This milestone is no longer awaiting approval. Reload the page.",
       "tooManyFiles": "Attach at most {max} files to one message.",
-      "wrongCurrentPassword": "Your current password isn’t correct."
+      "wrongCurrentPassword": "Your current password isn’t correct.",
+      "meetingNotesChanged": "These notes were just changed. Read them again before confirming.",
+      "reviewNotOpen": "This change request is closed: a newer approval request replaced it."
     },
     "forbidden": {
       "title": "You don’t have access to this project",
@@ -481,7 +535,9 @@
       "proposed": "Awaiting reply",
       "confirmed": "Confirmed",
       "cancelled": "Cancelled",
-      "past": "Past"
+      "past": "Past",
+      "held": "Held",
+      "no_show": "Did not take place"
     },
     "activityCategories": {
       "project": "Project",
@@ -636,7 +692,7 @@
     },
     "meeting": {
       "when": "When: {when} ({minutes} min)",
-      "where": "Where: {location}",
+      "where": "Google Meet: {location}",
       "milestone": "Milestone: {milestone}",
       "ctaRespond": "Accept or suggest another time",
       "ctaView": "View the meeting",
@@ -659,6 +715,11 @@
         "subject": "Meeting cancelled: {title}",
         "heading": "Meeting cancelled",
         "body": "{actor} cancelled the meeting “{title}” for “{project}”."
+      },
+      "linkAdded": {
+        "subject": "Meeting link for “{title}”",
+        "heading": "Your meeting link is ready",
+        "body": "{actor} shared the Google Meet link for “{title}” on “{project}”."
       },
       "calendarAttached": "Open the attached meeting.ics to add it to your calendar or update it there.",
       "reminder": {
@@ -714,6 +775,34 @@
         "body": "{client} asked for changes to “{milestone}” for “{project}”:"
       },
       "cta": "Open the project"
+    },
+    "meetingNotes": {
+      "subject": "Notes from “{title}”",
+      "heading": "Your meeting notes are ready",
+      "body": "{actor} shared the notes from “{title}” for “{project}”:",
+      "actionItems": "Action items:",
+      "ownerYou": "you",
+      "cta": "Review the notes",
+      "confirm": "If anything is missing or not quite right, add a comment under the notes. Otherwise, please confirm them."
+    },
+    "meetingComment": {
+      "subject": "{client} commented on the notes for “{title}” ({project})",
+      "heading": "New comment on meeting notes",
+      "body": "{client} commented on the notes from “{title}” for “{project}”:",
+      "cta": "Open the meeting"
+    },
+    "taskComment": {
+      "subject": "{author} commented on “{task}”",
+      "heading": "New comment on a task",
+      "body": "{author} commented on the task “{task}” in “{project}”:",
+      "bodyMany": "{author} commented on the task “{task}” in “{project}”. Unanswered comments: {count}. The newest:",
+      "cta": "Open the task"
+    },
+    "changeReply": {
+      "subject": "{author} replied about the changes to “{milestone}”",
+      "heading": "New reply about requested changes",
+      "body": "{author} replied about the changes requested for “{milestone}” in “{project}”:",
+      "cta": "Open the milestone"
     }
   }
 }

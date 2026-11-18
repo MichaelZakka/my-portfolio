@@ -495,13 +495,19 @@
       "meetingTopic": "الموضوع",
       "meetingWhen": "التاريخ والوقت (بتوقيتك المحلي)",
       "meetingDurationLabel": "المدة",
-      "meetingLocation": "المكان أو رابط الاجتماع (اختياري)",
+      "meetingLinkLater": "تُعقد الاجتماعات عبر Google Meet، وسيضيف مايكل الرابط بعد تحديد الموعد.",
+      "meetingLinkPending": "سيُضاف رابط Google Meet قريباً",
+      "meetingJoinLink": "رابط Google Meet",
       "meetingAgenda": "جدول الأعمال (اختياري)",
       "meetingMilestoneLabel": "المرحلة المرتبطة (اختياري)",
       "meetingNoMilestone": "بدون",
       "meetingPropose": "اقتراح الاجتماع",
       "meetingSending": "جارٍ الإرسال…",
       "meetingSent": "تم. أُبلغ الطرف الآخر.",
+      "meetingSaved": "تم الحفظ.",
+      "meetingEditDetails": "تعديل التفاصيل",
+      "meetingSaveChanges": "حفظ التغييرات",
+      "meetingEditTimeHint": "لتغيير التاريخ أو الوقت، استخدم «اقتراح موعد آخر».",
       "meetingsUpcoming": "القادمة",
       "meetingsEarlier": "السابقة والملغاة",
       "meetingJoin": "الانضمام إلى الاجتماع",
@@ -543,13 +549,47 @@
       "newMessages": "رسائل جديدة",
       "attachmentsLabel": "المرفقات",
       "attachFiles": "إرفاق ملفات",
-      "attachHint": "حتى {max} ملفات بحجم إجمالي {size}",
+      "attachHint": "حتى {max} ملفات، بحجم أقصى {size} لكل ملف",
       "removeAttachment": "إزالة {name}",
       "unreadLabel": "غير مقروءة",
       "overviewUnread": "{count, plural, one {رسالة جديدة واحدة} two {رسالتان جديدتان} few {# رسائل جديدة} many {# رسالة جديدة} other {# رسالة جديدة}}",
       "overviewAttachmentsOnly": "{count, plural, one {أُرسل مرفق} two {أُرسل مرفقان} few {أُرسلت # مرفقات} many {أُرسل # مرفقاً} other {أُرسل # مرفق}}",
       "meetingCancelYes": "إلغاء الاجتماع",
-      "meetingCancelKeep": "الإبقاء عليه"
+      "meetingCancelKeep": "الإبقاء عليه",
+      "meetingNotesTitle": "ملاحظات الاجتماع",
+      "meetingNotesShared": "نُشرت {when}",
+      "meetingActionItemsTitle": "المهام المتّفق عليها",
+      "meetingActionOwnerYou": "أنت",
+      "meetingActionOwnerLead": "مسؤول المشروع",
+      "meetingActionDone": "أنجزها {name} · {when}",
+      "meetingNotesConfirmPrompt": "هل تطابق هذه الملاحظات ما اتفقنا عليه؟ أكّدها، أو أضف تعليقاً بالأسفل بأي تصحيحات.",
+      "meetingNotesConfirm": "الملاحظات صحيحة",
+      "meetingNotesConfirmed": "أكّدها {name} · {when}",
+      "meetingNotesConfirmedNotice": "شكراً، تم تأكيد الملاحظات.",
+      "meetingCommentsTitle": "التعليقات",
+      "meetingCommentLabel": "أضف تعليقاً أو تصحيحاً",
+      "meetingCommentSend": "إرسال التعليق",
+      "meetingCommentSent": "تم إرسال التعليق.",
+      "taskCommentsTitle": "التعليقات",
+      "taskCommentsCount": "{count, plural, zero {لا تعليقات} one {تعليق واحد} two {تعليقان} few {# تعليقات} many {# تعليقاً} other {# تعليق}}",
+      "taskCommentsEmpty": "لديك سؤال أو ملاحظة حول هذه المهمة؟ اكتب تعليقاً هنا وسيصل إشعار إلى مسؤول المشروع.",
+      "taskCommentLabel": "تعليق على «{task}»",
+      "taskCommentPlaceholder": "اكتب تعليقاً…",
+      "taskCommentSent": "تم إرسال التعليق.",
+      "filesImagesTitle": "الصور",
+      "filesDocumentsTitle": "المستندات",
+      "openImage": "فتح {name}",
+      "lightboxClose": "إغلاق",
+      "lightboxPrevious": "الصورة السابقة",
+      "lightboxNext": "الصورة التالية",
+      "lightboxPosition": "{n} من {total}",
+      "changesTitle": "تعديلات مطلوبة",
+      "changesBy": "طلب {name} تعديلات · {date}",
+      "changesReplyLabel": "الرد بخصوص هذه التعديلات",
+      "changesReplyPlaceholder": "اكتب ردّاً…",
+      "changesReplySend": "إرسال الرد",
+      "changesReplySent": "تم إرسال الرد.",
+      "changesNoText": "لم تُذكر تفاصيل."
     },
     "activity": {
       "PROJECT_CREATED": "تم إنشاء المشروع",
@@ -567,10 +607,20 @@
       "MEETING_RESCHEDULED": "اقتراح موعد جديد للاجتماع: {title}",
       "MEETING_CONFIRMED": "تأكيد الاجتماع: {title}",
       "MEETING_CANCELLED": "إلغاء الاجتماع: {title}",
+      "MEETING_UPDATED": "تحديث تفاصيل الاجتماع: {title}",
+      "MEETING_LINK_ADDED": "مشاركة رابط الاجتماع: {title}",
       "PROPOSAL_ACCEPTED": "تمت الموافقة على العرض من قِبل {name}",
       "MILESTONE_REVIEW_REQUESTED": "بانتظار موافقتك: {title}",
       "MILESTONE_APPROVED": "تمت الموافقة على «{title}» من قِبل {name}",
-      "MILESTONE_CHANGES_REQUESTED": "طلب تعديلات على «{title}» من {name}"
+      "MILESTONE_CHANGES_REQUESTED": "طلب تعديلات على «{title}» من {name}",
+      "MEETING_NO_SHOW": "تسجيل أن الاجتماع لم يُعقد: {title}",
+      "MEETING_NOTES_PUBLISHED": "مشاركة ملاحظات الاجتماع: {title}",
+      "MEETING_NOTES_UPDATED": "تحديث ملاحظات الاجتماع: {title}",
+      "MEETING_NOTES_ACKNOWLEDGED": "أكّد {name} ملاحظات الاجتماع: {title}",
+      "MEETING_NOTES_COMMENTED": "علّق {name} على ملاحظات الاجتماع: {title}",
+      "MEETING_ACTION_ITEM_DONE": "إنجاز مهمة متّفق عليها: {title}",
+      "TASK_COMMENTED": "علّق {name} على المهمة: {title}",
+      "MILESTONE_CHANGES_COMMENTED": "ردّ {name} بخصوص التعديلات المطلوبة: {title}"
     },
     "errors": {
       "generic": "حدث خطأ ما. يرجى المحاولة مرة أخرى.",
@@ -601,12 +651,16 @@
       "meetingConfirmed": "هذا الاجتماع مؤكَّد مسبقاً.",
       "meetingAwaitingOther": "على الطرف الآخر الرد على اقتراحك.",
       "meetingChanged": "تم تعديل هذا الاجتماع للتو. أعد تحميل الصفحة وحاول مجدداً.",
+      "meetingPast": "انتهى هذا الاجتماع.",
+      "meetingDetailsLocked": "لا يمكن تعديل تفاصيل هذا الاجتماع إلا من قِبل مدير المشروع.",
       "proposalInvalid": "رابط العرض هذا غير صالح.",
       "proposalExpired": "انتهت صلاحية هذا العرض. لا يزال بإمكانك طلب تعديلات.",
       "proposalClosed": "سبق الرد على هذا العرض أو تم استبداله. أعد تحميل الصفحة.",
       "reviewNotPending": "لم تعد هذه المرحلة بانتظار الموافقة. أعد تحميل الصفحة.",
       "tooManyFiles": "الحد الأقصى للمرفقات في الرسالة الواحدة: {max}.",
-      "wrongCurrentPassword": "كلمة المرور الحالية غير صحيحة."
+      "wrongCurrentPassword": "كلمة المرور الحالية غير صحيحة.",
+      "meetingNotesChanged": "تغيّرت هذه الملاحظات للتو. اقرأها مجدداً قبل التأكيد.",
+      "reviewNotOpen": "طلب التعديل هذا مغلق: حلّ محله طلب موافقة أحدث."
     },
     "forbidden": {
       "title": "ليست لديك صلاحية الوصول إلى هذا المشروع",
@@ -622,7 +676,9 @@
       "proposed": "بانتظار الرد",
       "confirmed": "مؤكَّد",
       "cancelled": "ملغى",
-      "past": "منتهٍ"
+      "past": "منتهٍ",
+      "held": "عُقد",
+      "no_show": "لم يُعقد"
     },
     "activityCategories": {
       "project": "المشروع",
@@ -777,7 +833,7 @@
     },
     "meeting": {
       "when": "الموعد: {when} ({minutes} دقيقة)",
-      "where": "المكان: {location}",
+      "where": "رابط Google Meet: {location}",
       "milestone": "المرحلة: {milestone}",
       "ctaRespond": "القبول أو اقتراح موعد آخر",
       "ctaView": "عرض الاجتماع",
@@ -800,6 +856,11 @@
         "subject": "تم إلغاء الاجتماع: {title}",
         "heading": "تم إلغاء الاجتماع",
         "body": "ألغى {actor} اجتماع «{title}» الخاص بمشروع «{project}»."
+      },
+      "linkAdded": {
+        "subject": "رابط اجتماع «{title}»",
+        "heading": "رابط الاجتماع جاهز",
+        "body": "شارك {actor} رابط Google Meet لاجتماع «{title}» الخاص بمشروع «{project}»."
       },
       "calendarAttached": "افتح الملف المرفق meeting.ics لإضافة الاجتماع إلى تقويمك أو تحديثه فيه.",
       "reminder": {
@@ -855,6 +916,34 @@
         "body": "طلب تعديلات من {client} على «{milestone}» في مشروع «{project}»:"
       },
       "cta": "فتح المشروع"
+    },
+    "meetingNotes": {
+      "subject": "ملاحظات اجتماع «{title}»",
+      "heading": "ملاحظات اجتماعك جاهزة",
+      "body": "شارك {actor} ملاحظات اجتماع «{title}» الخاص بمشروع «{project}»:",
+      "actionItems": "المهام المتّفق عليها:",
+      "ownerYou": "أنت",
+      "cta": "مراجعة الملاحظات",
+      "confirm": "إن كان هناك ما ينقص أو ما يحتاج إلى تصحيح، أضف تعليقاً تحت الملاحظات. وإلا فيُرجى تأكيدها."
+    },
+    "meetingComment": {
+      "subject": "علّق {client} على ملاحظات «{title}» ({project})",
+      "heading": "تعليق جديد على ملاحظات الاجتماع",
+      "body": "علّق {client} على ملاحظات اجتماع «{title}» الخاص بمشروع «{project}»:",
+      "cta": "فتح الاجتماع"
+    },
+    "taskComment": {
+      "subject": "علّق {author} على «{task}»",
+      "heading": "تعليق جديد على مهمة",
+      "body": "علّق {author} على مهمة «{task}» في مشروع «{project}»:",
+      "bodyMany": "علّق {author} على مهمة «{task}» في مشروع «{project}». عدد التعليقات التي لم تُرَدّ بعد: {count}. أحدثها:",
+      "cta": "فتح المهمة"
+    },
+    "changeReply": {
+      "subject": "ردّ {author} بخصوص التعديلات على «{milestone}»",
+      "heading": "ردّ جديد بخصوص التعديلات المطلوبة",
+      "body": "ردّ {author} بخصوص التعديلات المطلوبة على «{milestone}» في مشروع «{project}»:",
+      "cta": "فتح المرحلة"
     }
   }
 }

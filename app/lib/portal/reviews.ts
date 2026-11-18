@@ -26,6 +26,9 @@ export async function requestMilestoneReview(input: {
       select: { id: true, title: true, status: true },
     });
     if (!milestone) return fail(404, 'notFound', 'Milestone not found.');
+    if (milestone.status === 'done') {
+      return fail(409, 'milestoneDone', 'This milestone is already approved. Reopen it first to ask again.');
+    }
 
     const pending = await tx.milestoneReview.findFirst({
       where: { milestoneId, status: 'pending' },
@@ -133,5 +136,61 @@ export async function respondToMilestoneReview(input: {
       tx
     );
     return { ok: true, milestoneTitle: review.milestone.title };
+  });
+}
+
+/**
+ * A reply under a change request: the admin answers the client's requested
+ * changes, the client follows up. Only on the latest answered round of the
+ * milestone, while it is a change request and no new approval request is
+ * open (a new request supersedes the discussion).
+ */
+export async function replyToChangeRequest(input: {
+  projectId: string;
+  milestoneId: string;
+  reviewId: string;
+  author: { id: string; name: string; role: 'admin' | 'client' };
+  body: string;
+}): Promise<{ ok: true; commentId: string; activityId: string; milestoneTitle: string } | Failure> {
+  const { projectId, milestoneId } = input;
+  const rounds = await prisma.milestoneReview.findMany({
+    where: { projectId, milestoneId, status: { not: 'withdrawn' } },
+    orderBy: { requestedAt: 'desc' },
+    take: 1,
+    select: { id: true, status: true, milestone: { select: { title: true } } },
+  });
+  const latest = rounds[0];
+  if (!latest || latest.id !== input.reviewId || latest.status !== 'changes_requested') {
+    return fail(409, 'reviewNotOpen', 'This change request is closed: a newer approval request replaced it.');
+  }
+
+  return prisma.$transaction(async (tx) => {
+    const comment = await tx.reviewComment.create({
+      data: {
+        projectId,
+        reviewId: latest.id,
+        authorId: input.author.id,
+        authorRole: input.author.role,
+        body: input.body,
+      },
+      select: { id: true },
+    });
+    const activity = await logActivity(
+      {
+        projectId,
+        actorId: input.author.id,
+        type: 'MILESTONE_CHANGES_COMMENTED',
+        meta: {
+          milestoneId,
+          reviewId: latest.id,
+          title: latest.milestone.title,
+          name: input.author.name,
+          commentId: comment.id,
+        },
+        visibleToClient: true,
+      },
+      tx
+    );
+    return { ok: true as const, commentId: comment.id, activityId: activity.id, milestoneTitle: latest.milestone.title };
   });
 }

@@ -4,7 +4,8 @@ import { FormEvent, Fragment, KeyboardEvent, useEffect, useLayoutEffect, useRef,
 import { AlertTriangle, CheckCheck, Layers, MessageCircle, Paperclip, SendHorizontal, X } from 'lucide-react';
 import { initials, layoutThread } from '../../../../lib/portal/chat';
 import { useAdminProjectTabs } from './AdminProjectTabs';
-import { MESSAGE_MAX_ATTACHMENTS, MESSAGE_MAX_LENGTH } from '../../../../lib/portal/constants';
+import { MESSAGE_MAX_ATTACHMENTS, MESSAGE_MAX_LENGTH, type UploadSettings } from '../../../../lib/portal/constants';
+import { attachmentsRequest, uploadErrorText } from '../../../../lib/portal/uploadClient';
 import { jsonInit, useAdminAction } from '../useAdminAction';
 import styles from '../../../admin.module.css';
 import projectStyles from '../projects.module.css';
@@ -52,9 +53,11 @@ export default function MessagesPanel({
   hasMore: boolean;
   unread: number;
   lastReadAt: string | null;
-  upload: { maxBytes: number; maxSizeLabel: string; accept: string };
+  upload: UploadSettings;
 }) {
   const { run, pending, error, setError } = useAdminAction();
+  // Direct uploads to Vercel Blob run before the message request itself.
+  const [uploading, setUploading] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const threadRef = useRef<HTMLOListElement>(null);
@@ -137,25 +140,28 @@ export default function MessagesPanel({
       setError(`Attach at most ${MESSAGE_MAX_ATTACHMENTS} files per message.`);
       return;
     }
-    if (next.reduce((sum, file) => sum + file.size, 0) > upload.maxBytes) {
-      setError(`Attachments can be at most ${upload.maxSizeLabel} together. Larger files go under Files.`);
+    if (next.some((file) => file.size > upload.maxBytes)) {
+      setError(`Each attachment can be at most ${upload.maxSizeLabel}.`);
       return;
     }
     setFiles(next);
   };
 
   const send = async () => {
-    if (!canSend || pending) return;
-    let init: RequestInit;
-    if (files.length) {
-      const body = new FormData();
-      body.append('content', content);
-      for (const file of files) body.append('files', file);
-      init = { method: 'POST', body };
-    } else {
-      init = jsonInit('POST', { content });
+    if (!canSend || pending || uploading) return;
+    setError('');
+    setUploading(files.length > 0 && upload.direct);
+    const prepared = await attachmentsRequest(content, files, {
+      direct: upload.direct,
+      tokenUrl: `/api/admin/projects/${projectId}/uploads`,
+      projectId,
+    });
+    setUploading(false);
+    if (!prepared.ok) {
+      setError(uploadErrorText(prepared.code));
+      return;
     }
-    const result = await run('send', `/api/admin/projects/${projectId}/messages`, init);
+    const result = await run('send', `/api/admin/projects/${projectId}/messages`, prepared.init);
     if (result) {
       setContent('');
       setFiles([]);
@@ -360,8 +366,8 @@ export default function MessagesPanel({
               className={projectStyles.sendButton}
               disabled={!canSend && pending === null}
               aria-disabled={pending !== null}
-              aria-busy={pending === 'send'}
-              aria-label={pending === 'send' ? 'Sending…' : 'Send message'}
+              aria-busy={pending === 'send' || uploading}
+              aria-label={uploading ? 'Uploading…' : pending === 'send' ? 'Sending…' : 'Send message'}
               title="Send (Ctrl/⌘ + Enter)"
             >
               <SendHorizontal size={17} aria-hidden="true" />

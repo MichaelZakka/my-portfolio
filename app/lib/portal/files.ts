@@ -49,12 +49,14 @@ export const ALLOWED_MIME_TYPES = FILE_KINDS.map((kind) => kind.mimeType);
 export const ACCEPT_ATTRIBUTE = FILE_KINDS.flatMap((kind) => kind.extensions.map((ext) => `.${ext}`)).join(',');
 
 /**
- * PORTAL_MAX_UPLOAD_MB, default 4. Vercel Functions reject request bodies over
- * 4.5 MB, so raising this only helps on other hosts.
+ * The size limit per file: PORTAL_MAX_UPLOAD_MB, default 25. Vercel Functions
+ * reject request bodies over 4.5 MB, so with Vercel Blob the browser uploads
+ * straight to the store (see claimDirectUploads) and only a reference passes
+ * through the app; the local disk driver still takes the bytes in the request.
  */
 export function getMaxUploadBytes(): number {
   const mb = Number(process.env.PORTAL_MAX_UPLOAD_MB);
-  const safe = Number.isFinite(mb) && mb > 0 ? Math.min(mb, 100) : 4;
+  const safe = Number.isFinite(mb) && mb > 0 ? Math.min(mb, 100) : 25;
   return Math.floor(safe * 1024 * 1024);
 }
 
@@ -83,9 +85,9 @@ const tooLarge = (max: number) =>
   apiError(413, 'fileTooLarge', `Files can be at most ${Math.round(max / 1024 / 1024)} MB.`, { maxBytes: max });
 
 /** Rejects obviously oversized bodies before buffering them (multipart adds a little overhead). */
-export function declaredBodyTooLarge(request: Request, max = getMaxUploadBytes()): Result<null> {
+export function declaredBodyTooLarge(request: Request, max = getMaxUploadBytes(), files = 1): Result<null> {
   const declared = Number(request.headers.get('content-length') || 0);
-  return declared > max + 64 * 1024 ? { ok: false, response: tooLarge(max) } : { ok: true, data: null };
+  return declared > max * files + 64 * 1024 ? { ok: false, response: tooLarge(max) } : { ok: true, data: null };
 }
 
 /** Size and type allow-list for one uploaded file (the stored type comes from the extension, checked against the bytes). */
@@ -107,10 +109,49 @@ export async function validateUploadFile(file: File, max = getMaxUploadBytes()):
   return { ok: true, data: { filename, mimeType: kind.mimeType, bytes } };
 }
 
-/** Parses a multipart body with a `file` field and enforces the size limit and type allow-list. */
+/** A file whose bytes are in storage, ready for its ProjectFile row. */
+export type StoredUpload = {
+  filename: string;
+  mimeType: string;
+  size: number;
+  storageKey: string;
+  storageDriver: StorageDriverName;
+};
+
+/** What the browser sends after uploading straight to Vercel Blob. */
+export type DirectUploadRef = { pathname: string; filename: string };
+
+/** Where browsers may upload directly: a folder per project, checked again when the file is claimed. */
+export const directUploadPrefix = (projectId: string) => `projects/${projectId}/incoming/`;
+
+const stringFields = (entries: Iterable<[string, unknown]>) =>
+  Object.fromEntries([...entries].flatMap(([key, value]) => (typeof value === 'string' ? [[key, value]] : [])));
+
+/**
+ * One upload request: multipart with a `file` field (bytes through the app,
+ * local driver), or JSON `{ pathname, filename, ...fields }` for a file the
+ * browser already put in Vercel Blob. Either way the bytes end up stored and
+ * checked; other string fields (e.g. visibleToClient) are returned as-is.
+ */
 export async function readUpload(
-  request: Request
-): Promise<Result<{ upload: ValidUpload; form: FormData }>> {
+  request: Request,
+  projectId: string
+): Promise<Result<{ stored: StoredUpload; fields: Record<string, string> }>> {
+  if (!request.headers.get('content-type')?.startsWith('multipart/form-data')) {
+    let body: Record<string, unknown> | null = null;
+    try {
+      body = (await request.json()) as Record<string, unknown>;
+    } catch {
+      // handled below
+    }
+    if (!body || typeof body.pathname !== 'string' || typeof body.filename !== 'string') {
+      return { ok: false, response: apiError(400, 'noFile', 'No file was uploaded.') };
+    }
+    const claimed = await claimDirectUploads(projectId, [{ pathname: body.pathname, filename: body.filename }]);
+    if (!claimed.ok) return claimed;
+    return { ok: true, data: { stored: claimed.data[0], fields: stringFields(Object.entries(body)) } };
+  }
+
   const sizeCheck = declaredBodyTooLarge(request);
   if (!sizeCheck.ok) return sizeCheck;
 
@@ -127,20 +168,20 @@ export async function readUpload(
   }
   const upload = await validateUploadFile(file);
   if (!upload.ok) return upload;
-  return { ok: true, data: { upload: upload.data, form } };
+  const written = await writeUploads(projectId, [upload.data]);
+  if (!written.ok) return written;
+  return { ok: true, data: { stored: written.data[0], fields: stringFields(form.entries()) } };
 }
 
-export type WrittenUpload = ValidUpload & { storageKey: string; storageDriver: StorageDriverName };
-
 /** Writes the bytes of every upload. If any write fails, the ones already written are removed again. */
-export async function writeUploads(projectId: string, uploads: ValidUpload[]): Promise<Result<WrittenUpload[]>> {
+export async function writeUploads(projectId: string, uploads: ValidUpload[]): Promise<Result<StoredUpload[]>> {
   const choice = getUploadDriver();
   if (!choice.driver) {
     await reportError({ source: 'storage', message: `File upload refused: ${choice.reason}` });
     return { ok: false, response: apiError(503, 'storageUnavailable', 'File storage is not configured.') };
   }
   const driver = choice.driver;
-  const written: WrittenUpload[] = [];
+  const written: StoredUpload[] = [];
   for (const upload of uploads) {
     const storageKey = `projects/${projectId}/${randomUUID()}`;
     try {
@@ -150,26 +191,114 @@ export async function writeUploads(projectId: string, uploads: ValidUpload[]): P
       await reportError({ source: 'storage', message: `Storage write failed (${driver.name})`, error: err });
       return { ok: false, response: apiError(502, 'storageUnavailable', 'Could not store the file.') };
     }
-    written.push({ ...upload, storageKey, storageDriver: driver.name });
+    written.push({
+      filename: upload.filename,
+      mimeType: upload.mimeType,
+      size: upload.bytes.byteLength,
+      storageKey,
+      storageDriver: driver.name,
+    });
   }
   return { ok: true, data: written };
 }
 
 /** Removes stored bytes whose database rows were never written. */
-export async function discardUploads(written: WrittenUpload[]) {
+export async function discardUploads(written: StoredUpload[]) {
   await Promise.all(written.map((file) => deleteStoredFile(file)));
 }
 
-/** Writes the bytes, then the ProjectFile row and its FILE_UPLOADED activity (bytes are removed again if the DB write fails). */
+const SNIFF_BYTES = 8192;
+
+/** The first bytes of a stored file (enough to check its type), then stops reading. */
+async function readHead(stream: ReadableStream<Uint8Array>): Promise<Uint8Array> {
+  const reader = stream.getReader();
+  const head = new Uint8Array(SNIFF_BYTES);
+  let length = 0;
+  try {
+    while (length < SNIFF_BYTES) {
+      const { done, value } = await reader.read();
+      if (done || !value) break;
+      const part = value.subarray(0, SNIFF_BYTES - length);
+      head.set(part, length);
+      length += part.byteLength;
+    }
+  } finally {
+    await reader.cancel().catch(() => {});
+  }
+  return head.subarray(0, length);
+}
+
+/**
+ * Accepts files the browser uploaded straight to Vercel Blob (with a client
+ * token from the project's /uploads route). Each must sit in this project's
+ * incoming folder, be unclaimed, within the size limit, and have bytes that
+ * match its extension, exactly as for an upload through the app. If any
+ * fails, all of them are deleted. Nothing is written to the database here.
+ */
+export async function claimDirectUploads(projectId: string, refs: DirectUploadRef[]): Promise<Result<StoredUpload[]>> {
+  const driver = getDriverFor('vercel-blob');
+  if (!driver || !process.env.BLOB_READ_WRITE_TOKEN) {
+    return { ok: false, response: apiError(503, 'storageUnavailable', 'File storage is not configured.') };
+  }
+  const max = getMaxUploadBytes();
+  const prefix = directUploadPrefix(projectId);
+  const notFound = apiError(400, 'noFile', 'That upload was not found.');
+  const accepted: StoredUpload[] = [];
+  const reject = async (response: Response, failedKey?: string): Promise<Result<never>> => {
+    // None of them will get a row: remove the bytes (but never a file this project does not own).
+    await discardUploads(accepted);
+    if (failedKey) await deleteStoredFile({ storageKey: failedKey, storageDriver: 'vercel-blob' });
+    return { ok: false, response: response as ReturnType<typeof apiError> };
+  };
+
+  for (const ref of refs) {
+    const pathname = ref.pathname;
+    if (!pathname.startsWith(prefix) || !/^[A-Za-z0-9._-]{1,200}$/.test(pathname.slice(prefix.length))) {
+      return reject(notFound);
+    }
+    // Claimed once: a reference cannot be replayed into a second file row.
+    if (await prisma.projectFile.findFirst({ where: { storageKey: pathname }, select: { id: true } })) {
+      return reject(notFound);
+    }
+    let object: StoredObject | null;
+    try {
+      object = await driver.get(pathname);
+    } catch (err) {
+      await reportError({ source: 'storage', message: 'Could not read a direct upload', error: err });
+      return reject(apiError(502, 'storageUnavailable', 'Could not store the file.'));
+    }
+    if (!object) return reject(notFound);
+    const size = object.size ?? 0;
+    if (size === 0 || size > max) {
+      await object.stream.cancel().catch(() => {});
+      return reject(size === 0 ? apiError(400, 'emptyFile', 'The file is empty.') : tooLarge(max), pathname);
+    }
+    const filename = sanitizeFilename(ref.filename);
+    const kind = detectKind(filename, await readHead(object.stream));
+    if (!kind) {
+      return reject(
+        apiError(415, 'fileTypeNotAllowed', 'This file type is not allowed.', { allowed: ALLOWED_MIME_TYPES }),
+        pathname
+      );
+    }
+    accepted.push({ filename, mimeType: kind.mimeType, size, storageKey: pathname, storageDriver: 'vercel-blob' });
+  }
+  return { ok: true, data: accepted };
+}
+
+/** True when browsers upload straight to Vercel Blob and the app only claims the result. */
+export function usesDirectUploads(): boolean {
+  return getUploadDriver().driver?.name === 'vercel-blob';
+}
+
+/** The ProjectFile row and its FILE_UPLOADED activity for stored bytes (removed again if the DB write fails). */
 export async function storeProjectFile(input: {
   projectId: string;
   uploadedById: string;
-  upload: ValidUpload;
+  upload: StoredUpload;
   visibleToClient: boolean;
 }): Promise<Result<{ id: string; filename: string }>> {
-  const stored = await writeUploads(input.projectId, [input.upload]);
-  if (!stored.ok) return stored;
-  const [upload] = stored.data;
+  const upload = input.upload;
 
   try {
     const file = await prisma.$transaction(async (tx) => {
@@ -180,7 +309,7 @@ export async function storeProjectFile(input: {
           filename: upload.filename,
           storageKey: upload.storageKey,
           storageDriver: upload.storageDriver,
-          fileSize: upload.bytes.byteLength,
+          fileSize: upload.size,
           mimeType: upload.mimeType,
           visibleToClient: input.visibleToClient,
         },
@@ -200,7 +329,7 @@ export async function storeProjectFile(input: {
     });
     return { ok: true, data: file };
   } catch (err) {
-    await discardUploads(stored.data);
+    await discardUploads([upload]);
     throw err;
   }
 }

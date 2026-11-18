@@ -1,5 +1,6 @@
 'use client';
 
+import type { UploadSettings } from '../../../../lib/portal/constants';
 import { FormEvent, useState } from 'react';
 import { ArrowDown, ArrowUp, Trash2 } from 'lucide-react';
 import { StatusSelect } from './MilestonesPanel';
@@ -7,15 +8,11 @@ import { jsonInit, useAdminAction } from '../useAdminAction';
 import styles from '../../../admin.module.css';
 import projectStyles from '../projects.module.css';
 import { confirmDialog } from '../../../../components/confirmDialog';
+import type { AdminProjectView } from '../../../../lib/portal/adminView';
+import TaskCommentsAdmin from './TaskCommentsAdmin';
 
-export type AdminTask = {
-  id: string;
-  title: string;
-  description: string;
-  status: string;
-  milestoneId: string | null;
-  visibleToClient: boolean;
-};
+export type AdminTask = AdminProjectView['tasks'][number];
+type Upload = UploadSettings;
 
 type MilestoneOption = { id: string; title: string };
 type Action = ReturnType<typeof useAdminAction>;
@@ -52,19 +49,23 @@ function MilestoneSelect({
 }
 
 function TaskRow({
+  projectId,
   task,
   url,
   isFirst,
   isLast,
   milestones,
   action,
+  upload,
 }: {
+  projectId: string;
   task: AdminTask;
   url: string;
   isFirst: boolean;
   isLast: boolean;
   milestones: MilestoneOption[];
   action: Action;
+  upload: Upload;
 }) {
   const { run, pending } = action;
   const [editing, setEditing] = useState(false);
@@ -85,7 +86,7 @@ function TaskRow({
   };
 
   return (
-    <li className={projectStyles.item}>
+    <li id={`task-${task.id}`} className={projectStyles.item} data-waiting={task.waitingForReply || undefined}>
       <div className={projectStyles.moveButtons}>
         <button
           type="button"
@@ -170,6 +171,7 @@ function TaskRow({
                 Visible to client
               </label>
             </div>
+            <TaskCommentsAdmin projectId={projectId} task={task} url={`${url}/comments`} action={action} upload={upload} />
           </>
         )}
       </div>
@@ -197,10 +199,13 @@ export default function TasksPanel({
   projectId,
   tasks,
   milestones,
+  upload,
 }: {
   projectId: string;
   tasks: AdminTask[];
   milestones: MilestoneOption[];
+  /** Limits for comment attachments (they share the upload limit, like message attachments). */
+  upload: Upload;
 }) {
   const action = useAdminAction();
   const [title, setTitle] = useState('');
@@ -270,6 +275,8 @@ export default function TasksPanel({
                   isLast={index === group.tasks.length - 1}
                   milestones={milestones}
                   action={action}
+                  upload={upload}
+                  projectId={projectId}
                 />
               ))}
             </ul>

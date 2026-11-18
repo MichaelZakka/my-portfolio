@@ -1,8 +1,8 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ArrowLeft, Circle, CircleCheck, CircleDot } from 'lucide-react';
-import { ACCEPT_ATTRIBUTE, getMaxUploadBytes } from '../../../../lib/portal/files';
-import { formatBytes, formatDate } from '../../../../lib/portal/format';
+import { ACCEPT_ATTRIBUTE, getMaxUploadBytes, usesDirectUploads } from '../../../../lib/portal/files';
+import { formatBytes, formatDate, formatDateTime } from '../../../../lib/portal/format';
 import { getPortalTranslations } from '../../../../lib/portal/locale';
 import { getProjectMeetings } from '../../../../lib/portal/meetings';
 import { presentActivity, presentFiles, presentMeetings, presentMessages } from '../../../../lib/portal/present';
@@ -14,10 +14,13 @@ import {
   getProjectFiles,
 } from '../../../../lib/portal/queries';
 import { getClientReadState, getClientStamps } from '../../../../lib/portal/messages';
+import { getTaskComments, presentTaskComments } from '../../../../lib/portal/taskComments';
 import ProgressBar from '../../../_components/ProgressBar';
 import { ActivitySection, FilesSection, LiveProvider, MessagesSection } from './LiveSections';
 import { MeetingsSection } from './MeetingsSection';
+import { TaskCommentCount, TaskComments } from './TaskComments';
 import MilestoneReviewForm from './MilestoneReviewForm';
+import ChangeRequestThread from './ChangeRequestThread';
 import OverviewPanel, { type MilestoneSummary } from './OverviewPanel';
 import ProjectTabs from './ProjectTabs';
 import { isProjectTab } from './tabs';
@@ -46,12 +49,13 @@ type ProjectViewProps = {
 export default async function ProjectView({ projectId, tab, viewer, preview = false }: ProjectViewProps) {
   // Only a signed-in client's own screen is live (polls, marks messages read); the preview is a snapshot.
   const live = !preview && viewer.id !== null;
-  const [project, messagePage, files, activity, meetings, labels, readState, stamps] = await Promise.all([
+  const [project, messagePage, files, activity, meetings, comments, labels, readState, stamps] = await Promise.all([
     getClientProjectDetail(projectId),
     getMessagePage(projectId, { clientView: true }),
     getProjectFiles(projectId, { clientView: true }),
     getProjectActivity(projectId, { clientView: true }),
     getProjectMeetings(projectId),
+    getTaskComments(projectId, { clientView: true }),
     getPortalTranslations('portal'),
     viewer.id ? getClientReadState(projectId, viewer.id) : null,
     live && viewer.id ? getClientStamps(projectId, viewer.id) : null,
@@ -60,6 +64,7 @@ export default async function ProjectView({ projectId, tab, viewer, preview = fa
   const upload = {
     maxBytes: getMaxUploadBytes(),
     maxSizeLabel: formatBytes(getMaxUploadBytes(), labels.locale),
+    direct: usesDirectUploads(),
     accept: ACCEPT_ATTRIBUTE,
   };
   const { t, locale } = labels;
@@ -115,13 +120,14 @@ export default async function ProjectView({ projectId, tab, viewer, preview = fa
     const Icon = TASK_ICONS[task.status as keyof typeof TASK_ICONS] ?? Circle;
     const milestoneTitle = task.milestoneId ? milestoneTitles.get(task.milestoneId) : undefined;
     return (
-      <li key={task.id} className={styles.task} data-status={task.status}>
+      <li key={task.id} id={`task-${task.id}`} className={styles.task} data-status={task.status}>
         <details className={styles.taskDetails}>
           <summary className={styles.taskSummary}>
             <Icon size={18} strokeWidth={2} aria-hidden="true" className={styles.taskIcon} />
             <span className={styles.taskTitle} dir="auto">
               {task.title}
             </span>
+            <TaskCommentCount taskId={task.id} />
             <span className={styles.badge} data-tone={task.status}>
               {workStatusLabel(task.status)}
             </span>
@@ -150,6 +156,13 @@ export default async function ProjectView({ projectId, tab, viewer, preview = fa
                 <dd>{formatDate(task.status === 'done' && task.completedAt ? task.completedAt : task.updatedAt, locale)}</dd>
               </div>
             </dl>
+            <TaskComments
+              projectId={project.id}
+              taskId={task.id}
+              taskTitle={task.title}
+              readOnly={readOnly}
+              upload={upload}
+            />
           </div>
         </details>
       </li>
@@ -206,6 +219,13 @@ export default async function ProjectView({ projectId, tab, viewer, preview = fa
           files: presentFiles(files, project.id, { locale, api }),
           activity: presentActivity(activity, { ...labels, timeZone: viewer.timeZone }),
           meetings: presentMeetings(meetings, 'client', { locale, timeZone: viewer.timeZone, projectId: project.id, api }),
+          comments: presentTaskComments(comments, {
+            viewerRole: 'client',
+            locale,
+            timeZone: viewer.timeZone,
+            projectId: project.id,
+            api,
+          }),
         }}
       >
         <ProjectTabs
@@ -294,12 +314,28 @@ export default async function ProjectView({ projectId, tab, viewer, preview = fa
                               </p>
                             )
                           )}
-                          {answer && (
+                          {answer?.status === 'approved' && (
                             <p className={styles.milestoneMeta}>
-                              {answer.status === 'approved'
-                                ? t('project.reviewApprovedBy', { name: answeredBy, date: answeredOn })
-                                : t('project.reviewChangesBy', { name: answeredBy, date: answeredOn })}
+                              {t('project.reviewApprovedBy', { name: answeredBy, date: answeredOn })}
                             </p>
+                          )}
+                          {answer?.status === 'changes_requested' && (
+                            <ChangeRequestThread
+                              projectId={project.id}
+                              milestoneId={milestone.id}
+                              reviewId={answer.id}
+                              byLine={t('project.changesBy', { name: `\u2068${answeredBy}\u2069`, date: answeredOn })}
+                              text={answer.response ?? ''}
+                              comments={answer.comments.map((comment) => ({
+                                id: comment.id,
+                                body: comment.body,
+                                author: comment.author ? displayName(comment.author) : null,
+                                fromLead: comment.authorRole === 'admin',
+                                createdAt: comment.createdAt.toISOString(),
+                                timeLabel: formatDateTime(comment.createdAt, locale, viewer.timeZone),
+                              }))}
+                              readOnly={readOnly}
+                            />
                           )}
                           {milestone.description && (
                             <p className={styles.milestoneDescription} dir="auto">

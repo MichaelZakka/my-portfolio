@@ -46,7 +46,7 @@ export async function POST(request: Request, { params }: RouteParams) {
     return rateLimited();
   }
 
-  const input = await readMessageInput(request);
+  const input = await readMessageInput(request, project.id);
   if (!input.ok) return input.response;
 
   const senderName = displayName(user);

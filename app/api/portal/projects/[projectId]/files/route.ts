@@ -32,14 +32,14 @@ export async function POST(request: Request, { params }: RouteParams) {
     return rateLimited();
   }
 
-  const parsed = await readUpload(request);
+  const parsed = await readUpload(request, projectId);
   if (!parsed.ok) return parsed.response;
 
   // A client's own upload is always visible to the project's clients.
   const stored = await storeProjectFile({
     projectId: project.id,
     uploadedById: user.id,
-    upload: parsed.data.upload,
+    upload: parsed.data.stored,
     visibleToClient: true,
   });
   if (!stored.ok) return stored.response;

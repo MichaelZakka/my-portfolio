@@ -3,6 +3,7 @@ import {
   getBriefColorApproachLabel,
   getBriefDomainsLabel,
   getBriefProjectTypesLabel,
+  getContactLocaleLabel,
   type ProjectBriefPayload,
 } from './projectBrief';
 
@@ -198,7 +199,7 @@ ${section(
   `${row('Name', display(data.clientName), data.clientName)}${row(
     'Email',
     `<a href="mailto:${email}" style="color:${C.accentText};text-decoration:none;">${email}</a>`
-  )}${row('Company', display(data.company), data.company)}${row('Phone', display(data.phone))}`
+  )}${row('Company', display(data.company), data.company)}${row('Phone', display(data.phone))}${row('Language', escapeHtml(getContactLocaleLabel(data.contactLocale)))}`
 )}
 ${section(
   'Brand identity',

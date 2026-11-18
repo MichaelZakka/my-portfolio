@@ -47,7 +47,11 @@ export default async function PortalProjectsPage() {
           {project.name}
         </Link>
       </h2>
-      {project.summary && <p className={styles.muted}>{project.summary.slice(0, 180)}</p>}
+      {project.summary && (
+        <p className={`${styles.muted} ${styles.projectCardSummary}`} dir="auto">
+          {project.summary.slice(0, 180)}
+        </p>
+      )}
       <ProgressBar
         percent={project.progress}
         label={t('project.progressAria')}

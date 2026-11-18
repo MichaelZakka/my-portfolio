@@ -35,7 +35,7 @@ export async function POST(request: Request) {
 
   const user = await prisma.user.findUnique({
     where: { email },
-    select: { id: true, email: true, name: true, role: true, passwordHash: true },
+    select: { id: true, email: true, name: true, role: true, passwordHash: true, locale: true },
   });
   // Only activated client accounts can reset; invitees finish setup through their invitation.
   if (!user || user.role !== 'client' || !user.passwordHash) return ok;
@@ -47,7 +47,8 @@ export async function POST(request: Request) {
     prisma.passwordResetToken.create({ data: { userId: user.id, tokenHash, expiresAt } }),
   ]);
 
-  const locale = await getPortalLocale();
+  // A language picked on the page, else the one saved on their account (never just the browser's).
+  const locale = await getPortalLocale(user.locale);
   after(async () => {
     const result = await sendPasswordResetEmail({
       to: user.email,

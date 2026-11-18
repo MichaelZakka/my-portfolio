@@ -47,7 +47,7 @@ export default async function WorkWithMePage({ params }: Props) {
         {/* TODO(michael): the intake survey is English-only; translate ProjectIntakeSurvey for /ar */}
         <section className={styles.section} aria-label={t('metaTitle')} lang="en" dir="ltr">
           <div className={styles.container}>
-            <ProjectIntakeSurvey />
+            <ProjectIntakeSurvey locale={locale} />
           </div>
         </section>
       </main>

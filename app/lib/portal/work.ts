@@ -1,7 +1,7 @@
 import type { Prisma } from '@prisma/client';
 import { prisma } from '../db';
 import { logActivity, logAudit, syncActivityVisibility } from './activity';
-import type { WorkStatus } from './constants';
+import type { MilestoneAdminStatus, WorkStatus } from './constants';
 
 /**
  * Milestone and task mutations for the admin API. Status changes stamp
@@ -32,15 +32,27 @@ function completedAtFor(status: WorkStatus, previous: Date | null, now: Date): D
 
 // --- Milestones ---------------------------------------------------------------
 
+/** The latest due date among a project's milestones: a new milestone (added last) must be due after it. */
+export function latestDueDate(milestones: { dueDate: Date | null }[]): Date | null {
+  return milestones.reduce<Date | null>(
+    (latest, m) => (m.dueDate && (!latest || m.dueDate > latest) ? m.dueDate : latest),
+    null
+  );
+}
+
+export type MilestoneCreateResult =
+  | { milestone: Awaited<ReturnType<typeof prisma.milestone.create>> }
+  | { error: 'dueNotAfterPrevious'; previousDue: Date };
+
 export async function createMilestone(input: {
   projectId: string;
   actorId: string;
   title: string;
   description: string;
-  status: WorkStatus;
+  status: MilestoneAdminStatus;
   dueDate?: Date | null;
   estimatedDays?: number | null;
-}) {
+}): Promise<MilestoneCreateResult> {
   const now = new Date();
   return prisma.$transaction(async (tx) => {
     const last = await tx.milestone.findFirst({
@@ -48,6 +60,14 @@ export async function createMilestone(input: {
       orderBy: { order: 'desc' },
       select: { order: true },
     });
+    const previousDue = await tx.milestone.findFirst({
+      where: { projectId: input.projectId, dueDate: { not: null } },
+      orderBy: { dueDate: 'desc' },
+      select: { dueDate: true },
+    });
+    if (input.dueDate && previousDue?.dueDate && input.dueDate <= previousDue.dueDate) {
+      return { error: 'dueNotAfterPrevious' as const, previousDue: previousDue.dueDate };
+    }
     const milestone = await tx.milestone.create({
       data: {
         projectId: input.projectId,
@@ -70,7 +90,7 @@ export async function createMilestone(input: {
       },
       tx
     );
-    return milestone;
+    return { milestone };
   });
 }
 
@@ -81,7 +101,7 @@ export async function updateMilestone(input: {
   changes: {
     title?: string;
     description?: string;
-    status?: WorkStatus;
+    status?: MilestoneAdminStatus;
     dueDate?: Date | null;
     estimatedDays?: number | null;
     move?: 'up' | 'down';
@@ -109,22 +129,10 @@ export async function updateMilestone(input: {
         dueDate: changes.dueDate,
         estimatedDays: changes.estimatedDays,
         status: changes.status,
+        // Only a client's approval marks a milestone done (reviews.ts); here it can only be reopened.
         completedAt: changes.status ? completedAtFor(status, current.completedAt, now) : undefined,
       },
     });
-
-    if (changes.status === 'done' && current.status !== 'done') {
-      await logActivity(
-        {
-          projectId,
-          actorId: input.actorId,
-          type: 'MILESTONE_COMPLETED',
-          meta: { milestoneId, title: milestone.title },
-          visibleToClient: true,
-        },
-        tx
-      );
-    }
     return milestone;
   });
 }
@@ -253,6 +261,20 @@ export async function updateTask(input: {
 
     if (visibleToClient !== current.visibleToClient) {
       await syncActivityVisibility(projectId, { taskId }, visibleToClient, tx);
+      // Files attached to its comments follow the task (as do the comments themselves).
+      const attachments = await tx.projectFile.findMany({
+        where: { projectId, taskComment: { taskId } },
+        select: { id: true },
+      });
+      if (attachments.length) {
+        await tx.projectFile.updateMany({
+          where: { id: { in: attachments.map((file) => file.id) } },
+          data: { visibleToClient },
+        });
+        for (const file of attachments) {
+          await syncActivityVisibility(projectId, { fileId: file.id }, visibleToClient, tx);
+        }
+      }
       await logAudit(
         {
           projectId,
