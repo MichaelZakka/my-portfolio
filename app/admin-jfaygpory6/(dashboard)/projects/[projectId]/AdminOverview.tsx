@@ -1,17 +1,19 @@
 'use client';
 
 import type { ReactNode } from 'react';
+import Link from 'next/link';
 import {
   Activity,
   AlertTriangle,
   ArrowRight,
+  BadgeCheck,
   CalendarClock,
   FileText,
   Flag,
   MessageCircle,
   Users,
 } from 'lucide-react';
-import type { AdminProjectView } from '../../../../lib/portal/adminView';
+import type { AdminProjectView, SignOffState } from '../../../../lib/portal/adminView';
 import { MEETING_STATUS_LABELS, PROJECT_STATUS_LABELS, WORK_STATUS_LABELS } from '../../../../lib/portal/constants';
 import { useAdminProjectTabs } from './AdminProjectTabs';
 import type { AdminProjectTab } from './tabs';
@@ -23,9 +25,14 @@ const SNIPPET_LENGTH = 180;
 const label = <T extends string>(labels: Record<T, string>, value: string) =>
   (labels as Record<string, string>)[value] ?? value;
 
-/** Things waiting on the admin, each linking to the tab where it is handled. */
+/** Things waiting on the admin, each linking to the tab where it is handled (none: it is on this tab). */
 function attentionItems(view: AdminProjectView) {
-  const items: { tab: AdminProjectTab; text: string; danger?: boolean }[] = [];
+  const items: { tab?: AdminProjectTab; text: string; danger?: boolean }[] = [];
+  if (view.signOff?.open) {
+    for (const client of view.signOff.clients.filter((c) => c.state === 'not_yet')) {
+      items.push({ text: `${client.name} says the project is not complete yet (see Client sign-off below)`, danger: true });
+    }
+  }
   const awaiting = view.meetings.filter((m) => m.canAccept).length;
   if (awaiting) {
     items.push({ tab: 'meetings', text: `${awaiting} meeting proposal${awaiting === 1 ? '' : 's'} waiting for your reply` });
@@ -107,8 +114,8 @@ export default function AdminOverview({ view }: { view: AdminProjectView }) {
               {attention.map((item) => (
                 <li key={item.text} data-danger={item.danger || undefined}>
                   <span>{item.text}</span>
-                  {tabs && (
-                    <button type="button" className={projectStyles.summaryLink} onClick={() => tabs.select(item.tab)}>
+                  {tabs && item.tab && (
+                    <button type="button" className={projectStyles.summaryLink} onClick={() => tabs.select(item.tab!)}>
                       Open
                       <ArrowRight size={14} aria-hidden="true" />
                     </button>
@@ -118,6 +125,8 @@ export default function AdminOverview({ view }: { view: AdminProjectView }) {
             </ul>
           )}
         </section>
+
+        {view.signOff && <SignOffCard signOff={view.signOff} />}
 
         <SummaryCard tab="milestones" icon={<Flag size={16} aria-hidden="true" />} title="Milestones & tasks">
           {view.milestones.length === 0 ? (
@@ -242,6 +251,78 @@ export default function AdminOverview({ view }: { view: AdminProjectView }) {
         </SummaryCard>
       </div>
     </div>
+  );
+}
+
+const SIGN_OFF_LABELS: Record<SignOffState, string> = {
+  unanswered: 'No answer yet',
+  not_yet: 'Says it is not complete',
+  confirmed: 'Confirmed · review not sent yet',
+  reviewed: 'Reviewed',
+};
+
+/** The end-of-project sign-off: each client's answer in the latest completion round. */
+function SignOffCard({ signOff }: { signOff: NonNullable<AdminProjectView['signOff']> }) {
+  const notYet = signOff.open && signOff.clients.some((c) => c.state === 'not_yet');
+  return (
+    <section
+      className={`${styles.card} ${projectStyles.summaryCard}`}
+      data-wide
+      data-tone={notYet ? 'alert' : undefined}
+      aria-label="Client sign-off"
+    >
+      <h2 className={projectStyles.summaryHeading}>
+        <span className={projectStyles.summaryIcon}>
+          <BadgeCheck size={16} aria-hidden="true" />
+        </span>
+        Client sign-off
+      </h2>
+      <div className={projectStyles.summaryBody}>
+        <p className={projectStyles.summaryKicker}>
+          {signOff.open
+            ? `Completed ${signOff.openedLabel}: clients confirm, then review privately`
+            : `Closed ${signOff.closedLabel ?? ''}: the project was reopened. Completing it again asks for a new review.`}
+        </p>
+        {signOff.clients.length === 0 ? (
+          <p className={projectStyles.muted}>No client has access to this project, so nobody can sign it off.</p>
+        ) : (
+          <ul className={projectStyles.summaryList}>
+            {signOff.clients.map((client) => (
+              <li key={client.key}>
+                <span className={projectStyles.summaryListMain}>
+                  {client.name}
+                  {client.missingNote && (
+                    <span className={projectStyles.summaryQuote} dir="auto" style={{ display: 'block' }}>
+                      {client.missingNote}
+                    </span>
+                  )}
+                </span>
+                <span className={projectStyles.summaryListSide}>
+                  {client.reviewId ? (
+                    <Link href={`/admin-jfaygpory6/reviews#review-${client.reviewId}`} className={styles.link}>
+                      {SIGN_OFF_LABELS[client.state]}
+                      {client.overall !== null ? ` · ${client.overall}/5` : ''}
+                    </Link>
+                  ) : (
+                    SIGN_OFF_LABELS[client.state]
+                  )}
+                  {client.when ? ` · ${client.when}` : ''}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+        {signOff.earlierReviews > 0 && (
+          <p className={projectStyles.summaryMeta}>
+            +{signOff.earlierReviews} review{signOff.earlierReviews === 1 ? '' : 's'} from an earlier completion
+          </p>
+        )}
+      </div>
+      <Link href="/admin-jfaygpory6/reviews" className={projectStyles.summaryLink}>
+        All client reviews
+        <ArrowRight size={14} aria-hidden="true" />
+      </Link>
+    </section>
   );
 }
 

@@ -1,0 +1,123 @@
+/* Users screens in /admin. Builds on admin.module.css; only the extras live here. */
+
+.muted {
+  color: var(--text-dim);
+  font-size: 0.8rem;
+}
+
+.email {
+  color: var(--text-dim);
+  font-size: 0.8rem;
+  margin-top: 2px;
+  overflow-wrap: anywhere;
+}
+
+.nameLink {
+  color: #fff;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.nameLink:hover {
+  color: #ff8478;
+  text-decoration: underline;
+}
+
+.checkField {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 2.25rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.checkField input {
+  width: 1rem;
+  height: 1rem;
+  accent-color: #1668e8;
+}
+
+.headerRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+}
+
+.titleRow {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  padding-block: 0.55rem;
+  margin-block: -0.55rem 0.45rem;
+  text-decoration: none;
+}
+
+.backLink:hover {
+  color: var(--text);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.stack {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+}
+
+.listItem {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+  padding: 0.7rem 0;
+  border-bottom: 1px solid #1b2f52;
+}
+
+.listItem:last-child {
+  border-bottom: 0;
+}
+
+.listMain {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 0.6rem;
+  min-width: 0;
+}
+
+.time {
+  color: var(--text-dim);
+  font-size: 0.78rem;
+  white-space: nowrap;
+}
+
+.note {
+  color: var(--text-dim);
+  font-size: 0.8rem;
+  margin: 0.75rem 0 0;
+}

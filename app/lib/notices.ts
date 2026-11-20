@@ -1,5 +1,6 @@
 import { prisma } from './db';
 import { adminUnreadByProject } from './portal/messages';
+import { parseActivityMeta } from './portal/activity';
 import type { ActivityType } from './portal/constants';
 
 /**
@@ -14,7 +15,17 @@ export type NoticeTone = 'info' | 'success' | 'warning' | 'danger';
 
 export type AdminNotice = {
   id: string;
-  kind: 'request' | 'message' | 'milestones' | 'meetings' | 'files' | 'clients' | 'project' | 'proposal' | 'problem';
+  kind:
+    | 'request'
+    | 'message'
+    | 'milestones'
+    | 'meetings'
+    | 'files'
+    | 'clients'
+    | 'project'
+    | 'proposal'
+    | 'problem'
+    | 'review';
   at: Date;
   /** What happened, e.g. "Milestone approved". */
   title: string;
@@ -64,13 +75,14 @@ const ADMIN = '/admin-jfaygpory6';
 
 type ActivityKind = Exclude<AdminNotice['kind'], 'request' | 'proposal' | 'problem'>;
 
-/** Which project tab an activity type belongs to (also the notice's kind). */
+/** Which project tab an activity type belongs to (also the notice's kind); reviews open the Client reviews screen. */
 function activityKind(type: string): ActivityKind {
+  if (type === 'CLIENT_REVIEW_SUBMITTED') return 'review';
   if (type === 'MESSAGE_SENT') return 'message';
   if (type.startsWith('MILESTONE_') || type.startsWith('TASK_')) return 'milestones';
   if (type.startsWith('MEETING_')) return 'meetings';
   if (type.startsWith('FILE_')) return 'files';
-  if (type.startsWith('INVITE_') || type === 'MEMBER_REMOVED') return 'clients';
+  if (type.startsWith('INVITE_') || type === 'MEMBER_REMOVED' || type === 'SESSIONS_REVOKED') return 'clients';
   return 'project';
 }
 
@@ -91,6 +103,9 @@ const ACTIVITY_TITLES: Partial<Record<ActivityType, { title: string; tone: Notic
   FILE_UPLOADED: { title: 'File uploaded', tone: 'info' },
   INVITE_ACCEPTED: { title: 'Client joined the portal', tone: 'success' },
   PROPOSAL_ACCEPTED: { title: 'Proposal accepted', tone: 'success' },
+  PROJECT_COMPLETION_CONFIRMED: { title: 'Project completion confirmed', tone: 'success' },
+  PROJECT_COMPLETION_NOT_YET: { title: 'Client says the project is not complete', tone: 'warning' },
+  CLIENT_REVIEW_SUBMITTED: { title: 'New client review', tone: 'success' },
 };
 
 const PROPOSAL_ANSWERS: Record<string, { title: string; tone: NoticeTone; verb: string }> = {
@@ -98,8 +113,12 @@ const PROPOSAL_ANSWERS: Record<string, { title: string; tone: NoticeTone; verb: 
   changes_requested: { title: 'Proposal: changes requested', tone: 'warning', verb: 'asked for changes to' },
 };
 
-/** The project tab a notice opens ('message' → the messages tab, and so on). */
-function projectHref(projectId: string, kind: ActivityKind): string {
+/** The project tab a notice opens ('message' → the messages tab, and so on); a review opens it on the reviews screen. */
+function projectHref(projectId: string, kind: ActivityKind, meta: string | null): string {
+  if (kind === 'review') {
+    const reviewId = parseActivityMeta(meta).reviewId;
+    return `${ADMIN}/reviews${typeof reviewId === 'string' ? `#review-${reviewId}` : ''}`;
+  }
   const tab = kind === 'message' ? 'messages' : kind === 'project' ? 'overview' : kind;
   return `${ADMIN}/projects/${projectId}${tab === 'overview' ? '' : `?tab=${tab}`}`;
 }
@@ -116,6 +135,7 @@ export async function getAdminNotices(limit = 50): Promise<AdminNotice[]> {
         projectId: true,
         type: true,
         summary: true,
+        meta: true,
         createdAt: true,
         project: { select: { name: true } },
       },
@@ -158,7 +178,7 @@ export async function getAdminNotices(limit = 50): Promise<AdminNotice[]> {
         title: known?.title ?? 'Project update',
         detail: entry.summary,
         project: entry.project.name,
-        href: projectHref(entry.projectId, kind),
+        href: projectHref(entry.projectId, kind, entry.meta),
         tone: known?.tone ?? 'info',
       };
     }),

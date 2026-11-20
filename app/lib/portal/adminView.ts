@@ -1,4 +1,5 @@
 import { parseActivityMeta } from './activity';
+import { getAdminCompletion, reviewerLabel } from './completion';
 import { currentPhaseOf, invitationState } from './constants';
 import { getProjectMeetings } from './meetings';
 import { getAdminStamps } from './messages';
@@ -55,7 +56,7 @@ export function presentAdminMessages(projectId: string, messages: MessageRow[]) 
  * returns the same shape, which the screen re-reads after every change.
  */
 export async function buildAdminProjectView(projectId: string) {
-  const [project, messagePage, files, activity, meetings, comments, live] = await Promise.all([
+  const [project, messagePage, files, activity, meetings, comments, live, completion] = await Promise.all([
     getAdminProjectDetail(projectId),
     getMessagePage(projectId, { clientView: false }),
     getProjectFiles(projectId, { clientView: false }),
@@ -63,6 +64,7 @@ export async function buildAdminProjectView(projectId: string) {
     getProjectMeetings(projectId),
     getTaskComments(projectId, { clientView: false }),
     getAdminStamps(projectId),
+    getAdminCompletion(projectId),
   ]);
   if (!project) return null;
 
@@ -205,6 +207,7 @@ export async function buildAdminProjectView(projectId: string) {
       uploadedBy: displayName(file.uploadedBy),
       visibleToClient: file.visibleToClient,
     })),
+    signOff: presentSignOff(project.status, completion),
     activity: activity.map((entry) => {
       const meta = parseActivityMeta(entry.meta);
       return {
@@ -221,3 +224,49 @@ export async function buildAdminProjectView(projectId: string) {
 }
 
 export type AdminProjectView = NonNullable<Awaited<ReturnType<typeof buildAdminProjectView>>>;
+
+export type SignOffState = 'unanswered' | 'not_yet' | 'confirmed' | 'reviewed';
+
+/**
+ * The end-of-project sign-off on the admin screen: the latest round (open
+ * while the project is Completed) with each client's answer, or null when the
+ * project was never completed.
+ */
+function presentSignOff(status: string, { rounds, members }: Awaited<ReturnType<typeof getAdminCompletion>>) {
+  const latest = rounds[0];
+  if (!latest) return null;
+  const open = status === 'completed' && !latest.closedAt;
+  const answered = new Map(latest.responses.map((r) => [r.userId, r]));
+  const people = [
+    ...members.map((member) => ({ userId: member.userId, name: displayName(member.user), response: answered.get(member.userId) })),
+    // Answers from clients who have since left the project.
+    ...latest.responses
+      .filter((r) => !members.some((m) => m.userId === r.userId))
+      .map((r) => ({ userId: r.userId, name: reviewerLabel(r), response: r })),
+  ];
+  return {
+    open,
+    openedLabel: formatDateTime(latest.openedAt, 'en'),
+    closedLabel: latest.closedAt ? formatDateTime(latest.closedAt, 'en') : null,
+    clients: people.map(({ userId, name, response }) => {
+      const state: SignOffState = !response
+        ? 'unanswered'
+        : response.submittedAt
+          ? 'reviewed'
+          : response.completion === 'not_yet'
+            ? 'not_yet'
+            : 'confirmed';
+      return {
+        key: userId ?? response?.id ?? name,
+        name,
+        state,
+        missingNote: response?.completion === 'not_yet' ? response.missingNote : '',
+        when: response ? formatDateTime(response.submittedAt ?? response.answeredAt, 'en') : null,
+        reviewId: response?.submittedAt ? response.id : null,
+        overall: response?.submittedAt ? response.overall : null,
+      };
+    }),
+    /** Submitted reviews from earlier completions of this project. */
+    earlierReviews: rounds.slice(1).reduce((sum, round) => sum + round.responses.filter((r) => r.submittedAt).length, 0),
+  };
+}

@@ -85,6 +85,8 @@ const ACTIVITY_PARAMS: Record<string, string[]> = {
   MILESTONE_CHANGES_REQUESTED: ['name', 'title'],
   MILESTONE_CHANGES_COMMENTED: ['name', 'title'],
   PROPOSAL_ACCEPTED: ['name'],
+  PROJECT_COMPLETION_CONFIRMED: ['name'],
+  PROJECT_COMPLETION_NOT_YET: ['name'],
   TASK_CREATED: ['title'],
   TASK_COMPLETED: ['title'],
   TASK_COMMENTED: ['name', 'title'],

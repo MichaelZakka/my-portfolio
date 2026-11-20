@@ -2,6 +2,7 @@ import { NextResponse, after } from 'next/server';
 import { prisma } from '../../../../lib/db';
 import { authorizeAdminProject, getAdminActor } from '../../../../lib/portal/access';
 import { logActivity, logAudit } from '../../../../lib/portal/activity';
+import { syncCompletionRound } from '../../../../lib/portal/completion';
 import { notFound, parseJsonBody } from '../../../../lib/portal/http';
 import { currentPhaseOf } from '../../../../lib/portal/constants';
 import { notifyAboutStatusChange } from '../../../../lib/portal/notify';
@@ -54,6 +55,8 @@ export async function PATCH(request: Request, { params }: RouteParams) {
         ...(archived === undefined ? {} : { archivedAt: archived ? current.archivedAt ?? now : null }),
       },
     });
+    // Completed opens a sign-off round for the clients; leaving Completed closes it.
+    if (statusChanged) await syncCompletionRound(tx, project.id, project.status, now);
     // Audit trail for everything but status (which has its own, client-visible entry).
     const edited = (['name', 'summary', 'currentPhase', 'estimatedCompletion'] as const).filter((field) => {
       if (changes[field] === undefined) return false;

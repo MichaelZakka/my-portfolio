@@ -192,8 +192,17 @@ export default function ProjectIntakeSurvey({ locale }: Props) {
     const nextErrors: FormErrors = {};
 
     if (current === 1) {
+      if (!data.projectTitle.trim()) {
+        nextErrors.projectTitle = 'Project title is required.';
+      }
       if (!data.projectDescription.trim()) {
         nextErrors.projectDescription = 'Please describe your project.';
+      }
+      if (!data.timeline.trim()) {
+        nextErrors.timeline = 'Timeline is required.';
+      }
+      if (!data.budget) {
+        nextErrors.budget = 'Select a budget range.';
       }
       if (!data.clientName.trim()) {
         nextErrors.clientName = 'Name is required.';
@@ -220,6 +229,19 @@ export default function ProjectIntakeSurvey({ locale }: Props) {
       }
       if (data.businessDomains.includes('Other') && !data.businessDomainOther.trim()) {
         nextErrors.businessDomainOther = 'Please specify the domain.';
+      }
+    }
+
+    if (current === 4) {
+      if (!data.hasBrand) {
+        nextErrors.hasBrand = 'Please choose an option.';
+      } else if (data.hasBrand === 'Yes') {
+        if (!data.brandName.trim()) {
+          nextErrors.brandName = 'Brand name is required.';
+        }
+        if (data.personalities.length === 0) {
+          nextErrors.personalities = 'Select at least one trait.';
+        }
       }
     }
 
@@ -371,7 +393,9 @@ export default function ProjectIntakeSurvey({ locale }: Props) {
             <legend className={styles.legend}>Project overview</legend>
 
             <div className={styles.formGroup}>
-              <label htmlFor={fieldId('projectTitle')}>Project title / working name</label>
+              <label htmlFor={fieldId('projectTitle')}>
+                Project title / working name <span className={styles.required}>*</span>
+              </label>
               <input
                 id={fieldId('projectTitle')}
                 type="text"
@@ -379,7 +403,15 @@ export default function ProjectIntakeSurvey({ locale }: Props) {
                 onChange={(e) => updateField('projectTitle', e.target.value)}
                 placeholder="e.g. Store redesign, booking app…"
                 autoComplete="off"
+                required
+                aria-invalid={!!errors.projectTitle}
+                aria-describedby={errors.projectTitle ? errorId('projectTitle') : undefined}
               />
+              {errors.projectTitle && (
+                <p id={errorId('projectTitle')} className={styles.error} role="alert">
+                  {errors.projectTitle}
+                </p>
+              )}
             </div>
 
             <div className={styles.formGroup}>
@@ -404,21 +436,36 @@ export default function ProjectIntakeSurvey({ locale }: Props) {
 
             <div className={styles.row}>
               <div className={styles.formGroup}>
-                <label htmlFor={fieldId('timeline')}>Timeline / deadline</label>
+                <label htmlFor={fieldId('timeline')}>
+                  Timeline / deadline <span className={styles.required}>*</span>
+                </label>
                 <input
                   id={fieldId('timeline')}
                   type="text"
                   value={data.timeline}
                   onChange={(e) => updateField('timeline', e.target.value)}
                   placeholder="e.g. 6 weeks, by Sept 1…"
+                  required
+                  aria-invalid={!!errors.timeline}
+                  aria-describedby={errors.timeline ? errorId('timeline') : undefined}
                 />
+                {errors.timeline && (
+                  <p id={errorId('timeline')} className={styles.error} role="alert">
+                    {errors.timeline}
+                  </p>
+                )}
               </div>
               <div className={styles.formGroup}>
-                <label htmlFor={fieldId('budget')}>Budget range</label>
+                <label htmlFor={fieldId('budget')}>
+                  Budget range <span className={styles.required}>*</span>
+                </label>
                 <select
                   id={fieldId('budget')}
                   value={data.budget}
                   onChange={(e) => updateField('budget', e.target.value)}
+                  required
+                  aria-invalid={!!errors.budget}
+                  aria-describedby={errors.budget ? errorId('budget') : undefined}
                 >
                   <option value="">Select a range</option>
                   {BUDGET_OPTIONS.map((opt) => (
@@ -427,6 +474,11 @@ export default function ProjectIntakeSurvey({ locale }: Props) {
                     </option>
                   ))}
                 </select>
+                {errors.budget && (
+                  <p id={errorId('budget')} className={styles.error} role="alert">
+                    {errors.budget}
+                  </p>
+                )}
               </div>
             </div>
 
@@ -645,32 +697,62 @@ export default function ProjectIntakeSurvey({ locale }: Props) {
 
             <div className={styles.formGroup}>
               <span className={styles.groupLabel} id={fieldId('hasBrand-label')}>
-                Do you have an existing brand?
+                Do you have an existing brand? <span className={styles.required}>*</span>
               </span>
-              <div className={styles.chipWrap} role="group" aria-labelledby={fieldId('hasBrand-label')}>
+              <div
+                className={styles.chipWrap}
+                role="group"
+                aria-labelledby={fieldId('hasBrand-label')}
+                aria-describedby={errors.hasBrand ? errorId('hasBrand') : undefined}
+              >
                 {BRAND_STATUS.map((status) => (
                   <button
                     key={status}
                     type="button"
                     className={`${styles.chip} ${data.hasBrand === status ? styles.selected : ''}`}
                     aria-pressed={data.hasBrand === status}
-                    onClick={() => updateField('hasBrand', status)}
+                    onClick={() => {
+                      updateField('hasBrand', status);
+                      if (status !== 'Yes') {
+                        // Brand details only apply to an existing brand — don't send stale ones.
+                        updateField('brandName', '');
+                        updateField('tagline', '');
+                        updateField('personalities', []);
+                      }
+                    }}
                   >
                     {status}
                   </button>
                 ))}
               </div>
+              {errors.hasBrand && (
+                <p id={errorId('hasBrand')} className={styles.error} role="alert">
+                  {errors.hasBrand}
+                </p>
+              )}
             </div>
 
+            {data.hasBrand === 'Yes' && (
+            <>
             <div className={styles.row}>
               <div className={styles.formGroup}>
-                <label htmlFor={fieldId('brandName')}>Brand name</label>
+                <label htmlFor={fieldId('brandName')}>
+                  Brand name <span className={styles.required}>*</span>
+                </label>
                 <input
                   id={fieldId('brandName')}
                   type="text"
                   value={data.brandName}
                   onChange={(e) => updateField('brandName', e.target.value)}
+                  required
+                  aria-invalid={!!errors.brandName}
+                  aria-describedby={errors.brandName ? errorId('brandName') : undefined}
                 />
+                {errors.brandName && (
+                  <p id={errorId('brandName')} className={styles.error} role="alert">
+                    {errors.brandName}
+                  </p>
+                )}
               </div>
               <div className={styles.formGroup}>
                 <label htmlFor={fieldId('tagline')}>Tagline or positioning (optional)</label>
@@ -686,12 +768,13 @@ export default function ProjectIntakeSurvey({ locale }: Props) {
 
             <div className={styles.formGroup}>
               <span className={styles.groupLabel} id={fieldId('personality-label')}>
-                Brand personality
+                Brand personality <span className={styles.required}>*</span>
               </span>
               <div
                 className={styles.chipWrap}
                 role="group"
                 aria-labelledby={fieldId('personality-label')}
+                aria-describedby={errors.personalities ? errorId('personalities') : undefined}
               >
                 {PERSONALITY_OPTIONS.map((trait) => {
                   const selected = data.personalities.includes(trait);
@@ -710,7 +793,14 @@ export default function ProjectIntakeSurvey({ locale }: Props) {
                   );
                 })}
               </div>
+              {errors.personalities && (
+                <p id={errorId('personalities')} className={styles.error} role="alert">
+                  {errors.personalities}
+                </p>
+              )}
             </div>
+            </>
+            )}
 
             <div className={styles.formGroup}>
               <label htmlFor={fieldId('references')}>Reference websites or competitors</label>

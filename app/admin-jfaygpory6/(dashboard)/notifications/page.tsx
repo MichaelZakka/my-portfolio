@@ -8,6 +8,7 @@ import {
   Inbox,
   MessageCircle,
   Paperclip,
+  Star,
   TriangleAlert,
   UserRound,
   type LucideIcon,
@@ -33,6 +34,7 @@ const ICONS: Record<AdminNotice['kind'], LucideIcon> = {
   project: FolderKanban,
   proposal: FileText,
   problem: TriangleAlert,
+  review: Star,
 };
 
 export default async function NotificationsPage() {

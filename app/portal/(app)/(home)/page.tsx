@@ -36,6 +36,11 @@ export default async function PortalProjectsPage() {
             {t('projects.needsApproval')}
           </span>
         )}
+        {project.awaitingSignOff && (
+          <span className={styles.badge} data-tone="review">
+            {t('projects.needsSignOff')}
+          </span>
+        )}
         {project.unreadMessages > 0 && (
           <span className={styles.badge} data-tone="proposed">
             {t('projects.unreadMessages', { count: project.unreadMessages })}

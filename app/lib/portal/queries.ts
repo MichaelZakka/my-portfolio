@@ -60,12 +60,17 @@ export async function listClientProjects(userId: string) {
       milestones: { orderBy: byOrder, select: { ...PROGRESS_MILESTONE_SELECT, title: true } },
       reviews: { where: { status: 'pending' }, select: { id: true } },
       members: { where: { userId }, select: { lastReadAt: true } },
+      // The open sign-off round, with this client's answer in it (if any).
+      completions: {
+        where: { closedAt: null },
+        select: { responses: { where: { userId }, select: { completion: true, submittedAt: true } } },
+      },
     },
   });
   const unread = await Promise.all(
     projects.map((project) => countUnreadForClient(project.id, userId, project.members[0]?.lastReadAt ?? null))
   );
-  return projects.map(({ milestones, reviews, ...project }, index) => ({
+  return projects.map(({ milestones, reviews, completions, ...project }, index) => ({
     id: project.id,
     name: project.name,
     summary: project.summary,
@@ -78,6 +83,13 @@ export async function listClientProjects(userId: string) {
     progress: progressPercent(milestones),
     awaitingApproval: reviews.length,
     unreadMessages: unread[index],
+    // Completed, and this client has not confirmed + reviewed it yet ("not yet" answers wait on the admin).
+    awaitingSignOff:
+      project.status === 'completed' &&
+      completions.some((round) => {
+        const answer = round.responses[0];
+        return !answer || (answer.completion === 'confirmed' && !answer.submittedAt);
+      }),
   }));
 }
 

@@ -1,6 +1,7 @@
 import { Prisma } from '@prisma/client';
 import { prisma } from '../db';
 import { logActivity } from './activity';
+import { syncCompletionRound } from './completion';
 import type { ProjectStatus } from './constants';
 
 /**
@@ -46,6 +47,7 @@ export async function createProjectInTransaction(tx: Prisma.TransactionClient, i
     },
     select: { id: true, name: true },
   });
+  if (input.status === 'completed') await syncCompletionRound(tx, created.id, 'completed', now);
   await logActivity(
     {
       projectId: created.id,

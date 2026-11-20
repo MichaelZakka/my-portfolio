@@ -12,6 +12,9 @@ import {
   portalUrl,
   sendChangeReplyEmail,
   sendClientJoinedEmail,
+  sendClientReviewEmail,
+  sendCompletionNotYetEmail,
+  sendProjectCompletedEmail,
   sendMeetingCommentEmail,
   sendMeetingEmail,
   sendMeetingNotesEmail,
@@ -176,18 +179,28 @@ export async function notifyAboutStatusChange(input: {
   phase: string;
 }) {
   const recipients = await clientRecipients(input.projectId);
+  // Completed: one email that also asks the client to sign off and review, instead of the plain status email.
+  const completed = input.toStatus === 'completed';
   const results = await Promise.all(
     recipients.map(async (user) => ({
       to: user.email,
-      result: await sendStatusChangedEmail({
-        to: user.email,
-        locale: user.locale,
-        projectName: input.projectName,
-        fromStatus: input.fromStatus,
-        toStatus: input.toStatus,
-        phase: input.phase,
-        url: portalUrl(`/portal/projects/${input.projectId}`),
-      }),
+      result: completed
+        ? await sendProjectCompletedEmail({
+            to: user.email,
+            locale: user.locale,
+            name: user.name,
+            projectName: input.projectName,
+            url: portalUrl(`/portal/projects/${input.projectId}/review`),
+          })
+        : await sendStatusChangedEmail({
+            to: user.email,
+            locale: user.locale,
+            projectName: input.projectName,
+            fromStatus: input.fromStatus,
+            toStatus: input.toStatus,
+            phase: input.phase,
+            url: portalUrl(`/portal/projects/${input.projectId}`),
+          }),
     }))
   );
   const outcome = recipients.length
@@ -613,6 +626,49 @@ export async function notifyAboutChangeReply(input: {
   }
   await updateActivityMeta(input.activityId, { emailSent: outcome.sent, emailError: outcome.error ?? null });
   if (!outcome.sent) await reportDeliveryFailure('Change-request reply email not sent', outcome.error);
+}
+
+/** Tells the admin a client says the completed project is not finished, with what is missing. */
+export async function notifyAboutCompletionNotYet(input: {
+  activityId: string;
+  projectId: string;
+  projectName: string;
+  clientName: string;
+  clientEmail: string;
+  note: string;
+}) {
+  const result = await sendCompletionNotYetEmail({
+    to: adminNotifyAddress(),
+    clientName: input.clientName,
+    clientEmail: input.clientEmail,
+    projectName: input.projectName,
+    note: input.note,
+    url: portalUrl(`/admin-jfaygpory6/projects/${input.projectId}`),
+  });
+  await updateActivityMeta(input.activityId, { emailSent: result.sent, emailError: result.error ?? null });
+  if (!result.sent) await reportDeliveryFailure('Completion "not yet" email not sent', result.error);
+}
+
+/** Tells the admin a client submitted their end-of-project review. */
+export async function notifyAboutClientReview(input: {
+  activityId: string;
+  reviewId: string;
+  projectName: string;
+  clientName: string;
+  clientEmail: string;
+  overall: number;
+  recommend: number | null;
+  portalEase: number;
+  improve: string;
+}) {
+  const { activityId, reviewId, ...email } = input;
+  const result = await sendClientReviewEmail({
+    ...email,
+    to: adminNotifyAddress(),
+    url: portalUrl(`/admin-jfaygpory6/reviews#review-${reviewId}`),
+  });
+  await updateActivityMeta(activityId, { emailSent: result.sent, emailError: result.error ?? null });
+  if (!result.sent) await reportDeliveryFailure('Client review email not sent', result.error);
 }
 
 function meetingCalendar(meeting: CalendarMeeting, projectName: string, url: string) {

@@ -48,6 +48,22 @@ export type ActivityMeta = {
   /** title: the action item's text. */
   MEETING_ACTION_ITEM_DONE: { meetingId: string; itemId: string; title: string };
   PROPOSAL_ACCEPTED: { proposalId: string; version: number; title: string; name: string };
+  PROJECT_COMPLETION_CONFIRMED: { roundId: string; reviewId: string; name: string };
+  PROJECT_COMPLETION_NOT_YET: {
+    roundId: string;
+    reviewId: string;
+    name: string;
+    emailSent?: boolean;
+    emailError?: string | null;
+  };
+  CLIENT_REVIEW_SUBMITTED: {
+    roundId: string;
+    reviewId: string;
+    name: string;
+    overall: number;
+    emailSent?: boolean;
+    emailError?: string | null;
+  };
   PROJECT_UPDATED: { fields: string };
   PROJECT_ARCHIVED: { name: string };
   PROJECT_RESTORED: { name: string };
@@ -60,6 +76,8 @@ export type ActivityMeta = {
   MEMBER_REMOVED: { email: string; name: string };
   INVITE_REVOKED: { email: string; invitationId: string };
   INVITE_RESENT: { email: string; invitationId: string; emailSent?: boolean; emailError?: string | null };
+  /** The admin signed a client out of every device (Users screen). */
+  SESSIONS_REVOKED: { email: string; name: string };
 };
 
 type MeetingMeta = { meetingId: string; title: string; emailSent?: boolean; emailError?: string | null };
@@ -96,6 +114,9 @@ const SUMMARIES: { [T in ActivityType]: (meta: ActivityMeta[T]) => string } = {
   MEETING_NOTES_COMMENTED: (m) => `${m.name} commented on the meeting notes: ${m.title}`,
   MEETING_ACTION_ITEM_DONE: (m) => `Action item done: ${m.title}`,
   PROPOSAL_ACCEPTED: (m) => `${m.name} accepted proposal v${m.version}`,
+  PROJECT_COMPLETION_CONFIRMED: (m) => `${m.name} confirmed the project is complete`,
+  PROJECT_COMPLETION_NOT_YET: (m) => `${m.name} says the project is not complete yet`,
+  CLIENT_REVIEW_SUBMITTED: (m) => `${m.name} submitted a review (${m.overall}/5 overall)`,
   PROJECT_UPDATED: (m) => `Project details edited: ${m.fields}`,
   PROJECT_ARCHIVED: (m) => `Project archived: ${m.name}`,
   PROJECT_RESTORED: (m) => `Project restored from the archive: ${m.name}`,
@@ -108,6 +129,7 @@ const SUMMARIES: { [T in ActivityType]: (meta: ActivityMeta[T]) => string } = {
   MEMBER_REMOVED: (m) => `Removed ${m.name ? `${m.name} (${m.email})` : m.email} from the project`,
   INVITE_REVOKED: (m) => `Invitation revoked: ${m.email}`,
   INVITE_RESENT: (m) => `Invitation resent: ${m.email}`,
+  SESSIONS_REVOKED: (m) => `Signed ${m.name ? `${m.name} (${m.email})` : m.email} out of every device`,
 };
 
 /** Admin-side changes that are recorded for the audit trail only; clients never see them. */
@@ -124,6 +146,7 @@ export const AUDIT_ACTIVITY_TYPES = [
   'MEMBER_REMOVED',
   'INVITE_REVOKED',
   'INVITE_RESENT',
+  'SESSIONS_REVOKED',
 ] as const satisfies readonly ActivityType[];
 
 type AuditType = (typeof AUDIT_ACTIVITY_TYPES)[number];

@@ -13,6 +13,8 @@ import {
   PROPOSAL_CURRENCIES,
   PROPOSAL_MAX_LIST_ITEMS,
   PROPOSAL_MAX_PHASES,
+  REVIEW_PAIN_POINTS,
+  REVIEW_TEXT_MAX_LENGTH,
   WORK_STATUSES,
 } from './constants';
 import { TOKEN_PATTERN } from './credentials';
@@ -348,3 +350,38 @@ export const changeReplySchema = z.object({
   reviewId: idSchema,
   body: z.string().trim().min(1).max(MEETING_COMMENT_MAX_LENGTH),
 });
+
+// --- End-of-project sign-off and client review ------------------------------
+
+/** "Is the project complete?": yes, or not yet with what is still missing. */
+export const completionAnswerSchema = z.discriminatedUnion('action', [
+  z.object({ action: z.literal('confirm') }),
+  z.object({ action: z.literal('not_yet'), note: z.string().trim().min(1).max(REVIEW_TEXT_MAX_LENGTH) }),
+]);
+
+const rating = z.number().int().min(1).max(5);
+const reviewText = z.string().trim().max(REVIEW_TEXT_MAX_LENGTH).default('');
+
+/** The review survey: every number field is required; pain points and text answers may be left empty. */
+export const clientReviewSchema = z.object({
+  overall: rating,
+  recommend: z.number().int().min(0).max(10),
+  portalEase: rating,
+  painPoints: z
+    .array(z.enum(REVIEW_PAIN_POINTS))
+    .max(REVIEW_PAIN_POINTS.length)
+    .default([])
+    .transform((points) => [...new Set(points)]),
+  portalComment: reviewText,
+  quality: rating,
+  deadlines: rating,
+  requirements: rating,
+  value: rating,
+  responsiveness: rating,
+  updates: rating,
+  involvement: rating,
+  wentWell: reviewText,
+  improve: reviewText,
+  otherComment: reviewText,
+});
+export type ClientReviewInput = z.output<typeof clientReviewSchema>;

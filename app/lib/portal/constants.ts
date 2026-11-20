@@ -74,6 +74,10 @@ export const ACTIVITY_TYPES = [
   'MEETING_NOTES_COMMENTED',
   'MEETING_ACTION_ITEM_DONE',
   'PROPOSAL_ACCEPTED',
+  'PROJECT_COMPLETION_CONFIRMED',
+  'PROJECT_COMPLETION_NOT_YET',
+  // The survey answers are private: this entry is internal (visibleToClient false).
+  'CLIENT_REVIEW_SUBMITTED',
   // Audit trail: admin-side changes, always internal (visibleToClient false)
   'PROJECT_UPDATED',
   'PROJECT_ARCHIVED',
@@ -87,6 +91,7 @@ export const ACTIVITY_TYPES = [
   'MEMBER_REMOVED',
   'INVITE_REVOKED',
   'INVITE_RESENT',
+  'SESSIONS_REVOKED',
 ] as const;
 export type ActivityType = (typeof ACTIVITY_TYPES)[number];
 
@@ -129,6 +134,9 @@ const ACTIVITY_CATEGORY_OF: Record<ActivityType, ActivityCategory> = {
   PROJECT_UPDATED: 'project',
   PROJECT_ARCHIVED: 'project',
   PROJECT_RESTORED: 'project',
+  PROJECT_COMPLETION_CONFIRMED: 'project',
+  PROJECT_COMPLETION_NOT_YET: 'project',
+  CLIENT_REVIEW_SUBMITTED: 'project',
   MILESTONE_DELETED: 'progress',
   MILESTONE_REVIEW_WITHDRAWN: 'progress',
   TASK_DELETED: 'progress',
@@ -138,6 +146,7 @@ const ACTIVITY_CATEGORY_OF: Record<ActivityType, ActivityCategory> = {
   MEMBER_REMOVED: 'clients',
   INVITE_REVOKED: 'clients',
   INVITE_RESENT: 'clients',
+  SESSIONS_REVOKED: 'clients',
   STATUS_CHANGED: 'project',
   CLIENT_INVITED: 'clients',
   INVITE_ACCEPTED: 'clients',
@@ -338,3 +347,60 @@ export const REVIEW_STATUS_LABELS: Record<ReviewStatus, string> = {
   changes_requested: 'Changes requested',
   withdrawn: 'Withdrawn',
 };
+
+// --- End-of-project sign-off and client review (completion.ts) ---------------
+
+/** A client's answer to "is the project complete?". */
+export const COMPLETION_ANSWERS = ['confirmed', 'not_yet'] as const;
+export type CompletionAnswer = (typeof COMPLETION_ANSWERS)[number];
+
+/** Parts of the portal a client can flag as hard or confusing (labels: portal.completion.painPoints.*). */
+export const REVIEW_PAIN_POINTS = [
+  'signin',
+  'proposal',
+  'progress',
+  'approvals',
+  'messages',
+  'files',
+  'meetings',
+  'notifications',
+  'language',
+  'mobile',
+] as const;
+export type ReviewPainPoint = (typeof REVIEW_PAIN_POINTS)[number];
+
+export const REVIEW_PAIN_POINT_LABELS: Record<ReviewPainPoint, string> = {
+  signin: 'Signing in / invitation',
+  proposal: 'Reading & accepting the proposal',
+  progress: 'Following progress',
+  approvals: 'Approving milestones',
+  messages: 'Messages',
+  files: 'Files & uploads',
+  meetings: 'Booking meetings',
+  notifications: 'Emails & notifications',
+  language: 'Arabic / English',
+  mobile: 'Using it on a phone',
+};
+
+/** The 1–5 ratings after the two required ones, grouped as the survey shows them. */
+export const SERVICE_RATINGS = ['quality', 'deadlines', 'requirements', 'value'] as const;
+export const COMMUNICATION_RATINGS = ['responsiveness', 'updates', 'involvement'] as const;
+export type ReviewRatingField =
+  | 'overall'
+  | 'portalEase'
+  | (typeof SERVICE_RATINGS)[number]
+  | (typeof COMMUNICATION_RATINGS)[number];
+
+export const REVIEW_RATING_LABELS: Record<ReviewRatingField, string> = {
+  overall: 'Overall satisfaction',
+  portalEase: 'Portal ease of use',
+  quality: 'Quality of the work',
+  deadlines: 'Meeting deadlines',
+  requirements: 'Understood the requirements',
+  value: 'Value for money',
+  responsiveness: 'Responsiveness',
+  updates: 'Clear progress updates',
+  involvement: 'Involved in decisions',
+};
+
+export const REVIEW_TEXT_MAX_LENGTH = 2000;

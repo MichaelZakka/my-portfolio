@@ -614,6 +614,108 @@ export async function sendChangeReplyEmail(input: {
   return deliver({ to: input.to, subject: t('changeReply.subject', values), replyTo: input.replyTo, ...content });
 }
 
+/**
+ * The project was marked Completed: asks the client to confirm everything was
+ * delivered and to fill in the (private) review. Sent instead of the status email.
+ */
+export async function sendProjectCompletedEmail(input: {
+  to: string;
+  locale: string;
+  name: string;
+  projectName: string;
+  url: string;
+}): Promise<EmailSendResult> {
+  if (!getResendConfig().configured) {
+    console.info(`[portal] ${NOT_CONFIGURED} Project-completed email to ${input.to} was not sent.`);
+    return { sent: false, error: NOT_CONFIGURED };
+  }
+  const { lang, t } = translator(input.locale);
+  const values = { project: input.projectName };
+  const content = renderEmail(lang, {
+    heading: t('completed.heading', values),
+    paragraphs: [
+      input.name ? t('greeting', { name: input.name }) : t('greetingNoName'),
+      t('completed.body', values),
+      t('completed.ask'),
+    ],
+    cta: { label: t('completed.cta'), url: input.url },
+    notes: [t('completed.private')],
+    footer: t('footer'),
+  });
+  return deliver({ to: input.to, subject: t('completed.subject', values), ...content });
+}
+
+/** Tells the admin that a client says the completed project is not finished yet. */
+export async function sendCompletionNotYetEmail(input: {
+  to: string;
+  clientName: string;
+  clientEmail: string;
+  projectName: string;
+  note: string;
+  url: string;
+}): Promise<EmailSendResult> {
+  if (!getResendConfig().configured) {
+    console.info(`[portal] ${NOT_CONFIGURED} Completion "not yet" email to ${input.to} was not sent.`);
+    return { sent: false, error: NOT_CONFIGURED };
+  }
+  // Goes to the admin, whose dashboard is English.
+  const { lang, t } = translator('en');
+  const values = { client: input.clientName, project: input.projectName };
+  const content = renderEmail(lang, {
+    heading: t('completionNotYet.heading', values),
+    paragraphs: [t('completionNotYet.body', values)],
+    quote: excerpt(input.note),
+    cta: { label: t('completionNotYet.cta'), url: input.url },
+    notes: [t('completionNotYet.next')],
+    footer: t('footer'),
+  });
+  return deliver({
+    to: input.to,
+    subject: t('completionNotYet.subject', values),
+    replyTo: input.clientEmail,
+    ...content,
+  });
+}
+
+/** Tells the admin a client submitted their review, with the headline scores. */
+export async function sendClientReviewEmail(input: {
+  to: string;
+  clientName: string;
+  clientEmail: string;
+  projectName: string;
+  overall: number;
+  recommend: number | null;
+  portalEase: number;
+  improve: string;
+  url: string;
+}): Promise<EmailSendResult> {
+  if (!getResendConfig().configured) {
+    console.info(`[portal] ${NOT_CONFIGURED} Client review email to ${input.to} was not sent.`);
+    return { sent: false, error: NOT_CONFIGURED };
+  }
+  // Goes to the admin, whose dashboard is English.
+  const { lang, t } = translator('en');
+  const values = { client: input.clientName, project: input.projectName };
+  const scores = [
+    t('clientReview.overall', { score: input.overall }),
+    ...(input.recommend === null ? [] : [t('clientReview.recommend', { score: input.recommend })]),
+    t('clientReview.portalEase', { score: input.portalEase }),
+  ].join(' · ');
+  const content = renderEmail(lang, {
+    heading: t('clientReview.heading', values),
+    paragraphs: [t('clientReview.body', values), scores],
+    quote: input.improve ? excerpt(input.improve) : undefined,
+    cta: { label: t('clientReview.cta'), url: input.url },
+    footer: t('footer'),
+  });
+  return deliver({
+    to: input.to,
+    subject: t('clientReview.subject', { ...values, score: input.overall }),
+    replyTo: input.clientEmail,
+    ...content,
+  });
+}
+
 /** Folds per-recipient results into one { sent, error } for the record (recipients named only when several). */
 export function combineResults(results: { to: string; result: EmailSendResult }[]): EmailSendResult {
   if (results.length === 0) return { sent: false, error: 'No recipients.' };

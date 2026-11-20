@@ -124,6 +124,12 @@
   content-visibility: visible;
 }
 
+/* User-entered text keeps dir="auto" (so an English or mixed title reads in the right
+   order), but on Arabic pages it still lines up on the right like everything else. */
+:global(html[dir='rtl']) .main [dir='auto'] {
+  text-align: right;
+}
+
 .navIcon {
   display: none;
 }

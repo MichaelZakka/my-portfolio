@@ -203,6 +203,7 @@ model User {
   reviewComments    ReviewComment[]
   reviewsRequested  MilestoneReview[]    @relation("ReviewRequestedBy")
   reviewsAnswered   MilestoneReview[]    @relation("ReviewRespondedBy")
+  clientReviews     ClientReview[]
 
   @@index([role])
 }
@@ -237,9 +238,74 @@ model Project {
   activities     Activity[]
   meetings       Meeting[]
   reviews        MilestoneReview[]
+  completions    CompletionRound[]
+  clientReviews  ClientReview[]
 
   @@index([createdAt])
   @@index([status])
+}
+
+// Sign-off at the end of a project. Each time the admin marks the project
+// Completed a round opens; moving it out of Completed closes the round (its
+// answers stay as history) and completing it again opens a new one. See
+// app/lib/portal/completion.ts.
+model CompletionRound {
+  id        String    @id @default(cuid())
+  projectId String
+  openedAt  DateTime  @default(now())
+  closedAt  DateTime? // the project left Completed
+
+  project   Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  responses ClientReview[]
+
+  @@index([projectId, openedAt])
+}
+
+// One client member's answer in a round: first "is the project complete?"
+// (confirmed, or not_yet with what is missing), then the private review survey.
+// Ratings are 1–5 except recommend (0–10); null = skipped. Locked once
+// submitted. Only the admin dashboard ever shows the answers.
+model ClientReview {
+  id            String    @id @default(cuid())
+  projectId     String
+  roundId       String
+  userId        String?
+  // Kept so the review still says who wrote it if the account is deleted.
+  reviewerName  String    @default("")
+  reviewerEmail String    @default("")
+  locale        String    @default("en")
+
+  completion    String // confirmed | not_yet
+  missingNote   String    @default("") // the latest "not yet": what is still missing
+  answeredAt    DateTime // the completion question, last answered
+  confirmedAt   DateTime?
+
+  submittedAt    DateTime?
+  overall        Int?
+  recommend      Int?
+  portalEase     Int?
+  painPoints     String    @default("[]") // JSON array of REVIEW_PAIN_POINTS keys
+  portalComment  String    @default("")
+  quality        Int?
+  deadlines      Int?
+  requirements   Int?
+  value          Int?
+  responsiveness Int?
+  updates        Int?
+  involvement    Int?
+  wentWell       String    @default("")
+  improve        String    @default("")
+  otherComment   String    @default("")
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  project Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  round   CompletionRound @relation(fields: [roundId], references: [id], onDelete: Cascade)
+  user    User?           @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@unique([roundId, userId])
+  @@index([projectId])
+  @@index([submittedAt])
 }
 
 // Membership is the only thing that grants a client access to a project.

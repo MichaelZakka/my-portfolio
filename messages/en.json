@@ -281,6 +281,7 @@
       "eta": "Estimated completion: {date}",
       "updated": "Updated {date}",
       "needsApproval": "Needs your approval",
+      "needsSignOff": "Your feedback is needed",
       "unreadMessages": "{count, plural, one {# new message} other {# new messages}}"
     },
     "status": {
@@ -479,7 +480,9 @@
       "MEETING_NOTES_COMMENTED": "{name} commented on the meeting notes: {title}",
       "MEETING_ACTION_ITEM_DONE": "Action item done: {title}",
       "TASK_COMMENTED": "{name} commented on the task: {title}",
-      "MILESTONE_CHANGES_COMMENTED": "{name} replied about the requested changes: {title}"
+      "MILESTONE_CHANGES_COMMENTED": "{name} replied about the requested changes: {title}",
+      "PROJECT_COMPLETION_CONFIRMED": "{name} confirmed the project is complete",
+      "PROJECT_COMPLETION_NOT_YET": "{name} said something is still missing"
     },
     "errors": {
       "generic": "Something went wrong. Please try again.",
@@ -519,7 +522,10 @@
       "tooManyFiles": "Attach at most {max} files to one message.",
       "wrongCurrentPassword": "Your current password isn’t correct.",
       "meetingNotesChanged": "These notes were just changed. Read them again before confirming.",
-      "reviewNotOpen": "This change request is closed: a newer approval request replaced it."
+      "reviewNotOpen": "This change request is closed: a newer approval request replaced it.",
+      "completionNotOpen": "This project is no longer waiting for a sign-off. Refresh the page.",
+      "reviewSubmitted": "Your review was already submitted.",
+      "completionNotConfirmed": "Please confirm the project is complete first."
     },
     "forbidden": {
       "title": "You don’t have access to this project",
@@ -637,6 +643,95 @@
       "lastSignIn": "Last sign-in: {date}. Signed in somewhere you no longer use? Sign out everywhere else.",
       "signOutOthers": "Sign out on all other devices",
       "signedOutOthers": "Done. Every other device has been signed out."
+    },
+    "completion": {
+      "cardTitle": "Your project is complete",
+      "cardBody": "Before we close it, please confirm everything was delivered as agreed and tell us how it went. It takes about 3 minutes.",
+      "cardCta": "Confirm & share feedback",
+      "notYetTitle": "You told us something is still missing",
+      "notYetBody": "Michael has been notified and will follow up. Once everything is done, confirm the project here.",
+      "notYetCta": "Update your answer",
+      "confirmedTitle": "Thanks for confirming",
+      "confirmedBody": "One last step: tell us about your experience. It takes about 3 minutes, and only Michael sees your answers.",
+      "confirmedCta": "Share your feedback",
+      "thanksCard": "Thank you for your feedback. It helps us improve.",
+      "previewHint": "Clients see a button here to confirm completion and review the project.",
+      "metaTitle": "Project sign-off",
+      "pageTitle": "Wrap up your project",
+      "pageIntro": "Two quick steps: confirm the project is complete, then tell us how it went.",
+      "privateNote": "Your answers are private. Only Michael sees them, and they are never published.",
+      "notOpen": "This project is not waiting for a sign-off right now.",
+      "backToProject": "Back to the project",
+      "step1": "Step 1 of 2",
+      "step2": "Step 2 of 2",
+      "confirmQuestion": "Is everything delivered as agreed?",
+      "confirmYes": "Yes, the project is complete",
+      "confirmNo": "Not yet, something is missing",
+      "confirming": "Confirming…",
+      "missingLabel": "What is still missing?",
+      "missingHint": "Michael will be notified and will follow up with you.",
+      "sendMissing": "Send",
+      "sendingMissing": "Sending…",
+      "cancel": "Cancel",
+      "notYetSaved": "Thanks. Michael has been notified about what is still missing.",
+      "yourNote": "What you told us:",
+      "confirmNow": "Everything is done now: confirm completion",
+      "editNote": "Edit what is missing",
+      "surveyTitle": "How did it go?",
+      "required": "Required",
+      "optional": "Optional",
+      "sectionOverall": "Overall",
+      "overallLabel": "How satisfied are you with the project overall?",
+      "recommendLabel": "How likely are you to recommend Michael to a friend or colleague?",
+      "recommendLow": "Not likely",
+      "recommendHigh": "Very likely",
+      "sectionPortal": "The client portal",
+      "portalEaseLabel": "How easy was the portal to use throughout the project?",
+      "easeLow": "Very difficult",
+      "easeHigh": "Very easy",
+      "painPointsLabel": "Which parts were hard or confusing? Select all that apply.",
+      "painPoints": {
+        "signin": "Signing in / the invitation",
+        "proposal": "Reading and accepting the proposal",
+        "progress": "Following progress",
+        "approvals": "Approving milestones",
+        "messages": "Messages",
+        "files": "Files and uploads",
+        "meetings": "Booking meetings",
+        "notifications": "Emails and notifications",
+        "language": "Switching Arabic / English",
+        "mobile": "Using it on a phone"
+      },
+      "portalCommentLabel": "What confused you or slowed you down?",
+      "sectionService": "The service",
+      "sectionCommunication": "Communication",
+      "ratingLow": "Poor",
+      "ratingHigh": "Excellent",
+      "ratings": {
+        "quality": "Quality of the work",
+        "deadlines": "Meeting deadlines",
+        "requirements": "Understanding your requirements",
+        "value": "Value for money",
+        "responsiveness": "Responsiveness to your messages",
+        "updates": "Clear progress updates",
+        "involvement": "Involving you in decisions"
+      },
+      "clearRating": "Clear",
+      "sectionOpen": "In your own words",
+      "wentWellLabel": "What went well?",
+      "improveLabel": "What could have been better?",
+      "otherLabel": "Anything else you would like to share?",
+      "submit": "Submit review",
+      "submitting": "Submitting…",
+      "missingRequired": "Please answer every rating question (they are marked Required). The written answers and the list of hard parts are optional.",
+      "lockedNote": "You can’t change your answers after submitting.",
+      "thanksTitle": "Thank you!",
+      "thanksBody": "Your review was sent to Michael. Thank you for taking the time; it really helps.",
+      "yourAnswers": "Your answers",
+      "submittedOn": "Submitted {date}",
+      "notAnswered": "Skipped",
+      "scoreOf": "{score} / {max}",
+      "noneSelected": "None"
     }
   },
   "portalEmail": {
@@ -803,6 +898,30 @@
       "heading": "New reply about requested changes",
       "body": "{author} replied about the changes requested for “{milestone}” in “{project}”:",
       "cta": "Open the milestone"
+    },
+    "completed": {
+      "subject": "“{project}” is complete. Please confirm",
+      "heading": "Your project is complete",
+      "body": "“{project}” has been marked as complete.",
+      "ask": "Please confirm everything was delivered as agreed, and tell us how it went. It takes about 3 minutes.",
+      "cta": "Confirm and share feedback",
+      "private": "Your answers are private: only Michael sees them."
+    },
+    "completionNotYet": {
+      "subject": "{client} says “{project}” is not complete yet",
+      "heading": "Not complete yet",
+      "body": "{client} says “{project}” is not finished. What is missing:",
+      "cta": "Open the project",
+      "next": "The project stays Completed. Move it back to In progress if more work is needed; the client can confirm completion once it is done."
+    },
+    "clientReview": {
+      "subject": "{client} reviewed “{project}” ({score}/5)",
+      "heading": "New client review",
+      "body": "{client} submitted their review of “{project}”.",
+      "overall": "Overall {score}/5",
+      "recommend": "Recommend {score}/10",
+      "portalEase": "Portal ease {score}/5",
+      "cta": "Read the review"
     }
   }
 }

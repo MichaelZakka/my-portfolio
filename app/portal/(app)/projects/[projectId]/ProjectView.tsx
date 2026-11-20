@@ -15,6 +15,8 @@ import {
 } from '../../../../lib/portal/queries';
 import { getClientReadState, getClientStamps } from '../../../../lib/portal/messages';
 import { getTaskComments, presentTaskComments } from '../../../../lib/portal/taskComments';
+import { getClientCompletionState } from '../../../../lib/portal/completion';
+import CompletionCard from './CompletionCard';
 import ProgressBar from '../../../_components/ProgressBar';
 import { ActivitySection, FilesSection, LiveProvider, MessagesSection } from './LiveSections';
 import { MeetingsSection } from './MeetingsSection';
@@ -49,7 +51,7 @@ type ProjectViewProps = {
 export default async function ProjectView({ projectId, tab, viewer, preview = false }: ProjectViewProps) {
   // Only a signed-in client's own screen is live (polls, marks messages read); the preview is a snapshot.
   const live = !preview && viewer.id !== null;
-  const [project, messagePage, files, activity, meetings, comments, labels, readState, stamps] = await Promise.all([
+  const [project, messagePage, files, activity, meetings, comments, labels, readState, stamps, completion] = await Promise.all([
     getClientProjectDetail(projectId),
     getMessagePage(projectId, { clientView: true }),
     getProjectFiles(projectId, { clientView: true }),
@@ -59,6 +61,7 @@ export default async function ProjectView({ projectId, tab, viewer, preview = fa
     getPortalTranslations('portal'),
     viewer.id ? getClientReadState(projectId, viewer.id) : null,
     live && viewer.id ? getClientStamps(projectId, viewer.id) : null,
+    getClientCompletionState(projectId, viewer.id),
   ]);
   if (!project) notFound();
   const upload = {
@@ -201,6 +204,8 @@ export default async function ProjectView({ projectId, tab, viewer, preview = fa
           <p className={`${styles.alert} ${styles.alertInfo}`}>{t('project.archivedNotice')}</p>
         )}
       </div>
+
+      {completion && <CompletionCard projectId={project.id} state={completion} preview={preview} />}
 
       <LiveProvider
         projectId={project.id}

@@ -98,7 +98,10 @@ export function parseProjectBrief(raw: unknown): ProjectBriefPayload | null {
 }
 
 export function validateProjectBrief(data: ProjectBriefPayload): string | null {
+  if (!data.projectTitle) return 'Project title is required.';
   if (!data.projectDescription) return 'Project description is required.';
+  if (!data.budget) return 'Budget range is required.';
+  if (!data.timeline) return 'Timeline is required.';
   if (!data.clientName) return 'Name is required.';
   if (!data.clientEmail) return 'Email is required.';
   if (!EMAIL_RE.test(data.clientEmail)) return 'Enter a valid email address.';
@@ -109,6 +112,11 @@ export function validateProjectBrief(data: ProjectBriefPayload): string | null {
   if (data.businessDomains.length === 0) return 'Select at least one business domain.';
   if (data.businessDomains.includes('Other') && !data.businessDomainOther) {
     return 'Please specify the domain.';
+  }
+  if (!data.hasBrand) return 'Tell me whether you have an existing brand.';
+  if (data.hasBrand === 'Yes') {
+    if (!data.brandName) return 'Brand name is required.';
+    if (data.personalities.length === 0) return 'Select at least one brand personality.';
   }
   return null;
 }
