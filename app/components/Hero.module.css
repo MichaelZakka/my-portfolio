@@ -193,6 +193,10 @@
   gap: var(--s-3);
 }
 
+.hireCta {
+  display: none;
+}
+
 /* Tech strip styled as a tiny terminal window */
 .tech {
   margin-block-start: var(--s-7);
@@ -348,6 +352,19 @@
   .ctas,
   .social {
     justify-content: center;
+  }
+
+  /* "Work with me" leads on mobile; "View my work" steps down to outline */
+  .hireCta {
+    display: inline-flex;
+    flex: 1 1 100%;
+  }
+
+  .ctas .viewWork {
+    background: transparent;
+    color: #fff;
+    border-color: rgba(255, 255, 255, 0.3);
+    box-shadow: none;
   }
 
   .tech {

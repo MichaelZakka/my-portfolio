@@ -1,7 +1,7 @@
 // Prisma schema for the portfolio admin dashboard and client portal.
 //
 // Production runs on Supabase Postgres, connected through its poolers — see
-// "Client portal in production" in DEPLOYMENT.md. New tables must enable row-level
+// docs/developer/deployment.md and docs/developer/data-model.md. New tables must enable row-level
 // security in their migration (see 20261109000000_enable_rls). Array-like fields
 // (projectTypes, personalities, etc.) are intentionally stored as JSON-text
 // strings, and enum-like fields as plain strings validated in app code.

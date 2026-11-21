@@ -1,6 +1,7 @@
 import { getLocale, getTranslations } from 'next-intl/server';
 import styles from './Strengths.module.css';
 import Reveal from './motion/Reveal';
+import SectionCta from './SectionCta';
 import { getPortfolio } from '../lib/content/portfolio';
 import { STRENGTH_ICON_COMPONENTS } from '../lib/content/icons';
 
@@ -11,7 +12,7 @@ export default async function Strengths() {
   return (
     <section id="strengths" className="section" aria-labelledby="strengths-title">
       <div className="container">
-        <Reveal className="section-head center">
+        <Reveal className="section-head">
           <p className="eyebrow" data-index="02">{t('eyebrow')}</p>
           <h2 id="strengths-title" className="section-title">
             {t('title')}
@@ -32,6 +33,7 @@ export default async function Strengths() {
             );
           })}
         </ul>
+        <SectionCta text={t('ctaText')} button={t('ctaButton')} label="strengths-work-with-me" />
       </div>
     </section>
   );

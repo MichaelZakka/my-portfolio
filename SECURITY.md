@@ -25,8 +25,8 @@ publicly, and tell me if you would like to be credited.
 
 ## Scope
 
-In scope: the live site and this code, including `/admin`, `/portal` and the
-`/api` routes.
+In scope: the live site and this code, including the admin dashboard, `/portal`
+and the `/api` routes.
 
 Out of scope: denial-of-service and volume testing, spam or social engineering,
 reports from automated scanners with no demonstrated impact, and vulnerabilities

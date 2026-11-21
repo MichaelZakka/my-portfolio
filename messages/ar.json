@@ -45,7 +45,8 @@
     "downloadResume": "تحميل السيرة الذاتية",
     "github": "الملف الشخصي على GitHub",
     "linkedin": "الملف الشخصي على LinkedIn",
-    "stackLabel": "التقنيات التي أعمل بها"
+    "stackLabel": "التقنيات التي أعمل بها",
+    "portraitAlt": "صورة ميشيل زكا"
   },
   "about": {
     "eyebrow": "نبذة عني",
@@ -61,7 +62,9 @@
   },
   "strengths": {
     "eyebrow": "نقاط القوة",
-    "title": "ما أقدّمه للفريق"
+    "title": "ما أقدّمه للفريق",
+    "ctaText": "تريد هذه النقاط في مشروعك؟",
+    "ctaButton": "اعمل معي"
   },
   "projects": {
     "eyebrow": "مشاريع مختارة",
@@ -75,7 +78,10 @@
     "code": "الكود",
     "liveLabel": "موقع {title} المباشر",
     "codeLabel": "كود {title} على GitHub",
-    "private": "كود العميل خاص"
+    "private": "كود العميل خاص",
+    "ctaText": "لديك مشروع مشابه في ذهنك؟",
+    "ctaSubtext": "أخبرني بما تعمل عليه، بالعربية أو الإنجليزية أو كليهما، وسأرد عليك بالخطوات التالية.",
+    "ctaButton": "اعمل معي"
   },
   "caseStudy": {
     "metaTitle": "دراسة حالة: {title}",

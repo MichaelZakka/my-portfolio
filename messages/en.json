@@ -44,7 +44,8 @@
     "downloadResume": "Download Resume",
     "github": "GitHub profile",
     "linkedin": "LinkedIn profile",
-    "stackLabel": "Tech I work with"
+    "stackLabel": "Tech I work with",
+    "portraitAlt": "Portrait of Michael Zakka"
   },
   "about": {
     "eyebrow": "About Me",
@@ -60,7 +61,9 @@
   },
   "strengths": {
     "eyebrow": "Strengths",
-    "title": "What I bring to a team"
+    "title": "What I bring to a team",
+    "ctaText": "Want these strengths on your project?",
+    "ctaButton": "Work with me"
   },
   "projects": {
     "eyebrow": "Featured Projects",
@@ -74,7 +77,10 @@
     "code": "Code",
     "liveLabel": "{title} live site",
     "codeLabel": "{title} source on GitHub",
-    "private": "Client code private"
+    "private": "Client code private",
+    "ctaText": "Have a project like these in mind?",
+    "ctaSubtext": "Tell me what you're building, in Arabic, English or both, and I'll reply with next steps.",
+    "ctaButton": "Work with me"
   },
   "caseStudy": {
     "metaTitle": "{title} case study",

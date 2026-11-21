@@ -4,6 +4,7 @@ import { ArrowUpRight } from 'lucide-react';
 import styles from './Projects.module.css';
 import Reveal from './motion/Reveal';
 import ProjectLinks from './ProjectLinks';
+import ProjectsCta from './ProjectsCta';
 import { isTodo, showValue } from '../../data/todo';
 import { Link } from '../../i18n/navigation';
 import { getPortfolio } from '../lib/content/portfolio';
@@ -88,6 +89,10 @@ export default async function Projects() {
             );
           })}
         </ul>
+
+        <Reveal>
+          <ProjectsCta />
+        </Reveal>
       </div>
     </section>
   );
